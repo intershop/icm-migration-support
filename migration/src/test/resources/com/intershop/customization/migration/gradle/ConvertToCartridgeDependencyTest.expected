@@ -1,0 +1,132 @@
+plugins {
+    id 'com.intershop.gradle.cartridge-resourcelist'
+    id 'com.intershop.gradle.isml'
+    id 'com.intershop.icm.cartridge.external'
+    id 'com.intershop.icm.cartridge.product'
+    id 'java'
+}
+
+description = 'Application - Responsive Starter Store'
+
+
+task lessCompile {
+    ext.srcFile = file('staticfiles/cartridge/static/default/less/theme.less')
+    ext.destFile = file('staticfiles/cartridge/static/default/css/theme.css')
+    doLast {
+        destFile.parentFile.mkdirs()
+
+        def lessCompiler = new org.lesscss.LessCompiler()
+        lessCompiler.compress = true
+        lessCompiler.compile(srcFile, destFile)
+    }
+}
+
+
+tasks.compileJava.dependsOn(tasks.lessCompile)
+
+clean.doFirst {
+    delete file('staticfiles/cartridge/static/default/css/theme.css')
+}
+
+tasks.test.dependsOn(tasks.isml)
+
+// TODO please validate that cartridges have "cartridge" as dependency declaration instead of "implementation".
+dependencies {
+    cartridge 'com.intershop.business:ac_cxml'
+    cartridge 'com.intershop.business:ac_gtm_sf'
+    cartridge 'com.intershop.business:ac_giftcard_std'
+    cartridge 'com.intershop.business:ac_payment_std'
+    cartridge 'com.intershop.business:bc_abtest'
+    cartridge 'com.intershop.business:bc_addresscheck'
+    cartridge 'com.intershop.business:bc_basket'
+    cartridge 'com.intershop.business:bc_catalog'
+    cartridge 'com.intershop.business:bc_catalog_orm'
+    cartridge 'com.intershop.business:bc_customer'
+    cartridge 'com.intershop.business:bc_customer_orm'
+    cartridge 'com.intershop.business:bc_giftcard'
+    cartridge 'com.intershop.business:bc_image'
+    cartridge 'com.intershop.business:bc_marketing'
+    cartridge 'com.intershop.business:bc_mvc'
+    cartridge 'com.intershop.business:bc_order'
+    cartridge 'com.intershop.business:bc_orderprocess'
+    cartridge 'com.intershop.business:bc_payment'
+    cartridge 'com.intershop.business:bc_pricing'
+    cartridge 'com.intershop.business:bc_product'
+    cartridge 'com.intershop.business:bc_product_orm'
+    cartridge 'com.intershop.business:bc_product_pricing'
+    cartridge 'com.intershop.business:bc_productbinding'
+    cartridge 'com.intershop.business:bc_promotion'
+    cartridge 'com.intershop.business:bc_rating'
+    cartridge 'com.intershop.business:bc_requisition'
+    cartridge 'com.intershop.business:bc_search'
+    cartridge 'com.intershop.business:bc_shipping'
+    cartridge 'com.intershop.business:bc_tendering'
+    cartridge 'com.intershop.business:bc_warranty'
+    cartridge 'com.intershop.business:bc_wishlist'
+    cartridge 'com.intershop.business:bc_wishlist_orm'
+    cartridge 'com.intershop.business:bts'
+    cartridge 'com.intershop.business:sld_ch_b2c_base'
+    cartridge 'com.intershop.business:sld_ch_b2c_image'
+    cartridge 'com.intershop.business:sld_ch_sf_base'
+    cartridge 'com.intershop.business:sld_mcm'
+    cartridge 'com.intershop.business:sld_pdf'
+    cartridge 'com.intershop.business:sld_pmc'
+    cartridge 'com.intershop.business:sld_preview'
+    cartridge 'com.intershop.business:xcs'
+    cartridge 'com.intershop.business:ac_inventory_service'
+    cartridge 'com.intershop.business:bc_basket_service'
+    cartridge 'com.intershop.content:bc_pmc'
+    cartridge 'com.intershop.content:bc_preview'
+    cartridge 'com.intershop.platform:ac_captcha_recaptcha'
+    cartridge 'com.intershop.platform:ac_ruleengine_drools'
+    cartridge 'com.intershop.platform:app'
+    cartridge 'com.intershop.platform:bc_address'
+    cartridge 'com.intershop.platform:bc_application'
+    cartridge 'com.intershop.platform:bc_captcha'
+    cartridge 'com.intershop.platform:bc_foundation'
+    cartridge 'com.intershop.platform:bc_i18n'
+    cartridge 'com.intershop.platform:bc_mail'
+    cartridge 'com.intershop.platform:bc_organization'
+    cartridge 'com.intershop.platform:bc_region'
+    cartridge 'com.intershop.platform:bc_repository'
+    cartridge 'com.intershop.platform:bc_service'
+    cartridge 'com.intershop.platform:bc_user'
+    cartridge 'com.intershop.platform:bc_user_orm'
+    cartridge 'com.intershop.platform:businessobject'
+    cartridge 'com.intershop.platform:cache'
+    cartridge 'com.intershop.platform:component'
+    cartridge 'com.intershop.platform:configuration'
+    cartridge 'com.intershop.platform:core'
+    cartridge 'com.intershop.platform:emf'
+    cartridge 'com.intershop.platform:isml'
+    cartridge 'com.intershop.platform:orm'
+    cartridge 'com.intershop.platform:pf_extension'
+    cartridge 'com.intershop.platform:pf_property'
+    cartridge 'com.intershop.platform:pipeline'
+    cartridge 'com.intershop.platform:servletengine'
+    cartridge 'com.intershop.platform:ui_web_library'
+    cartridge 'com.intershop.platform:rest'
+    implementation 'com.intershop:api_service'
+
+    implementation 'commons-collections:commons-collections'
+    implementation 'commons-lang:commons-lang'
+    implementation 'com.google.guava:guava'
+
+    implementation 'org.apache.commons:commons-lang3'
+
+    implementation 'org.eclipse.emf:org.eclipse.emf.common'
+    implementation 'org.eclipse.emf:org.eclipse.emf.ecore'
+
+    cartridgeRuntime 'com.intershop.business:app_sf_rest_b2c'
+
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'junit:junit'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.vintage:junit-vintage-engine'
+    testImplementation 'org.junit.platform:junit-platform-runner'
+    testImplementation 'com.intershop.platform:pf_core_test'
+
+}

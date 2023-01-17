@@ -1,0 +1,28 @@
+plugins {
+    id "java"
+}
+
+description = "Migration Project"
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+}
+
+dependencies {
+    implementation 'com.intershop.platform:core'
+    implementation 'io.github.classgraph:classgraph'
+
+    implementation("org.slf4j:slf4j-api")
+    implementation('org.yaml:snakeyaml')
+    // implementation(platform("org.openrewrite.recipe:rewrite-recipe-bom:1.13.1"))
+    // implementation("org.openrewrite:rewrite-java")
+    // runtimeOnly("org.openrewrite:rewrite-java-11")
+    testImplementation ('org.junit.jupiter:junit-jupiter') {
+        exclude group:'junit', module:'junit'
+    }
+    testImplementation ('org.junit.platform:junit-platform-runner') {
+        exclude group:'junit', module:'junit'
+    }
+}

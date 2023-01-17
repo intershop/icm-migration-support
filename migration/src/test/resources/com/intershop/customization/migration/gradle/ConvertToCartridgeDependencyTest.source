@@ -1,0 +1,132 @@
+plugins {
+    id 'com.intershop.gradle.cartridge-resourcelist'
+    id 'com.intershop.gradle.isml'
+    id 'com.intershop.icm.cartridge.external'
+    id 'com.intershop.icm.cartridge.product'
+    id 'java'
+}
+
+description = 'Application - Responsive Starter Store'
+
+
+task lessCompile {
+    ext.srcFile = file('staticfiles/cartridge/static/default/less/theme.less')
+    ext.destFile = file('staticfiles/cartridge/static/default/css/theme.css')
+    doLast {
+        destFile.parentFile.mkdirs()
+
+        def lessCompiler = new org.lesscss.LessCompiler()
+        lessCompiler.compress = true
+        lessCompiler.compile(srcFile, destFile)
+    }
+}
+
+
+tasks.compileJava.dependsOn(tasks.lessCompile)
+
+clean.doFirst {
+    delete file('staticfiles/cartridge/static/default/css/theme.css')
+}
+
+tasks.test.dependsOn(tasks.isml)
+
+// TODO please validate that cartridges have "cartridge" as dependency declaration instead of "implementation".
+dependencies {
+    implementation 'com.intershop.business:ac_cxml'
+    implementation 'com.intershop.business:ac_gtm_sf'
+    implementation 'com.intershop.business:ac_giftcard_std'
+    implementation 'com.intershop.business:ac_payment_std'
+    implementation 'com.intershop.business:bc_abtest'
+    implementation 'com.intershop.business:bc_addresscheck'
+    implementation 'com.intershop.business:bc_basket'
+    implementation 'com.intershop.business:bc_catalog'
+    implementation 'com.intershop.business:bc_catalog_orm'
+    implementation 'com.intershop.business:bc_customer'
+    implementation 'com.intershop.business:bc_customer_orm'
+    implementation 'com.intershop.business:bc_giftcard'
+    implementation 'com.intershop.business:bc_image'
+    implementation 'com.intershop.business:bc_marketing'
+    implementation 'com.intershop.business:bc_mvc'
+    implementation 'com.intershop.business:bc_order'
+    implementation 'com.intershop.business:bc_orderprocess'
+    implementation 'com.intershop.business:bc_payment'
+    implementation 'com.intershop.business:bc_pricing'
+    implementation 'com.intershop.business:bc_product'
+    implementation 'com.intershop.business:bc_product_orm'
+    implementation 'com.intershop.business:bc_product_pricing'
+    implementation 'com.intershop.business:bc_productbinding'
+    implementation 'com.intershop.business:bc_promotion'
+    implementation 'com.intershop.business:bc_rating'
+    implementation 'com.intershop.business:bc_requisition'
+    implementation 'com.intershop.business:bc_search'
+    implementation 'com.intershop.business:bc_shipping'
+    implementation 'com.intershop.business:bc_tendering'
+    implementation 'com.intershop.business:bc_warranty'
+    implementation 'com.intershop.business:bc_wishlist'
+    implementation 'com.intershop.business:bc_wishlist_orm'
+    implementation 'com.intershop.business:bts'
+    implementation 'com.intershop.business:sld_ch_b2c_base'
+    implementation 'com.intershop.business:sld_ch_b2c_image'
+    implementation 'com.intershop.business:sld_ch_sf_base'
+    implementation 'com.intershop.business:sld_mcm'
+    implementation 'com.intershop.business:sld_pdf'
+    implementation 'com.intershop.business:sld_pmc'
+    implementation 'com.intershop.business:sld_preview'
+    implementation 'com.intershop.business:xcs'
+    implementation 'com.intershop.business:ac_inventory_service'
+    implementation 'com.intershop.business:bc_basket_service'
+    implementation 'com.intershop.content:bc_pmc'
+    implementation 'com.intershop.content:bc_preview'
+    implementation 'com.intershop.platform:ac_captcha_recaptcha'
+    implementation 'com.intershop.platform:ac_ruleengine_drools'
+    implementation 'com.intershop.platform:app'
+    implementation 'com.intershop.platform:bc_address'
+    implementation 'com.intershop.platform:bc_application'
+    implementation 'com.intershop.platform:bc_captcha'
+    implementation 'com.intershop.platform:bc_foundation'
+    implementation 'com.intershop.platform:bc_i18n'
+    implementation 'com.intershop.platform:bc_mail'
+    implementation 'com.intershop.platform:bc_organization'
+    implementation 'com.intershop.platform:bc_region'
+    implementation 'com.intershop.platform:bc_repository'
+    implementation 'com.intershop.platform:bc_service'
+    implementation 'com.intershop.platform:bc_user'
+    implementation 'com.intershop.platform:bc_user_orm'
+    implementation 'com.intershop.platform:businessobject'
+    implementation 'com.intershop.platform:cache'
+    implementation 'com.intershop.platform:component'
+    implementation 'com.intershop.platform:configuration'
+    implementation 'com.intershop.platform:core'
+    implementation 'com.intershop.platform:emf'
+    implementation 'com.intershop.platform:isml'
+    implementation 'com.intershop.platform:orm'
+    implementation 'com.intershop.platform:pf_extension'
+    implementation 'com.intershop.platform:pf_property'
+    implementation 'com.intershop.platform:pipeline'
+    implementation 'com.intershop.platform:servletengine'
+    implementation 'com.intershop.platform:ui_web_library'
+    implementation 'com.intershop.platform:rest'
+    implementation 'com.intershop:api_service'
+
+    implementation 'commons-collections:commons-collections'
+    implementation 'commons-lang:commons-lang'
+    implementation 'com.google.guava:guava'
+
+    implementation 'org.apache.commons:commons-lang3'
+
+    implementation 'org.eclipse.emf:org.eclipse.emf.common'
+    implementation 'org.eclipse.emf:org.eclipse.emf.ecore'
+
+    runtimeOnly 'com.intershop.business:app_sf_rest_b2c'
+
+    testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.hamcrest:hamcrest-core'
+    testImplementation 'org.hamcrest:hamcrest-library'
+    testImplementation 'junit:junit'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'org.junit.vintage:junit-vintage-engine'
+    testImplementation 'org.junit.platform:junit-platform-runner'
+    testImplementation 'com.intershop.platform:pf_core_test'
+
+}

@@ -1,0 +1,30 @@
+plugins {
+    id 'java-platform'
+}
+
+group = rootProject.group
+
+dependencies {
+    constraints {
+        // logging
+        api "ch.qos.logback:logback-classic:1.2.11"
+        api "ch.qos.logback:logback-core:1.2.11"
+        // artifact mover
+        api 'com.intershop.platform:core:11.0.10'
+        // yaml import
+		api 'org.yaml:snakeyaml:1.33'
+        // load resources
+		api 'io.github.classgraph:classgraph:4.8.154'
+        api 'org.slf4j:slf4j-api:1.7.36'
+    }
+}
+
+def depConstraints = project.dependencies.constraints
+
+rootProject.subprojects { subprj ->
+    depConstraints.add("api", subprj)
+}
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}

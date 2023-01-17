@@ -1,0 +1,133 @@
+apply plugin: 'java-cartridge'
+apply plugin: 'static-cartridge'
+apply plugin: 'com.intershop.gradle.cartridge-resourcelist'
+apply plugin: 'com.intershop.gradle.isml'
+
+task lessCompile {
+    ext.srcFile = file('staticfiles/cartridge/static/default/less/theme.less')
+    ext.destFile = file('staticfiles/cartridge/static/default/css/theme.css')
+    doLast {
+        destFile.parentFile.mkdirs()
+
+        def lessCompiler = new org.lesscss.LessCompiler()
+        lessCompiler.compress = true
+        lessCompiler.compile(srcFile, destFile)
+    }
+}
+
+intershop {
+    displayName = 'Application - Responsive Starter Store'
+
+    //add output of the plugin the cartridge package
+    packages {
+        cartridge {
+            srcDir(isml2classMain)
+        }
+    }
+}
+
+zipCartridge.dependsOn lessCompile
+
+clean.doFirst {
+    delete file('staticfiles/cartridge/static/default/css/theme.css')
+}
+
+dependencies {
+    compile group: 'com.intershop.business', name: 'ac_cxml'
+    compile group: 'com.intershop.business', name: 'ac_gtm_sf'
+    compile group: 'com.intershop.business', name: 'ac_giftcard_std'
+    compile group: 'com.intershop.business', name: 'ac_payment_std'
+    compile group: 'com.intershop.business', name: 'bc_abtest'
+    compile group: 'com.intershop.business', name: 'bc_addresscheck'
+    compile group: 'com.intershop.business', name: 'bc_basket'
+    compile group: 'com.intershop.business', name: 'bc_catalog'
+    compile group: 'com.intershop.business', name: 'bc_catalog_orm'
+    compile group: 'com.intershop.business', name: 'bc_customer'
+    compile group: 'com.intershop.business', name: 'bc_customer_orm'
+    compile group: 'com.intershop.business', name: 'bc_giftcard'
+    compile group: 'com.intershop.business', name: 'bc_image'
+    compile group: 'com.intershop.business', name: 'bc_marketing'
+    compile group: 'com.intershop.business', name: 'bc_mvc'
+    compile group: 'com.intershop.business', name: 'bc_order'
+    compile group: 'com.intershop.business', name: 'bc_orderprocess'
+    compile group: 'com.intershop.business', name: 'bc_payment'
+    compile group: 'com.intershop.business', name: 'bc_pricing'
+    compile group: 'com.intershop.business', name: 'bc_product'
+    compile group: 'com.intershop.business', name: 'bc_product_orm'
+    compile group: 'com.intershop.business', name: 'bc_product_pricing'
+    compile group: 'com.intershop.business', name: 'bc_productbinding'
+    compile group: 'com.intershop.business', name: 'bc_promotion'
+    compile group: 'com.intershop.business', name: 'bc_rating'
+    compile group: 'com.intershop.business', name: 'bc_requisition'
+    compile group: 'com.intershop.business', name: 'bc_search'
+    compile group: 'com.intershop.business', name: 'bc_shipping'
+    compile group: 'com.intershop.business', name: 'bc_tendering'
+    compile group: 'com.intershop.business', name: 'bc_warranty'
+    compile group: 'com.intershop.business', name: 'bc_wishlist'
+    compile group: 'com.intershop.business', name: 'bc_wishlist_orm'
+    compile group: 'com.intershop.business', name: 'bts'
+    compile group: 'com.intershop.business', name: 'sld_ch_b2c_base'
+    compile group: 'com.intershop.business', name: 'sld_ch_b2c_image'
+    compile group: 'com.intershop.business', name: 'sld_ch_sf_base'
+    compile group: 'com.intershop.business', name: 'sld_mcm'
+    compile group: 'com.intershop.business', name: 'sld_pdf'
+    compile group: 'com.intershop.business', name: 'sld_pmc'
+    compile group: 'com.intershop.business', name: 'sld_preview'
+    compile group: 'com.intershop.business', name: 'xcs'
+    compile group: 'com.intershop.business', name: 'ac_inventory_service'
+    compile group: 'com.intershop.business', name: 'bc_basket_service'
+    compile group: 'com.intershop.content', name: 'bc_pmc'
+    compile group: 'com.intershop.content', name: 'bc_preview'
+    compile group: 'com.intershop.platform', name: 'ac_captcha_recaptcha'
+    compile group: 'com.intershop.platform', name: 'ac_ruleengine_drools'
+    compile group: 'com.intershop.platform', name: 'app'
+    compile group: 'com.intershop.platform', name: 'bc_address'
+    compile group: 'com.intershop.platform', name: 'bc_application'
+    compile group: 'com.intershop.platform', name: 'bc_captcha'
+    compile group: 'com.intershop.platform', name: 'bc_foundation'
+    compile group: 'com.intershop.platform', name: 'bc_i18n'
+    compile group: 'com.intershop.platform', name: 'bc_mail'
+    compile group: 'com.intershop.platform', name: 'bc_organization'
+    compile group: 'com.intershop.platform', name: 'bc_region'
+    compile group: 'com.intershop.platform', name: 'bc_repository'
+    compile group: 'com.intershop.platform', name: 'bc_service'
+    compile group: 'com.intershop.platform', name: 'bc_user'
+    compile group: 'com.intershop.platform', name: 'bc_user_orm'
+    compile group: 'com.intershop.platform', name: 'businessobject'
+    compile group: 'com.intershop.platform', name: 'cache'
+    compile group: 'com.intershop.platform', name: 'component'
+    compile group: 'com.intershop.platform', name: 'configuration'
+    compile group: 'com.intershop.platform', name: 'core'
+    compile group: 'com.intershop.platform', name: 'emf'
+    compile group: 'com.intershop.platform', name: 'isml'
+    compile group: 'com.intershop.platform', name: 'orm'
+    compile group: 'com.intershop.platform', name: 'pf_extension'
+    compile group: 'com.intershop.platform', name: 'pf_property'
+    compile group: 'com.intershop.platform', name: 'pipeline'
+    compile group: 'com.intershop.platform', name: 'servletengine'
+    compile group: 'com.intershop.platform', name: 'ui_web_library'
+    compile group: 'com.intershop.platform', name: 'rest'
+    compile group: 'com.intershop', name: 'api_service'
+	
+    compile 'commons-collections:commons-collections'
+    compile 'commons-lang:commons-lang'
+    compile 'com.google.guava:guava'
+
+    compile 'org.apache.commons:commons-lang3'
+	
+	compile 'org.eclipse.emf:org.eclipse.emf.common'
+    compile 'org.eclipse.emf:org.eclipse.emf.ecore'
+
+    runtime group: 'com.intershop.business', name: 'app_sf_rest_b2c'
+
+    testCompile 'org.mockito:mockito-core'
+    testCompile 'org.hamcrest:hamcrest-core'
+    testCompile 'org.hamcrest:hamcrest-library'
+    testCompile 'junit:junit'
+	testCompile 'org.junit.jupiter:junit-jupiter'
+    testCompile 'org.junit.jupiter:junit-jupiter-api'
+    testCompile 'org.junit.vintage:junit-vintage-engine'
+	testCompile 'org.junit.platform:junit-platform-runner'
+    testCompile group: 'com.intershop.platform', name: 'pf_core_test'
+
+}
