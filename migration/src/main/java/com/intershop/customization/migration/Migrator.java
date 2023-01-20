@@ -27,7 +27,7 @@ public class Migrator
             }
             else if ("projects".equals(args[POS_TASK]))
             {
-                migrateProjects(new File(args[POS_PATH]));
+                migrateProjects(new File(args[POS_PATH]), new File(args[POS_STEPS]));
             }
         }
         else
@@ -40,10 +40,26 @@ public class Migrator
     /**
      * Migrate on root project
      * @param projectDir
+     * @param migrationStepFolder 
      */
-    private static void migrateProjects(File projectDir)
+    private static void migrateProjects(File projectDir, File migrationStepFolder)
     {
-        // TODO traverse directories with build.gradle files
+        File[] files = projectDir.listFiles();
+        if (files == null)
+        {
+            System.err.printf("Project directory not found %f.", projectDir.toString());
+            System.exit(1);
+        }
+        for(File fileOrDir: files)
+        {
+            if (fileOrDir.isDirectory() && (new File(fileOrDir, "build.gradle")).exists())
+            {
+                if (!fileOrDir.getName().startsWith("."))
+                {
+                    migrateProject(fileOrDir, migrationStepFolder);
+                }
+            }
+        }
     }
 
     /**

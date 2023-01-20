@@ -1,0 +1,5 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.gradle.RemovedDependency
+options:
+  dependencies:
+  - com.intershop.business:ac_inventory_service

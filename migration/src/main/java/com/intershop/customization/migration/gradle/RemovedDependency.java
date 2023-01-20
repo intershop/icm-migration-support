@@ -13,20 +13,15 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.Position;
 
-public class ConvertToCartridgeDependency implements MigrationPreparer
+public class RemovedDependency implements MigrationPreparer
 {
+    private static final String YAML_KEY_REMOVED_DEPENDENCIES = "dependencies";
     private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
-    public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
-    
-    private List<String> cartridgeDependencies = Collections.emptyList();
-    @Override
-    public void setStep(MigrationStep step)
-    {
-        this.cartridgeDependencies = step.getOption(YAML_KEY_CARTRIDGE_DEPENDENCY);
-    }
-    
+
+    private List<String> removedDependencies = Collections.emptyList();
+
     @Override
     public void migrate(Path projectDir)
     {
@@ -35,6 +30,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         {
             List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
             Files.write(buildGradle, migrate(lines).getBytes(CHARSET_BUILD_GRADLE));
+            LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
         }
         catch(IOException e)
         {
@@ -42,9 +38,10 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
     }
 
-    public void setOptions(MigrationStep step)
+    @Override
+    public void setStep(MigrationStep step)
     {
-        
+        this.removedDependencies = step.getOption(YAML_KEY_REMOVED_DEPENDENCIES);
     }
     /**
      * go step by step through migration steps to fix gradle build
@@ -73,7 +70,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
      */
     List<String> convertDependencyLines(List<String> lines)
     {
-        return lines.stream().map(this::convertDependencyLine).toList();
+        return lines.stream().map(this::convertDependencyLine).filter(s -> !"(removed)".equals(s)).toList();
     }
 
     /**
@@ -94,11 +91,9 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
         // convert to standard gradle configurations
         String converted = depLine;
-        if (parts[0].contains("project(") || cartridgeDependencies.stream().filter(parts[1]::startsWith).findAny().isPresent())
+        if (removedDependencies.contains(parts[1]))
         {
-            converted = converted
-                            .replace("implementation", "cartridge")
-                            .replace("runtimeOnly", "cartridgeRuntime");
+            converted = "(removed)";
         }
         return converted;
     }

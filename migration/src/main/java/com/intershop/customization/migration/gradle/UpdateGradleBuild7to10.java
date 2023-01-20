@@ -1,22 +1,24 @@
 package com.intershop.customization.migration.gradle;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.Position;
 
-public class UpdateGradleBuild7to10
+public class UpdateGradleBuild7to10 implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
@@ -36,17 +38,35 @@ public class UpdateGradleBuild7to10
                 );
 
     /**
-     * Local execution to convert one single build.gradle
-     * 
-     * @param args
-     *            <li>fileName - path to project directory, which contains build.gradle</li>
+     * Plugins can be removed
      */
-    public static void main(String[] args)
-    {
-        UpdateGradleBuild7to10 migrator = new UpdateGradleBuild7to10();
-        migrator.migrate(new File(args[0]).toPath());
-    }
+    private static final List<String> PLUGIN_REMOVED = Arrays.asList("static-cartridge");
 
+    /**
+     * Plugins mapped
+     */
+    private static final Map<String, String> PLUGIN_MAP = Map.of(
+                    "java-cartridge", "java",
+                    "javabase-cartridge", "java",
+                    "java-component", "java",
+                    "ish-assembly", "java",
+                    "ish-assembly-branding", "java"
+                    );
+    /**
+     * Plugins leave at it is
+     */
+    private static final List<String> PLUGIN_UNTOUCHED = Arrays.asList(
+                    "com.intershop.gradle.cartridge-resourcelist",
+                    "com.intershop.gradle.isml");
+    /**
+     * Plugins added/replaced
+     */
+    private static final Map<String, List<String>> PLUGIN_ADDED = Map.of(
+                    "java-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
+                    "javabase-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
+                    "static-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
+                    "test-cartridge", Arrays.asList("com.intershop.icm.cartridge.test", "java")
+                    );
     public void migrate(Path projectDir)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
@@ -151,7 +171,7 @@ public class UpdateGradleBuild7to10
         int pos = 0;
         for (String line : lines)
         {
-            LOGGER.debug("d:{} {} Line: {}", pos++, step, line);
+            LOGGER.trace("d:{} {} Line: {}", pos++, step, line);
         }
     }
 
@@ -185,13 +205,24 @@ public class UpdateGradleBuild7to10
      */
     private String migrateDependencies(List<String> lines)
     {
-        StringBuilder b = new StringBuilder();
-        b = b.append("// TODO please validate that cartridges have \"cartridge\" as dependency declaration instead of \"implementation\".").append(LINE_SEP);
-        b = b.append(lines.get(0)).append(LINE_SEP);
-        convertDependencies(lines.subList(1, lines.size() - 1));
-        for (int i = 1; i < lines.size() - 1; i++)
+        if (lines.isEmpty())
         {
-            String converted = convertDependencyLine(lines.get(i));
+            return "";
+        }
+        StringBuilder b = new StringBuilder();
+        b = b.append(lines.get(0)).append(LINE_SEP);
+        int start = 1;
+        while(lines.get(start).trim().isEmpty() || lines.get(start).trim().equals("{"))
+        {
+            if (!lines.get(start).trim().isEmpty())
+            {
+                b = b.append(lines.get(start).trim()).append(LINE_SEP);
+            }
+            start++;
+        }
+        for (int i = start; i < lines.size() - 1; i++)
+        {
+            String converted = convertDependencyLine(lines.get(i)).trim();
             if (!converted.isEmpty())
             {
                 b = b.append("    ").append(converted);
@@ -224,14 +255,23 @@ public class UpdateGradleBuild7to10
         // convert to standard gradle configurations
         String converted = depLine.replace("compile", "implementation")
                                   .replace("runtime", "runtimeOnly")
+                                  .replace("runtimeOnlyOnly", "runtimeOnly")
                                   .replace("testCompile", "testImplementation")
                                   .replace("testRuntime", "testRuntimeOnly")
+                                  .replace("testRuntimeOnlyOnly", "testRuntimeOnly")
                                   .trim();
-        if (converted.contains("group:"))
+        if (converted.contains("group:") && !converted.contains("exclude group:"))
         {
             String[] partsImpl = converted.split("group:");
             String[] partsDep = converted.split("'");
-            converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'";
+            if (partsDep.length > 3)
+            {
+                converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'";
+            }
+            else
+            {
+                LoggerFactory.getLogger(getClass()).warn("Can't convert group dependency '{}'", depLine);
+            }
         }
         return converted.trim();
     }
@@ -261,6 +301,10 @@ public class UpdateGradleBuild7to10
      */
     private String joinPlugins(List<String> plugins)
     {
+        if (plugins.isEmpty())
+        {
+            return "";
+        }
         StringBuilder b = new StringBuilder();
         b = b.append("plugins {").append(LINE_SEP);
         for (String plugin : plugins)
@@ -271,29 +315,6 @@ public class UpdateGradleBuild7to10
         return b.toString();
     }
 
-    /**
-     * Plugins can be removed
-     */
-    private static final List<String> PLUGIN_REMOVED = Arrays.asList("static-cartridge");
-
-    /**
-     * Plugins mapped
-     */
-    private static final Map<String, String> PLUGIN_MAP = Map.of("java-cartridge", "java");
-    /**
-     * Plugins leave at it is
-     */
-    private static final List<String> PLUGIN_UNTOUCHED = Arrays.asList(
-                    "com.intershop.gradle.cartridge-resourcelist",
-                    "com.intershop.gradle.isml");
-    /**
-     * Plugins added/replaced
-     */
-    private static final Map<String, List<String>> PLUGIN_ADDED = Map.of(
-                    "java-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "com.intershop.icm.cartridge.external"
-                                    )
-                    );
-
     List<String> mapPluginLines(List<String> lines)
     {
         return mapPlugins(lines.stream().map(this::extractPluginFromLine).toList());
@@ -301,7 +322,7 @@ public class UpdateGradleBuild7to10
 
     List<String> mapPlugins(List<String> oldPlugins)
     {
-        List<String> result = new ArrayList<>();
+        Set<String> result = new HashSet<>();
         for (String existingPlugin : oldPlugins)
         {
             boolean processedPlugin = false;
@@ -331,8 +352,7 @@ public class UpdateGradleBuild7to10
                 LOGGER.warn("Unknow plugin '{}' was added.", existingPlugin);
             }
         }
-        result.sort((a, b) -> a.compareTo(b));
-        return result;
+        return result.stream().sorted().toList();
     }
 
     private String extractPluginFromLine(String line)

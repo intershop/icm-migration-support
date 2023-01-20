@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.LoggerFactory;
 
@@ -13,20 +14,15 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.Position;
 
-public class ConvertToCartridgeDependency implements MigrationPreparer
+public class RenamedDependency implements MigrationPreparer
 {
+    private static final String YAML_KEY_RENAMED_DEPENDENCY = "dependency-map";
     private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
-    public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
-    
-    private List<String> cartridgeDependencies = Collections.emptyList();
-    @Override
-    public void setStep(MigrationStep step)
-    {
-        this.cartridgeDependencies = step.getOption(YAML_KEY_CARTRIDGE_DEPENDENCY);
-    }
-    
+
+    private Map<String, String> renamedDependencies = Collections.emptyMap();
+
     @Override
     public void migrate(Path projectDir)
     {
@@ -35,6 +31,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         {
             List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
             Files.write(buildGradle, migrate(lines).getBytes(CHARSET_BUILD_GRADLE));
+            LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
         }
         catch(IOException e)
         {
@@ -42,9 +39,10 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
     }
 
-    public void setOptions(MigrationStep step)
+    @Override
+    public void setStep(MigrationStep step)
     {
-        
+        this.renamedDependencies = step.getOption(YAML_KEY_RENAMED_DEPENDENCY);
     }
     /**
      * go step by step through migration steps to fix gradle build
@@ -94,11 +92,9 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
         // convert to standard gradle configurations
         String converted = depLine;
-        if (parts[0].contains("project(") || cartridgeDependencies.stream().filter(parts[1]::startsWith).findAny().isPresent())
+        if (renamedDependencies.containsKey(parts[1]))
         {
-            converted = converted
-                            .replace("implementation", "cartridge")
-                            .replace("runtimeOnly", "cartridgeRuntime");
+            converted = converted.replace(parts[1], renamedDependencies.get(parts[1]));
         }
         return converted;
     }
