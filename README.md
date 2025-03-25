@@ -7,7 +7,12 @@ How to Work with the ICM Migration Helper
 - [Prerequisites](#prerequisites)
 - [Migration](#migration)
 
-## Prerequisites
+# Marker #
+
+- $ICM is a sympolic marker for the root directory of your ICM 7.10 project
+- $ICM_11 is a sympolic marker for the root directory of your ICM 11+ project (template)
+
+# Prerequisites
 
 Retrieve customization template and follow the prerequisites steps.
 
@@ -25,15 +30,18 @@ As result following files are created
 - ft_production directory defines the cartridge set of production
 - ft_test directory defines the test cartridge set for server tests (mostly test data)
 
-# Migration #
+## Prepare ICM11+ template
 
-- $ICM is a sympolic marker for the root directory of your ICM 7.10 project
+- go to your ICM11+ project
 - check that result of customization template is working
+- set marker
 
 ```
 gw compileTestJava
-export ICM_11_TEMPLATE="$PWD"
+export ICM_11="$PWD"
 ```
+
+## Prepare ICM11+ branch
 
 - create and checkout a feature branch on $ICM
 - copy result of customization template into $ICM
@@ -41,21 +49,32 @@ export ICM_11_TEMPLATE="$PWD"
 ```
 export ICM="$PWD"
 git checkout -b feature/migration-to-11
-cp $(ICM_11_TEMPLATE)/* $(ICM)/
+cp $(ICM_11)/* $(ICM)/
 ```
 
-## Migration via search and replace ##
+# Migration #
+
+## Migration all at once ##
+
+This command will execute all migration steps on all subprojects of the $ICM directory
+```
+gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8
+```
+
+## Migration step by step ##
 
 - run migration script (TODO build a gradle task)
 
 ```
-java com.intershop.customization.migration.Migrator projects $ICM_710 migration/src/main/resources/migration/001_migration_7.10-11.0.8
-java com.intershop.customization.migration.Migrator project $ICM_710/my_project my_migration_steps/buildGradle/001_cartridge
-gradlew migrate -Ptarget=$ICM_710 -Psteps=migration/src/main/resources/migration/001_migration_7.10-11.0.8
-gradlew migrate -Ptarget=$ICM_710 -Pstep=my_migration_steps/buildGradle/001_cartridge
+gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml
+gradlew migration:migrateOne -Ptask=projects -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml
 ```
 
-- add central defined libs to sub projects section, as in 7.10
+## Manual Migration steps ##
+
+### Global defined dependencies ###
+
+- add central defined libs to subprojects section, as in 7.10 or better at the dependencies to the subprojects as needed.
 
 ```
 subprojects {
@@ -78,7 +97,10 @@ subprojects {
             implementation ("org.apache.tomcat:tomcat-servlet-api")
 ...
 ```
-- TODO remove site tasks
+### Sites Folder Copy Tasks ###
+
+Remove site tasks from build.gradle files, like the following example.
+The content of sites folder will be prepared as dbprepare step.
 
 ```
 /*
@@ -89,22 +111,20 @@ task copySimpleSMBWhiteStore(type: Copy) {
     into "$projectDir/staticfiles/share/sites/inSPIRED-inTRONICS-Site/units/inSPIRED-inTRONICS-smb-responsive/impex/src/whitestore"
 }
 zipShare.dependsOn copySimpleSMBWhiteStore
-
 ```
 
-- TODO clear assembly projects
-
+Add the migration task to the dbinit.properties or desired migration-to-xxx.properties 
 ```
-plugins {
-    id 'java'
-}
-
-dependencies {
-}
+# Prepare sites-folder
+pre.Class0=com.intershop.site.dbinit.SiteContentPreparer
 ```
 
-- try to compile
+### Remove assembly projects ###
 
-```
-gradlew compileTestJava
-```
+Assembly projects are no longer needed. Just remove it.
+
+### Remove .version files ###
+
+Version numbers are declared inside the two subprojects "versions", "versions_test" for third party libraries.
+The ICM version and required customization/extension versions are managed in gradle.properties
+If a *.version file contains version declaration of specific dependencies, these must be transferred to versions projects.
