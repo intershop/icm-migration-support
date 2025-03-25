@@ -28,3 +28,21 @@ dependencies {
         exclude group:'junit', module:'junit'
     }
 }
+
+task migrateAll(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    mainClass = 'com.intershop.customization.migration.Migrator'
+
+    // arguments to pass to the application
+    args 'projects', project.properties['target'], project.properties['steps']
+}
+
+task migrateOne(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    mainClass = 'com.intershop.customization.migration.Migrator'
+
+    // arguments to pass to the application
+    args project.properties['task'], project.properties['target'], project.properties['steps']
+}
