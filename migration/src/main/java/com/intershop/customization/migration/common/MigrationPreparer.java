@@ -5,14 +5,13 @@ import java.nio.file.Path;
 public interface MigrationPreparer
 {
     /**
-     * @param resource
-     * @return
+     * @param resource contains information, what needs to be migrated
      */
     void migrate(Path resource);
 
     /**
      * Define options for migrator
-     * @param options
+     * @param step
      */
     default void setStep(MigrationStep step)
     {

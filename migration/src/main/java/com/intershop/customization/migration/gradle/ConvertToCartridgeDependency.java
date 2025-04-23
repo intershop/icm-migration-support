@@ -42,10 +42,6 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
     }
 
-    public void setOptions(MigrationStep step)
-    {
-        
-    }
     /**
      * go step by step through migration steps to fix gradle build
      * @param lines
@@ -77,7 +73,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     }
 
     /**
-     * @param lines original dependency line
+     * @param depLine original dependency line
      * @return converted line
      */
     private String convertDependencyLine(String depLine)

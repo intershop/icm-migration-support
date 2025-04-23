@@ -66,18 +66,7 @@ public class Position
         this.end = end;
     }
 
-    public int getLineSegmentBegins()
-    {
-        return begin;
-    }
-
-    public int getLineSegmentEnds()
-    {
-        return end;
-    }
-
     /**
-     * @param lines all lines
      * @return lines which are not included in position
      */
     public List<String> nonMatchingLines()
@@ -93,7 +82,6 @@ public class Position
     }
 
     /**
-     * @param lines all lines
      * @return lines which are included in position
      */
     public List<String> matchingLines()
