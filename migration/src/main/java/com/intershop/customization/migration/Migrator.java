@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 public class Migrator
 {
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
     private static final int POS_TASK = 0;
     private static final int POS_PATH = 1;
     private static final int POS_STEPS = 2;
@@ -21,30 +22,38 @@ public class Migrator
      */
     public static void main(String[] args)
     {
-        if (args.length == POS_STEPS + 1)
+        try
         {
-            File projectPath = new File(args[POS_PATH]);
-            if (!projectPath.exists() || !projectPath.isDirectory())
+            if (args.length == POS_STEPS + 1)
             {
-                LoggerFactory.getLogger(Migrator.class).error("Project path '{}' is not a directory.", projectPath);
+                File projectPath = new File(args[POS_PATH]);
+                if (!projectPath.exists() || !projectPath.isDirectory())
+                {
+                    LOGGER.error("Project path '{}' is not a directory.", projectPath);
+                    System.exit(1);
+                }
+                if ("project".equals(args[POS_TASK]))
+                {
+                    LOGGER.info("Convert project at {}.", projectPath);
+                    migrateProject(projectPath, new File(args[POS_STEPS]));
+                }
+                else if ("projects".equals(args[POS_TASK]))
+                {
+                    LOGGER.info("Convert projects at {}.", projectPath);
+                    migrateProjects(projectPath, new File(args[POS_STEPS]));
+                }
+            }
+            else
+            {
+                LOGGER.error("Missing parameter '{}'.", args.length);
                 System.exit(1);
             }
-            if ("project".equals(args[POS_TASK]))
-            {
-                LoggerFactory.getLogger(Migrator.class).info("Convert project at {}.", projectPath);
-                migrateProject(projectPath, new File(args[POS_STEPS]));
-            }
-            else if ("projects".equals(args[POS_TASK]))
-            {
-                LoggerFactory.getLogger(Migrator.class).info("Convert projects at {}.", projectPath);
-                migrateProjects(projectPath, new File(args[POS_STEPS]));
-            }
         }
-        else
+        catch(Exception e)
         {
-            System.err.printf("Missing parameter %d.", args.length );
+            LOGGER.error("Unexpected error during migration", e);
+            System.exit(1);
         }
-        return;
     }
 
     /**
@@ -57,8 +66,7 @@ public class Migrator
         File[] files = projectDir.listFiles();
         if (files == null)
         {
-            System.err.printf("Project directory not found %f.", projectDir.toString());
-            System.exit(1);
+            return;
         }
         for(File fileOrDir: files)
         {
