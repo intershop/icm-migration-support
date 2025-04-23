@@ -5,6 +5,8 @@ import java.io.File;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.MigrationStepFolder;
 
+import org.slf4j.LoggerFactory;
+
 public class Migrator
 {
     private static final int POS_TASK = 0;
@@ -21,13 +23,21 @@ public class Migrator
     {
         if (args.length == POS_STEPS + 1)
         {
+            File projectPath = new File(args[POS_PATH]);
+            if (!projectPath.exists() || !projectPath.isDirectory())
+            {
+                LoggerFactory.getLogger(Migrator.class).error("Project path '{}' is not a directory.", projectPath);
+                System.exit(1);
+            }
             if ("project".equals(args[POS_TASK]))
             {
-                migrateProject(new File(args[POS_PATH]), new File(args[POS_STEPS]));
+                LoggerFactory.getLogger(Migrator.class).info("Convert project at {}.", projectPath);
+                migrateProject(projectPath, new File(args[POS_STEPS]));
             }
             else if ("projects".equals(args[POS_TASK]))
             {
-                migrateProjects(new File(args[POS_PATH]), new File(args[POS_STEPS]));
+                LoggerFactory.getLogger(Migrator.class).info("Convert projects at {}.", projectPath);
+                migrateProjects(projectPath, new File(args[POS_STEPS]));
             }
         }
         else

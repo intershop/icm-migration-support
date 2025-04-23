@@ -22,9 +22,10 @@ public class MoveArtifacts implements MigrationPreparer
 
         if (!staticCartridgeFolder.toFile().exists())
         {
+            LoggerFactory.getLogger(getClass()).debug("Can't find cartridges static folder {}.", staticCartridgeFolder);
             return;
         }
-        LoggerFactory.getLogger(getClass()).debug("Processing cartridges {}.", cartridgeName);
+        LoggerFactory.getLogger(getClass()).info("Processing cartridges {}.", cartridgeName);
 
         try
         {
@@ -43,7 +44,8 @@ public class MoveArtifacts implements MigrationPreparer
                              Path targetFile = getTarget(cartridgeName, p, sourceMain);
                              targetFile.toFile().getParentFile().mkdirs();
                              Files.move(source, targetFile);
-                         }
+                             LoggerFactory.getLogger(getClass()).debug("Moved file from {} to {}.", source, targetFile);
+                            }
                          else
                          {
                              toRemove.add(source);
