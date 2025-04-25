@@ -1,5 +1,5 @@
 // define root project name
-rootProject.name = "hackathon2301-rewrite"
+rootProject.name = "icm-migration-support"
 
 include("versions")
 include("versions_test")
