@@ -48,7 +48,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     }
     /**
      * go step by step through migration steps to fix gradle build
-     * @param lines
+     * @param lines lines to migrate
      * @return build.gradle content
      */
     String migrate(List<String> lines)
@@ -60,10 +60,10 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         // build result
         StringBuilder result = new StringBuilder();
         // add all own known lines
-        result = result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
+        result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
         // collect tasks for plugins
         // put dependencies to the end
-        result = result.append(String.join(LINE_SEP, convertDependencyLines(dependencyLines))).append(LINE_SEP);
+        result.append(String.join(LINE_SEP, convertDependencyLines(dependencyLines))).append(LINE_SEP);
         return result.toString();
     }
 
@@ -77,7 +77,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     }
 
     /**
-     * @param lines original dependency line
+     * @param depLine original dependency line
      * @return converted line
      */
     private String convertDependencyLine(String depLine)
@@ -94,7 +94,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
         // convert to standard gradle configurations
         String converted = depLine;
-        if (parts[0].contains("project(") || cartridgeDependencies.stream().filter(parts[1]::startsWith).findAny().isPresent())
+        if (parts[0].contains("project(") || cartridgeDependencies.stream().anyMatch(parts[1]::startsWith))
         {
             converted = converted
                             .replace("implementation", "cartridge")

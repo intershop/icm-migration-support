@@ -1,7 +1,6 @@
 plugins {
     id 'com.intershop.gradle.cartridge-resourcelist'
     id 'com.intershop.gradle.isml'
-    id 'com.intershop.icm.cartridge.external'
     id 'com.intershop.icm.cartridge.product'
     id 'java'
 }
@@ -30,7 +29,6 @@ clean.doFirst {
 
 tasks.test.dependsOn(tasks.isml)
 
-// TODO please validate that cartridges have "cartridge" as dependency declaration instead of "implementation".
 dependencies {
     implementation 'com.intershop.business:ac_cxml'
     implementation 'com.intershop.business:ac_gtm_sf'

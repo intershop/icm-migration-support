@@ -12,7 +12,7 @@ public class Migrator
     private static final int POS_STEPS = 2;
 
     /**
-     * @param args
+     * @param args the array of command line arguments
      * <li>"project" as task</li>
      * <li>directory to project hackathon2301-rewrite/app_sf_responsive</li>
      * <li>directory to migration steps like src/main/resources/001_migration_7.10-11.0.8</li>
@@ -39,8 +39,8 @@ public class Migrator
 
     /**
      * Migrate on root project
-     * @param projectDir
-     * @param migrationStepFolder 
+     * @param projectDir directory of project to migrate
+     * @param migrationStepFolder folder containing the migration step descriptions
      */
     private static void migrateProjects(File projectDir, File migrationStepFolder)
     {
@@ -64,7 +64,8 @@ public class Migrator
 
     /**
      * Migrate on project
-     * @param projectDir
+     * @param projectDir the project to migrate
+     * @param migrationStepFolder the folder to the migration step descriptions
      */
     private static void migrateProject(File projectDir, File migrationStepFolder)
     {

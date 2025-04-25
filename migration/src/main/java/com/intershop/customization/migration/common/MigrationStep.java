@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +31,7 @@ public class MigrationStep
 
     private static final String MIGRATOR_KEY = "migrator";
     private static final String OPTIONS_KEY = "options";
-    private static final Charset DEFAULT_CHARSET = Charset.forName("utf-8");
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     private Map<String, Object> yamlConf = Collections.emptyMap();
 
