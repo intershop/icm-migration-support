@@ -40,7 +40,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     /**
      * Plugins can be removed
      */
-    private static final List<String> PLUGIN_REMOVED = Arrays.asList("static-cartridge");
+    private static final List<String> PLUGIN_REMOVED = List.of("static-cartridge");
 
     /**
      * Plugins mapped
@@ -85,7 +85,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     /**
      * go step by step through migration steps to fix gradle build
      * 
-     * @param lines
+     * @param lines all lines
      * @return build.gradle content
      * <li>list of plugins
      * <li>intershop block
@@ -101,7 +101,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
         List<String> newPlugins = mapPluginLines(pluginLines);
         List<String> unknownLines = notIn(lines, pluginLines);
         debug("pluginLines", pluginLines);
-        debug("unknowAfterPlugin", unknownLines);
+        debug("unknownAfterPlugin", unknownLines);
         Position dependencyPos = Position.findBracketBlock(START_DEPENDENCIES,unknownLines).orElse(Position.NOT_FOUND(unknownLines));
         List<String> dependencyLines = dependencyPos.matchingLines();
         unknownLines = dependencyPos.nonMatchingLines();
@@ -118,15 +118,15 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
         // build result
         StringBuilder result = new StringBuilder();
         // add plugins
-        result = result.append(joinPlugins(newPlugins)).append(LINE_SEP);
+        result.append(joinPlugins(newPlugins)).append(LINE_SEP);
         // add intershop block (descriptions)
-        result = result.append(intershopBlock(intershopLines)).append(LINE_SEP);
+        result.append(intershopBlock(intershopLines)).append(LINE_SEP);
         // add all own known lines
-        result = result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
+        result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
         // collect tasks for plugins
-        result = result.append(joinTasksForNewPlugins(newPlugins)).append(LINE_SEP);
+        result.append(joinTasksForNewPlugins(newPlugins)).append(LINE_SEP);
         // put dependencies to the end
-        result = result.append(migrateDependencies(dependencyLines));
+        result.append(migrateDependencies(dependencyLines));
         return result.toString();
     }
 
@@ -152,7 +152,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     }
 
     /**
-     * @param lines
+     * @param lines all lines
      * @return lines which contains replaced tasks, if there was an mapping at REPLACE_LINES
      */
     private List<String> mapNewTasksForOldTasks(List<String> lines)
@@ -200,7 +200,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
 
     /**
      * Migrate dependency lines (starting with "dependencies {") ends with "}"
-     * @param lines
+     * @param lines all lines
      * @return content for new dependencies
      */
     private String migrateDependencies(List<String> lines)
@@ -243,7 +243,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     }
 
     /**
-     * @param lines original dependency line
+     * @param depLine original dependency line
      * @return converted line
      */
     private String convertDependencyLine(String depLine)
@@ -296,7 +296,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     }
 
     /**
-     * @param plugins
+     * @param plugins list of plugins to join
      * @return string for build.gradle block of defined plugins
      */
     private String joinPlugins(List<String> plugins)
@@ -306,10 +306,10 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
             return "";
         }
         StringBuilder b = new StringBuilder();
-        b = b.append("plugins {").append(LINE_SEP);
+        b.append("plugins {").append(LINE_SEP);
         for (String plugin : plugins)
         {
-            b = b.append("    id \'" + plugin + "\'\n");
+            b.append("    id \'" + plugin + "\'\n");
         }
         b.append("}").append(LINE_SEP);
         return b.toString();
@@ -349,7 +349,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
             if (!processedPlugin)
             {
                 result.add(existingPlugin);
-                LOGGER.warn("Unknow plugin '{}' was added.", existingPlugin);
+                LOGGER.warn("Unknown plugin '{}' was added.", existingPlugin);
             }
         }
         return result.stream().sorted().toList();

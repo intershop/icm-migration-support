@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -14,9 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import com.intershop.customization.migration.common.MigrationStep;
 
-public class ConvertToCartridgeDependencyTest
+class ConvertToCartridgeDependencyTest
 {
-    private static final Charset BUILD_GRADLE_CHARSET = Charset.forName("utf-8");
+    private static final Charset BUILD_GRADLE_CHARSET = StandardCharsets.UTF_8;
     private final ConvertToCartridgeDependency underTest = new ConvertToCartridgeDependency();
 
     @Test

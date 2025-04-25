@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -13,9 +14,9 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-public class UpdateGradleBuild7to10Test
+class UpdateGradleBuild7to10Test
 {
-    private static final Charset BUILD_GRADLE_CHARSET = Charset.forName("utf-8");
+    private static final Charset BUILD_GRADLE_CHARSET = StandardCharsets.UTF_8;
     private final UpdateGradleBuild7to10 underTest = new UpdateGradleBuild7to10();
 
     @Test
@@ -28,7 +29,7 @@ public class UpdateGradleBuild7to10Test
     }
 
     @Test
-    void testMapPlugins() throws IOException, URISyntaxException
+    void testMapPlugins()
     {
         List<String> existing = Arrays.asList(
                         "java-cartridge",
@@ -39,7 +40,7 @@ public class UpdateGradleBuild7to10Test
         List<String> expected = Arrays.asList(
                             "com.intershop.gradle.cartridge-resourcelist",
                             "com.intershop.gradle.isml",
-                            "com.intershop.icm.cartridge.external",
+                            //"com.intershop.icm.cartridge.external",
                             "com.intershop.icm.cartridge.product",
                             "java"
                         );

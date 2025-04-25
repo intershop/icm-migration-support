@@ -74,38 +74,29 @@ public class MoveArtifacts implements MigrationPreparer
 
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
-        switch(source.getName(0).toString())
+        return switch(source.getName(0).toString())
         {
-            case "lib":
-                return sourceMain.resolve("resources").resolve(source.subpath(1, source.getNameCount()));
-
-            case "templates":
-                return sourceMain.resolve("isml")
-                                      .resolve(cartridgeName)
-                                      .resolve(source.subpath(1, source.getNameCount()));
-
-            default:
-                return sourceMain.resolve("resources/resources").resolve(cartridgeName).resolve(source);
-        }
+            case "lib" -> sourceMain.resolve("resources").resolve(source.subpath(1, source.getNameCount()));
+            case "templates" -> sourceMain.resolve("isml")
+                                          .resolve(cartridgeName)
+                                          .resolve(source.subpath(1, source.getNameCount()));
+            default -> sourceMain.resolve("resources/resources").resolve(cartridgeName).resolve(source);
+        };
     }
 
     private boolean shouldMigrate(Path path)
     {
         if (getArtifactTypes().contains(path.getName(0).toString()))
         {
-            if (path.getFileName().toString().endsWith(".jar") || path.getFileName().toString().endsWith(".zip"))
-            {
-                return false;
-            }
-            return true;
+            return !path.getFileName().toString().endsWith(".jar") &&
+                   !path.getFileName().toString().endsWith(".zip");
         }
         if (getArtifactTypes().contains("dbprepare") && 1 == path.getNameCount())
         {
             String fileName = path.getFileName().toString();
-            if (fileName.endsWith(".properties") && (fileName.startsWith("migration") || fileName.startsWith("dbinit")))
-            {
-                return true;
-            }
+            return fileName.endsWith(".properties") &&
+                            (fileName.startsWith("migration") ||
+                             fileName.startsWith("dbinit"));
         }
         return false;
     }
@@ -117,9 +108,10 @@ public class MoveArtifacts implements MigrationPreparer
             return false;
         }
         File[] children = p.toFile().listFiles();
-        for (int i = 0; i < children.length; i++)
+        assert children != null;
+        for (File child : children)
         {
-            if (!isEmpty(children[i].toPath()))
+            if (!isEmpty(child.toPath()))
             {
                 return false;
             }
@@ -134,9 +126,10 @@ public class MoveArtifacts implements MigrationPreparer
             if (p.toFile().isDirectory())
             {
                 File[] children = p.toFile().listFiles();
-                for (int i = 0; i < children.length; i++)
+                assert children != null;
+                for (File child : children)
                 {
-                    delete(children[i].toPath());
+                    delete(child.toPath());
                 }
             }
             Files.deleteIfExists(p);

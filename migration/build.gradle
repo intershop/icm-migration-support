@@ -35,7 +35,8 @@ task migrateAll(type: JavaExec) {
     mainClass = 'com.intershop.customization.migration.Migrator'
 
     // arguments to pass to the application
-    args 'projects', project.properties['target'], project.properties['steps']
+    args = ['projects', project.properties['target'], project.properties['steps']].findAll { it != null }
+    
 }
 
 task migrateOne(type: JavaExec) {
@@ -44,5 +45,6 @@ task migrateOne(type: JavaExec) {
     mainClass = 'com.intershop.customization.migration.Migrator'
 
     // arguments to pass to the application
-    args project.properties['task'], project.properties['target'], project.properties['steps']
+    args = [project.properties['task'], project.properties['target'], project.properties['steps']].findAll { it != null }
+     
 }
