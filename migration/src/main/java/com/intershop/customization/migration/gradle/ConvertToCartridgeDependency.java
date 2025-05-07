@@ -1,18 +1,17 @@
 package com.intershop.customization.migration.gradle;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
 
 public class ConvertToCartridgeDependency implements MigrationPreparer
 {
@@ -24,7 +23,6 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
     
     private List<String> cartridgeDependencies = Collections.emptyList();
-    private String cartridgeName;
 
     @Override
     public void setStep(MigrationStep step)
@@ -35,8 +33,6 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     @Override
     public void migrate(Path projectDir)
     {
-        cartridgeName = getResourceName(projectDir);
-
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
@@ -104,11 +100,5 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
                             .replace("runtimeOnly", "cartridgeRuntime");
         }
         return converted;
-    }
-
-    @Override
-    public String getCommitMessage()
-    {
-        return "refactor: convert dependencies definitions of '" + cartridgeName + "' to standard gradle configurations";
     }
 }
