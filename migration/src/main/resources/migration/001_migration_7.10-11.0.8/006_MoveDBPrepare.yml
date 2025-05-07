@@ -1,0 +1,9 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.MoveFiles
+options:
+  source-map:
+    "dbprepare" : "staticfiles/cartridge"
+  target-map:
+    "dbprepare" : "src/main/resources/resources/{cartridgeName}"
+  filter-map:
+    "dbprepare" : "(migration|dbinit).*\\.properties"
