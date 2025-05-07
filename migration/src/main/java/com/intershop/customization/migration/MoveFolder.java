@@ -2,6 +2,8 @@ package com.intershop.customization.migration;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
+
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -12,6 +14,8 @@ import java.util.Map;
 
 public class MoveFolder implements MigrationPreparer
 {
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
     private static final String YAML_KEY_SOURCE_MAP = "source-map";
     private static final String YAML_KEY_TARGET_MAP = "target-map";
     private Map<String, String> sourceConfiguration = Collections.emptyMap();
@@ -24,10 +28,11 @@ public class MoveFolder implements MigrationPreparer
         this.targetConfiguration = step.getOption(YAML_KEY_TARGET_MAP);
     }
 
+    private String cartridgeName;
     public void migrate(Path cartridgeDir)
     {
-        String cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1).toString();
-        LoggerFactory.getLogger(getClass()).info("Processing cartridges {}.", cartridgeName);
+        cartridgeName = getResourceName(cartridgeDir);
+        LOGGER.info("Processing cartridge {}.", cartridgeName);
 
         for (Map.Entry<String, String> sourceEntry : sourceConfiguration.entrySet())
         {
@@ -35,7 +40,7 @@ public class MoveFolder implements MigrationPreparer
             Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue());
             if (!sourcePath.toFile().exists())
             {
-                LoggerFactory.getLogger(getClass()).debug("Can't find cartridges folder {}.", sourcePath);
+                LOGGER.debug("Can't find cartridges folder {}.", sourcePath);
                 continue;
             }
             String targetPathAsString = targetConfiguration.get(artifactName);
@@ -62,5 +67,11 @@ public class MoveFolder implements MigrationPreparer
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    @Override
+    public String getCommitMessage()
+    {
+        return "refactor: Move static files of '" + cartridgeName + "' to src/main/resources";
     }
 }

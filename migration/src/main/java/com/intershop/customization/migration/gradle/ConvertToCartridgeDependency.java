@@ -24,7 +24,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
     
     private List<String> cartridgeDependencies = Collections.emptyList();
-    private Path cartridgeName;
+    private String cartridgeName;
 
     @Override
     public void setStep(MigrationStep step)

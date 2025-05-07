@@ -31,12 +31,12 @@ public interface MigrationPreparer
      * @param resource the resource to get the name from
      * @return the name of the resource (cartridge)
      */
-    default Path getResourceName(Path resource)
+    default String getResourceName(Path resource)
     {
         if (resource == null)
         {
             return null;
         }
-        return resource.getName(resource.getNameCount() - 1);
+        return resource.getName(resource.getNameCount() - 1).toString();
     }
 }

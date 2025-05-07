@@ -67,7 +67,7 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
                     "static-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
                     "test-cartridge", Arrays.asList("com.intershop.icm.cartridge.test", "java")
                     );
-    private Path cartridgeName;
+    private String cartridgeName;
 
     public void migrate(Path projectDir)
     {

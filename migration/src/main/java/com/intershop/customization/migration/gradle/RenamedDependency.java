@@ -23,7 +23,7 @@ public class RenamedDependency implements MigrationPreparer
     private static final String LINE_SEP = System.lineSeparator();
 
     private Map<String, String> renamedDependencies = Collections.emptyMap();
-    private Path cartridgeName;
+    private String cartridgeName;
 
     @Override
     public void migrate(Path projectDir)

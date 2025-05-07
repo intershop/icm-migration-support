@@ -130,6 +130,8 @@ pre.Class0=com.intershop.site.dbinit.SiteContentPreparer
 
 Assembly projects are no longer needed. Just remove it.
 
+___TODO___ explain handling of deploy.gradle and cartridge list
+
 ### Remove .version files
 
 Version numbers are declared inside the two subprojects `versions`, `versions_test` for third party libraries.

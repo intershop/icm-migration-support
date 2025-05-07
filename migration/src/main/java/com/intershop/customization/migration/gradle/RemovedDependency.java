@@ -25,7 +25,7 @@ public class RemovedDependency implements MigrationPreparer
 
     private List<String> removedDependencies = Collections.emptyList();
 
-    private Path cartridgeName;
+    private String cartridgeName;
 
     @Override
     public void migrate(Path projectDir)
