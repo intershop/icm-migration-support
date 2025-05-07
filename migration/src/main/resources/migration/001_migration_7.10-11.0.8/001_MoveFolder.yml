@@ -1,0 +1,23 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.MoveFolder
+options:
+  source-map:
+    "pipelines" : "staticfiles/cartridge/pipelines"
+    "webforms" : "staticfiles/cartridge/webforms"
+    "extensions" : "staticfiles/cartridge/extensions"
+    "pagelets" : "staticfiles/cartridge/pagelets"
+    "localizations" : "staticfiles/cartridge/localizations"
+    "queries" : "staticfiles/cartridge/queries"
+    "impex" : "staticfiles/cartridge/impex"
+    "config" : "staticfiles/cartridge/config"
+    "isml" : "staticfiles/cartridge/templates"
+  target-map:
+    "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
+    "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
+    "extensions" : "src/main/resources/resources/{cartridgeName}/extensions"
+    "pagelets" : "src/main/resources/resources/{cartridgeName}/pagelets"
+    "localizations" : "src/main/resources/resources/{cartridgeName}/localizations"
+    "queries" : "src/main/resources/resources/{cartridgeName}/queries"
+    "impex" : "src/main/resources/resources/{cartridgeName}/impex"
+    "config" : "src/main/resources/resources/{cartridgeName}/config"
+    "isml" : "src/main/isml/{cartridgeName}"
