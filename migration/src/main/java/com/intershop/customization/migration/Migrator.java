@@ -20,11 +20,11 @@ public class Migrator
     private static final int POS_PATH = 1;
     private static final int POS_STEPS = 2;
 
-    private static final String OPTION_NO_AUTO_COMMIT = "noAutoCommit";
+    private static final String OPTION_NO_AUTO_COMMIT = "--noAutoCommit";
 
     private final File projectPath;
     private final File migrationStepFolder;
-    private Optional<GitRepository> gitRepository;
+    private Optional<GitRepository> gitRepository = Optional.empty();
 
     /**
      * Initializes the migrator
@@ -35,7 +35,6 @@ public class Migrator
     {
         this.projectPath = projectPath;
         this.migrationStepFolder = migrationStepFolder;
-        initializeGitRepository(true);
     }
 
     /**
@@ -43,6 +42,7 @@ public class Migrator
      * <li>"project" as task</li>
      * <li>directory to project app_sf_responsive</li>
      * <li>directory to migration steps like src/main/resources/001_migration_7.10-11.0.8</li>
+     * <li>optional flags like "noAutoCommit"</li>
      */
     public static void main(String[] args)
     {
@@ -59,9 +59,9 @@ public class Migrator
                 }
 
                 Migrator migrator = new Migrator(projectPath, new File(args[POS_STEPS]));
-
                 // TODO also check if the project is a git repository?
-                migrator.initializeGitRepository(Arrays.stream(args).noneMatch(o -> o.equalsIgnoreCase(OPTION_NO_AUTO_COMMIT)));
+                migrator.initializeGitRepository(Arrays.stream(args)
+                                                       .noneMatch(o -> o.equalsIgnoreCase(OPTION_NO_AUTO_COMMIT)));
 
                 if ("project".equals(args[POS_TASK]))
                 {
@@ -91,6 +91,10 @@ public class Migrator
         }
     }
 
+    /**
+     * Initializes the git repository for the project.
+     * @param autoCommit if true, the git repository will be initialized and changes will be committed automatically
+     */
     public void initializeGitRepository(boolean autoCommit)
     {
         if (autoCommit)
@@ -120,10 +124,12 @@ public class Migrator
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         // TODO How to distinct between root project and cartridges? - Not all Preparer are suitable for both!
-        for(MigrationStep step: steps.getSteps())
+        for (MigrationStep step: steps.getSteps())
         {
-            step.getMigrator().migrate(projectPath.toPath());
-            gitRepository.ifPresent(r -> commitChanges(r, step.getMigrator()));
+            MigrationPreparer migrator = step.getMigrator();
+
+            migrator.migrate(projectPath.toPath());
+            gitRepository.ifPresent(r -> commitChanges(r, migrator));
         }
 
         File[] files = projectPath.listFiles();
@@ -132,7 +138,7 @@ public class Migrator
             return;
         }
 
-        for(File fileOrDir: files)
+        for (File fileOrDir: files)
         {
           if (fileOrDir.isDirectory() && !fileOrDir.getName().startsWith(".") && (new File(fileOrDir, "build.gradle")).exists())
             {
@@ -150,8 +156,10 @@ public class Migrator
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         for(MigrationStep step: steps.getSteps())
         {
-            step.getMigrator().migrate(projectDir.toPath());
-            gitRepository.ifPresent(r -> commitChanges(r, step.getMigrator()));
+            MigrationPreparer migrator = step.getMigrator();
+
+            migrator.migrate(projectDir.toPath());
+            gitRepository.ifPresent(r -> commitChanges(r, migrator));
         }
     }
 
@@ -165,9 +173,8 @@ public class Migrator
         if (repository.hasUncommittedChanges())
         {
             String commitMessage = migrator.getCommitMessage();
-            LOGGER.debug("Changes of migration step committed to git repository at '{}' with message '{}'.",
-                            repository.commit(commitMessage),
-                            commitMessage);
+            String sha = repository.commit(commitMessage);
+            LOGGER.debug("Commited changes of migration step to git repository at '{}' with message '{}'.", sha, commitMessage);
         }
     }
 }

@@ -17,8 +17,26 @@ public interface MigrationPreparer
     {
     }
 
-    default  String getCommitMessage()
+    /**
+     * Gets the commit message to use when committing the changes of this migration step.
+     * @return the name of the migration step
+     */
+    default String getCommitMessage()
     {
         return "refactor: " + getClass().getSimpleName();
+    }
+
+    /**
+     * Gets the name of the resource (cartridge).
+     * @param resource the resource to get the name from
+     * @return the name of the resource (cartridge)
+     */
+    default Path getResourceName(Path resource)
+    {
+        if (resource == null)
+        {
+            return null;
+        }
+        return resource.getName(resource.getNameCount() - 1);
     }
 }

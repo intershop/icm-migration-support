@@ -29,13 +29,13 @@ tasks.register<JavaExec>("migrateAll") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.intershop.customization.migration.Migrator")
 
-    val autoCommit = project.hasProperty("autoCommit")
+    val noAutoCommit = project.hasProperty("noAutoCommit")
 
     args = mutableListOf<String>().apply {
         add("projects")
         project.findProperty("target")?.let { add(it.toString()) }
         project.findProperty("steps")?.let { add(it.toString()) }
-        if (autoCommit) add("--autoCommit")
+        if (noAutoCommit) add("--noAutoCommit")
     }
 }
 
@@ -47,5 +47,6 @@ tasks.register<JavaExec>("migrateOne") {
         project.findProperty("task") as? String,
         project.findProperty("target") as? String,
         project.findProperty("steps") as? String
+        if (noAutoCommit) add("--noAutoCommit")
     )
 }

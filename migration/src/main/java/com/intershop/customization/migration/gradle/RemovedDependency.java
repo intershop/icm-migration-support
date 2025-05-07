@@ -25,9 +25,12 @@ public class RemovedDependency implements MigrationPreparer
 
     private List<String> removedDependencies = Collections.emptyList();
 
+    private Path cartridgeName;
+
     @Override
     public void migrate(Path projectDir)
     {
+        cartridgeName = getResourceName(projectDir);
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
@@ -104,6 +107,6 @@ public class RemovedDependency implements MigrationPreparer
     @Override
     public String getCommitMessage()
     {
-        return "refactor: remove old dependencies";
+        return "refactor: remove old dependencies from '" + cartridgeName + "'";
     }
 }

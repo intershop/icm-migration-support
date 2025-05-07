@@ -23,10 +23,13 @@ public class RenamedDependency implements MigrationPreparer
     private static final String LINE_SEP = System.lineSeparator();
 
     private Map<String, String> renamedDependencies = Collections.emptyMap();
+    private Path cartridgeName;
 
     @Override
     public void migrate(Path projectDir)
     {
+        cartridgeName = getResourceName(projectDir);
+
         Path buildGradle = projectDir.resolve("build.gradle");
         try (Stream<String> linesStream = Files.lines(buildGradle, CHARSET_BUILD_GRADLE))
         {
@@ -100,6 +103,6 @@ public class RenamedDependency implements MigrationPreparer
     @Override
     public String getCommitMessage()
     {
-        return "refactor: rename dependencies to newer group/artifact";
+        return "refactor: rename dependencies of '" + cartridgeName + "' to newer group/artifact";
     }
 }

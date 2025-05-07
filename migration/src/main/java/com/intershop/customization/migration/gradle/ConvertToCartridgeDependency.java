@@ -24,6 +24,8 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
     
     private List<String> cartridgeDependencies = Collections.emptyList();
+    private Path cartridgeName;
+
     @Override
     public void setStep(MigrationStep step)
     {
@@ -33,6 +35,8 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     @Override
     public void migrate(Path projectDir)
     {
+        cartridgeName = getResourceName(projectDir);
+
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
@@ -105,6 +109,6 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     @Override
     public String getCommitMessage()
     {
-        return "refactor: convert dependencies definitions to standard gradle configurations";
+        return "refactor: convert dependencies definitions of '" + cartridgeName + "' to standard gradle configurations";
     }
 }

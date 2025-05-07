@@ -67,8 +67,12 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
                     "static-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
                     "test-cartridge", Arrays.asList("com.intershop.icm.cartridge.test", "java")
                     );
+    private Path cartridgeName;
+
     public void migrate(Path projectDir)
     {
+        cartridgeName = getResourceName(projectDir);
+
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
@@ -365,6 +369,6 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
     @Override
     public String getCommitMessage()
     {
-        return "refactor: upgrade to newer gradle build system";
+        return "refactor: upgrade '" + cartridgeName + "' to newer gradle build system";
     }
 }

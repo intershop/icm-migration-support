@@ -55,6 +55,12 @@ cp -r $(ICM_11)/* $(ICM)/
 
 # Migration
 
+The migration tool tries to commit the made changes after each step. 
+By this fine granular commit approach, it is possible to revert the changes step by step.
+To benefit from this feature, the path of the root project must be a git repository.
+Currently, it is not possible to use that option with a subproject because the `.git` folder is not available in the subproject level.
+To disable the auto commit, the `-PnoAutoCommit` parameter must be set.
+
 ## Migration all at once
 
 This command will execute all migration steps on all subprojects of the $ICM directory
@@ -67,7 +73,7 @@ gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/
 - run migration script (TODO build a gradle task)
 
 ```
-gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml
+gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml -PnoAutoCommit
 gradlew migration:migrateOne -Ptask=projects -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml
 ```
 
