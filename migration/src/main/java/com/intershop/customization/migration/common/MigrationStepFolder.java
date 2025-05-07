@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
+/**
+ * A MigrationStepFolder represents a resource folder containing migrations steps for a specific release
+ */
 public class MigrationStepFolder
 {
     public static MigrationStepFolder valueOf(Path path)

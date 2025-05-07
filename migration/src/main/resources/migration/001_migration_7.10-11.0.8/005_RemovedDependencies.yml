@@ -1,5 +1,6 @@
 type: specs.intershop.com/v1beta/migrate
 migrator: com.intershop.customization.migration.gradle.RemovedDependency
+message: "refactor: remove obsolete dependencies in build.gradle"
 options:
   dependencies:
   - com.intershop.business:ac_inventory_service

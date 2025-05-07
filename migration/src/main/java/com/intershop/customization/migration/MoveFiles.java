@@ -2,7 +2,6 @@ package com.intershop.customization.migration;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,11 +31,9 @@ public class MoveFiles implements MigrationPreparer
         this.filterConfiguration = step.getOption(YAML_KEY_FILTER_MAP);
     }
 
-    private String cartridgeName;
-
     public void migrate(Path cartridgeDir)
     {
-        cartridgeName = getResourceName(cartridgeDir);
+        String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.info("Processing cartridge {}.", cartridgeName);
 
         for (Map.Entry<String, String> sourceEntry : sourceConfiguration.entrySet())
@@ -90,11 +87,5 @@ public class MoveFiles implements MigrationPreparer
             return fileName.matches(filterConfiguration.get(artifactName));
         }
         return false;
-    }
-
-    @Override
-    public String getCommitMessage()
-    {
-        return "refactor: Move static files of '" + cartridgeName + "' to src/main/resources";
     }
 }

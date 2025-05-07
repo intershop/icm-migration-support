@@ -1,5 +1,10 @@
 package com.intershop.customization.migration.gradle;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -9,12 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
-
 public class RenamedDependency implements MigrationPreparer
 {
     private static final String YAML_KEY_RENAMED_DEPENDENCY = "dependency-map";
@@ -23,13 +22,10 @@ public class RenamedDependency implements MigrationPreparer
     private static final String LINE_SEP = System.lineSeparator();
 
     private Map<String, String> renamedDependencies = Collections.emptyMap();
-    private String cartridgeName;
 
     @Override
     public void migrate(Path projectDir)
     {
-        cartridgeName = getResourceName(projectDir);
-
         Path buildGradle = projectDir.resolve("build.gradle");
         try (Stream<String> linesStream = Files.lines(buildGradle, CHARSET_BUILD_GRADLE))
         {
@@ -98,11 +94,5 @@ public class RenamedDependency implements MigrationPreparer
             converted = converted.replace(parts[1], renamedDependencies.get(parts[1]));
         }
         return converted;
-    }
-
-    @Override
-    public String getCommitMessage()
-    {
-        return "refactor: rename dependencies of '" + cartridgeName + "' to newer group/artifact";
     }
 }

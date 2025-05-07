@@ -10,20 +10,16 @@ public interface MigrationPreparer
     void migrate(Path resource);
 
     /**
+     * @param resource contains information, what needs to be migrated on root directory
+     */
+    default void migrateRoot(Path resource) {}
+
+    /**
      * Define options for migrator
      * @param step assigns a migration step to the preparer
      */
     default void setStep(MigrationStep step)
     {
-    }
-
-    /**
-     * Gets the commit message to use when committing the changes of this migration step.
-     * @return the name of the migration step
-     */
-    default String getCommitMessage()
-    {
-        return "refactor: " + getClass().getSimpleName();
     }
 
     /**

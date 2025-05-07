@@ -68,10 +68,4 @@ public class MoveFolder implements MigrationPreparer
             }
         }
     }
-
-    @Override
-    public String getCommitMessage()
-    {
-        return "refactor: Move static files of '" + cartridgeName + "' to src/main/resources";
-    }
 }

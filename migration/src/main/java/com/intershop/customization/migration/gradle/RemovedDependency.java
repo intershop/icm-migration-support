@@ -1,18 +1,17 @@
 package com.intershop.customization.migration.gradle;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
 
 public class RemovedDependency implements MigrationPreparer
 {
@@ -25,12 +24,9 @@ public class RemovedDependency implements MigrationPreparer
 
     private List<String> removedDependencies = Collections.emptyList();
 
-    private String cartridgeName;
-
     @Override
     public void migrate(Path projectDir)
     {
-        cartridgeName = getResourceName(projectDir);
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
@@ -102,11 +98,5 @@ public class RemovedDependency implements MigrationPreparer
             converted = "(removed)";
         }
         return converted;
-    }
-
-    @Override
-    public String getCommitMessage()
-    {
-        return "refactor: remove old dependencies from '" + cartridgeName + "'";
     }
 }
