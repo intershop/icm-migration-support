@@ -1,0 +1,226 @@
+package com.intershop.customization.migration;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.slf4j.LoggerFactory;
+
+import com.intershop.customization.migration.CfgResourceConverter;
+import com.intershop.customization.migration.common.MigrationPreparer;
+
+public class MigrateConfigResurces  implements MigrationPreparer
+ {
+
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
+
+    @Override
+    public void migrate(Path cartridgeDir) {
+        Path staticFilesFolder = cartridgeDir.resolve("staticfiles");
+        Path staticCartridgeFolder = staticFilesFolder.resolve("cartridge");
+        Path staticshareFolder = staticFilesFolder.resolve("share");
+        Path staticSitesFolder = staticFilesFolder.resolve("sites");
+        Path cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
+        Path sourceMain = cartridgeDir.resolve("src/main");
+
+        if (!staticCartridgeFolder.toFile().exists())
+        {
+            LOGGER.debug("Can't find cartridges static folder {}.", staticCartridgeFolder);
+            return;
+        }
+        LOGGER.info("Processing cartridges {} in {}.", cartridgeName, staticCartridgeFolder.toFile().getAbsolutePath());
+
+        try
+        {
+            Set<Path> toRemove = new HashSet<>();
+            ArrayList<Path> toBeMigrated = new ArrayList<>();
+            toBeMigrated.add(staticCartridgeFolder);
+            toBeMigrated.add(staticshareFolder);
+            toBeMigrated.add(staticSitesFolder);
+            toBeMigrated.add(sourceMain);
+            Iterator<Path> toBeMigratedPaths= toBeMigrated.iterator(); 
+
+            while (toBeMigratedPaths.hasNext()){
+
+                Path path= (Path) toBeMigratedPaths.next();
+
+                if(path.toFile().isDirectory() && path.toFile().isDirectory())
+                {
+                    LOGGER.debug("Processing  files {}.", path);
+                }
+                else
+                {
+                    LOGGER.warn("Can't find  files {}.", path);
+                    continue;
+                }
+                System.out.println("~~~ "+ path);
+
+                Files.walk(path)
+                .filter(p -> p.getNameCount() > staticFilesFolder.getNameCount() + 1)
+                .map(p -> p.subpath(1 + staticFilesFolder.getNameCount(), p.getNameCount()))
+                .filter(this::shouldMigrate)
+                .forEach(p -> {
+                    try
+                    {
+                        Path source = path.resolve(p);
+	                    if (!source.toFile().isDirectory())
+                        {
+                            Path targetFile = getTarget(cartridgeName, p, sourceMain);
+                            String targetFileName = targetFile.getFileName().toString();
+
+                            targetFile.toFile().getParentFile().mkdirs();
+
+                            // resource foles must be cinverted @see CfgResourceConverter
+                            String targetTpe ="";
+                            if (targetFileName.endsWith("transport.resource")) 
+                            {
+                                targetTpe = "transport";
+                            }
+                            else if (targetFileName.endsWith("application.resource"))
+                            {
+                                targetTpe = "application";
+                            }
+                            else if (targetFileName.endsWith("usr.resource"))
+                            {
+                                targetTpe = "user";
+                            }
+                            if (!"".equals(targetTpe))
+                            {
+                                // convert resource file to properties file
+                                String targetName = targetFile.toFile().getAbsolutePath();
+                                targetName= targetName.replace(".resource", ".properties");
+                                Path target = Paths.get(targetName);
+                                convertResourceFile(targetTpe, source, target);
+                                Files.delete(source);
+                                LOGGER.debug("Convered file {} ==>  {}.", source, target);
+                            }
+                            else
+                            {
+                                // other than resouirce files are just moved to their new location
+                                LOGGER.warn("file {} not yet handled.", source );
+                            }
+                        }
+                        else
+                        {
+                            LOGGER.debug("to be deleted {} ==>  {}.", source);
+                            toRemove.add(source);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        throw new RuntimeException(e);
+                    }
+                });
+           }
+
+
+           toRemove.stream().filter(this::isEmpty).forEach(this::delete);
+
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Set<String> getArtifactTypes()
+    {
+        return Set.of("config",  "sites");
+    }
+
+    private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
+    {
+        String filName = source.getName(0).toString();
+        Path  targetPath =sourceMain.resolve("resources/resources").resolve(cartridgeName);
+        if(targetPath.toString().contains("resources"+java.io.File.separator+"resources"+java.io.File.separator+cartridgeName))
+        {
+            // targetPath = targetPath.resolve("resources/resources").resolve(cartridgeName);
+            switch(filName)
+            {
+                case "domains":
+                    Path targetSubDomains = source.subpath(2, source.getNameCount());
+                    targetPath = targetPath.resolve(targetSubDomains);
+                    break;
+                case "system":
+                    Path targetSubConfig = source.subpath(1, source.getNameCount());
+                    targetPath = targetPath.resolve(targetSubConfig);
+                    break;
+                case "cartridge":
+                    Path targetSubSites = source.subpath(2, source.getNameCount());
+                    targetPath = targetPath.resolve(targetSubSites);
+                    break;
+                default:
+                    Path targetSub = source.subpath(3, source.getNameCount());
+                    targetPath = targetPath.resolve(targetSub);
+            }
+        }
+        return targetPath;
+    }
+
+    private boolean shouldMigrate(Path path)
+    {
+        if (getArtifactTypes().contains("sites") || 
+            getArtifactTypes().contains("config"))
+        {
+            return path.getFileName().toString().endsWith(".resource");
+		}
+        return false;
+    }
+
+    /**
+    * Convert resource files to properties files.
+    **/
+    private  void convertResourceFile(String resurceCfgType, Path source, Path target)
+    {
+        CfgResourceConverter converter = new CfgResourceConverter(
+            resurceCfgType, source, target);
+        converter.convertTransportResource();
+
+    }
+
+    private boolean isEmpty(Path p)
+    {
+        if (!p.toFile().isDirectory())
+        {
+            return false;
+        }
+        File[] children = p.toFile().listFiles();
+        assert children != null;
+        for (File child : children)
+        {
+            if (!isEmpty(child.toPath()))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void delete(Path p)
+    {
+        try
+        {
+            if (p.toFile().isDirectory())
+            {
+                File[] children = p.toFile().listFiles();
+                assert children != null;
+                for (File child : children)
+                {
+                    delete(child.toPath());
+                }
+            }
+            Files.deleteIfExists(p);
+        }
+        catch(IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+    
+}
