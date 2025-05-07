@@ -31,7 +31,7 @@ tasks.register<JavaExec>("migrateAll") {
 
     val autoCommit = project.hasProperty("autoCommit")
 
-    val arguments = mutableListOf<String>().apply {
+    args = mutableListOf<String>().apply {
         add("projects")
         project.findProperty("target")?.let { add(it.toString()) }
         project.findProperty("steps")?.let { add(it.toString()) }

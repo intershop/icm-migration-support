@@ -1,12 +1,18 @@
 package com.intershop.customization.migration;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Optional;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.MigrationStepFolder;
+import com.intershop.customization.migration.git.GitInitializationException;
+import com.intershop.customization.migration.git.GitRepository;
 
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class Migrator
 {
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
@@ -14,33 +20,58 @@ public class Migrator
     private static final int POS_PATH = 1;
     private static final int POS_STEPS = 2;
 
+    private static final String OPTION_NO_AUTO_COMMIT = "noAutoCommit";
+
+    private final File projectPath;
+    private final File migrationStepFolder;
+    private Optional<GitRepository> gitRepository;
+
+    /**
+     * Initializes the migrator
+     * @param projectPath directory of project to migrate
+     * @param migrationStepFolder folder containing the migration step descriptions
+     */
+    public Migrator(File projectPath, File migrationStepFolder)
+    {
+        this.projectPath = projectPath;
+        this.migrationStepFolder = migrationStepFolder;
+        initializeGitRepository(true);
+    }
+
     /**
      * @param args the array of command line arguments
      * <li>"project" as task</li>
-     * <li>directory to project hackathon2301-rewrite/app_sf_responsive</li>
+     * <li>directory to project app_sf_responsive</li>
      * <li>directory to migration steps like src/main/resources/001_migration_7.10-11.0.8</li>
      */
     public static void main(String[] args)
     {
+        Optional<GitRepository> gitRepository = Optional.empty();
         try
         {
-            if (args.length == POS_STEPS + 1)
+            if (args.length >= POS_STEPS + 1)
             {
                 File projectPath = new File(args[POS_PATH]);
                 if (!projectPath.exists() || !projectPath.isDirectory())
                 {
                     LOGGER.error("Project path '{}' is not a directory.", projectPath);
-                    System.exit(1);
+                    System.exit(2);
                 }
+
+                Migrator migrator = new Migrator(projectPath, new File(args[POS_STEPS]));
+
+                // TODO also check if the project is a git repository?
+                migrator.initializeGitRepository(Arrays.stream(args).noneMatch(o -> o.equalsIgnoreCase(OPTION_NO_AUTO_COMMIT)));
+
                 if ("project".equals(args[POS_TASK]))
                 {
                     LOGGER.info("Convert project at {}.", projectPath);
-                    migrateProject(projectPath, new File(args[POS_STEPS]));
+                    migrator.migrateProject(projectPath);
                 }
                 else if ("projects".equals(args[POS_TASK]))
                 {
                     LOGGER.info("Convert projects at {}.", projectPath);
-                    migrateProjects(projectPath, new File(args[POS_STEPS]));
+                    migrator.migrateProjects();
                 }
             }
             else
@@ -54,28 +85,58 @@ public class Migrator
             LOGGER.error("Unexpected error during migration", e);
             System.exit(1);
         }
+        finally
+        {
+            gitRepository.ifPresent(GitRepository::close);
+        }
+    }
+
+    public void initializeGitRepository(boolean autoCommit)
+    {
+        if (autoCommit)
+        {
+            try
+            {
+                LOGGER.debug("Initializing Git repository for '{}' ...", projectPath);
+                this.gitRepository = Optional.of(new GitRepository(projectPath));
+            }
+            catch(GitInitializationException e)
+            {
+                LOGGER.error("Unexpected error while initializing Git repository. Auto commit will be disabled!", e);
+                this.gitRepository = Optional.empty();
+            }
+        }
+        else
+        {
+            LOGGER.info("Auto commit is disabled. Please check the changes in {}.", projectPath);
+            this.gitRepository = Optional.empty();
+        }
     }
 
     /**
      * Migrate on root project
-     * @param projectDir directory of project to migrate
-     * @param migrationStepFolder folder containing the migration step descriptions
      */
-    private static void migrateProjects(File projectDir, File migrationStepFolder)
+    protected void migrateProjects()
     {
-        File[] files = projectDir.listFiles();
+        MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
+        // TODO How to distinct between root project and cartridges? - Not all Preparer are suitable for both!
+        for(MigrationStep step: steps.getSteps())
+        {
+            step.getMigrator().migrate(projectPath.toPath());
+            gitRepository.ifPresent(r -> commitChanges(r, step.getMigrator()));
+        }
+
+        File[] files = projectPath.listFiles();
         if (files == null)
         {
             return;
         }
+
         for(File fileOrDir: files)
         {
-            if (fileOrDir.isDirectory() && (new File(fileOrDir, "build.gradle")).exists())
+          if (fileOrDir.isDirectory() && !fileOrDir.getName().startsWith(".") && (new File(fileOrDir, "build.gradle")).exists())
             {
-                if (!fileOrDir.getName().startsWith("."))
-                {
-                    migrateProject(fileOrDir, migrationStepFolder);
-                }
+                migrateProject(fileOrDir);
             }
         }
     }
@@ -83,14 +144,30 @@ public class Migrator
     /**
      * Migrate on project
      * @param projectDir the project to migrate
-     * @param migrationStepFolder the folder to the migration step descriptions
      */
-    private static void migrateProject(File projectDir, File migrationStepFolder)
+    protected void migrateProject(File projectDir)
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         for(MigrationStep step: steps.getSteps())
         {
             step.getMigrator().migrate(projectDir.toPath());
+            gitRepository.ifPresent(r -> commitChanges(r, step.getMigrator()));
+        }
+    }
+
+    /**
+     * Commit changes to the git repository if there are any uncommited changes in the repository.
+     * @param repository repository instance to commit changes
+     * @param migrator current migration preparer
+     */
+    protected void commitChanges(GitRepository repository, MigrationPreparer migrator)
+    {
+        if (repository.hasUncommittedChanges())
+        {
+            String commitMessage = migrator.getCommitMessage();
+            LOGGER.debug("Changes of migration step committed to git repository at '{}' with message '{}'.",
+                            repository.commit(commitMessage),
+                            commitMessage);
         }
     }
 }
