@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +28,13 @@ public class RenamedDependency implements MigrationPreparer
     public void migrate(Path projectDir)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
-        try
+        try (Stream<String> linesStream = Files.lines(buildGradle, CHARSET_BUILD_GRADLE))
         {
-            List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
-            Files.write(buildGradle, migrate(lines).getBytes(CHARSET_BUILD_GRADLE));
+            List<String> lines = linesStream.toList();
+            Files.writeString(buildGradle, migrate(lines), CHARSET_BUILD_GRADLE);
             LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
         }
-        catch(IOException e)
+        catch (IOException e)
         {
             LoggerFactory.getLogger(getClass()).error("Can't convert build.gradle", e);
         }
@@ -55,14 +56,11 @@ public class RenamedDependency implements MigrationPreparer
         List<String> unknownLines = dependencyPos.nonMatchingLines();
         List<String> dependencyLines = dependencyPos.matchingLines();
 
-        // build result
-        StringBuilder result = new StringBuilder();
-        // add all own known lines
-        result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
-        // collect tasks for plugins
-        // put dependencies to the end
-        result.append(String.join(LINE_SEP, convertDependencyLines(dependencyLines))).append(LINE_SEP);
-        return result.toString();
+        // build result: add all own known lines for plugins, put dependencies to the end
+        return String.join(LINE_SEP, unknownLines)
+                        + LINE_SEP
+                        + String.join(LINE_SEP, convertDependencyLines(dependencyLines))
+                        + LINE_SEP;
     }
 
     /**
@@ -97,5 +95,11 @@ public class RenamedDependency implements MigrationPreparer
             converted = converted.replace(parts[1], renamedDependencies.get(parts[1]));
         }
         return converted;
+    }
+
+    @Override
+    public String getCommitMessage()
+    {
+        return "refactor: rename dependencies to newer group/artifact";
     }
 }

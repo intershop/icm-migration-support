@@ -362,4 +362,9 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
         return parts[1];
     }
 
+    @Override
+    public String getCommitMessage()
+    {
+        return "refactor: upgrade to newer gradle build system";
+    }
 }

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
@@ -15,6 +16,8 @@ import com.intershop.customization.migration.common.Position;
 
 public class RemovedDependency implements MigrationPreparer
 {
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
     private static final String YAML_KEY_REMOVED_DEPENDENCIES = "dependencies";
     private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
@@ -30,11 +33,11 @@ public class RemovedDependency implements MigrationPreparer
         {
             List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
             Files.write(buildGradle, migrate(lines).getBytes(CHARSET_BUILD_GRADLE));
-            LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
+            LOGGER.info("build.gradle converted at {}.", projectDir);
         }
         catch(IOException e)
         {
-            LoggerFactory.getLogger(getClass()).error("Can't convert build.gradle", e);
+            LOGGER.error("Can't convert build.gradle", e);
         }
     }
 
@@ -45,7 +48,7 @@ public class RemovedDependency implements MigrationPreparer
     }
     /**
      * go step by step through migration steps to fix gradle build
-     * @param lines
+     * @param lines lines to migrate
      * @return build.gradle content
      */
     String migrate(List<String> lines)
@@ -57,10 +60,10 @@ public class RemovedDependency implements MigrationPreparer
         // build result
         StringBuilder result = new StringBuilder();
         // add all own known lines
-        result = result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
+        result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
         // collect tasks for plugins
         // put dependencies to the end
-        result = result.append(String.join(LINE_SEP, convertDependencyLines(dependencyLines))).append(LINE_SEP);
+        result.append(String.join(LINE_SEP, convertDependencyLines(dependencyLines))).append(LINE_SEP);
         return result.toString();
     }
 
@@ -74,7 +77,7 @@ public class RemovedDependency implements MigrationPreparer
     }
 
     /**
-     * @param lines original dependency line
+     * @param depLine original dependency line
      * @return converted line
      */
     private String convertDependencyLine(String depLine)
@@ -96,5 +99,11 @@ public class RemovedDependency implements MigrationPreparer
             converted = "(removed)";
         }
         return converted;
+    }
+
+    @Override
+    public String getCommitMessage()
+    {
+        return "refactor: remove old dependencies";
     }
 }
