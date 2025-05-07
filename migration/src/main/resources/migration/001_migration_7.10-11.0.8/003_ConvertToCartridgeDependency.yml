@@ -1,5 +1,6 @@
 type: specs.intershop.com/v1beta/migrate
 migrator: com.intershop.customization.migration.gradle.ConvertToCartridgeDependency
+message: "refactor: adapt intershop dependencies in build.gradle"
 options:
   cartridgeDependencyGroups:
   - com.intershop.platform

@@ -1,5 +1,6 @@
 type: specs.intershop.com/v1beta/migrate
 migrator: com.intershop.customization.migration.gradle.RenamedDependency
+message: "refactor: rename apache dependencies in build.gradle"
 options:
   dependency-map:
     commons-lang:commons-lang: org.apache.commons:commons-lang3

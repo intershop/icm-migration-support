@@ -1,22 +1,16 @@
 package com.intershop.customization.migration.gradle;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.Position;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.Position;
 
 public class UpdateGradleBuild7to10 implements MigrationPreparer
 {
@@ -361,5 +355,4 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
         if (parts.length == 1) parts = line.split("\"");
         return parts[1];
     }
-
 }
