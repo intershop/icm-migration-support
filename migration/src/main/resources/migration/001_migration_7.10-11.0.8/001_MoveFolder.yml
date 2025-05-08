@@ -1,5 +1,5 @@
 type: specs.intershop.com/v1beta/migrate
-migrator: com.intershop.customization.migration.MoveFolder
+migrator: com.intershop.customization.migration.moving.MoveFolder
 message: "refactor: move staticfiles to resources"
 options:
   source-map:
@@ -12,6 +12,14 @@ options:
     "impex" : "staticfiles/cartridge/impex"
     "config" : "staticfiles/cartridge/config"
     "isml" : "staticfiles/cartridge/templates"
+    "components" : "staticfiles/cartridge/components"
+    "naming" : "staticfiles/cartridge/naming"
+    "objectgraph" : "staticfiles/cartridge/objectgraph"
+    "edl" : "edl"
+    "dbinit" : "staticfiles/cartridge/lib/resources/{cartridgeName}/dbinit"
+    "dbmigrate" : "staticfiles/cartridge/lib/resources/{cartridgeName}/dbmigrate"
+    "comresource" : "staticfiles/cartridge/lib/resources/com"
+    "testsResource" : "staticfiles/cartridge/lib/resources/tests"
   target-map:
     "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
     "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
@@ -22,3 +30,11 @@ options:
     "impex" : "src/main/resources/resources/{cartridgeName}/impex"
     "config" : "src/main/resources/resources/{cartridgeName}/config"
     "isml" : "src/main/isml/{cartridgeName}"
+    "components" : "src/main/resources/resources/{cartridgeName}/components"
+    "naming" : "src/main/resources/resources/{cartridgeName}/naming"
+    "objectgraph" : "src/main/resources/resources/{cartridgeName}/objectgraph"
+    "edl" : "src/main/resources/resources/{cartridgeName}/edl"
+    "dbinit" : "src/main/resources/resources/{cartridgeName}/dbinit"
+    "dbmigrate" : "src/main/resources/resources/{cartridgeName}/dbmigrate"
+    "comresource" : "src/main/resources/com"
+    "testsResource" : "src/test/resources/tests"

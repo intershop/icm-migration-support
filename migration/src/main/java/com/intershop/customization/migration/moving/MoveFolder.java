@@ -1,8 +1,7 @@
-package com.intershop.customization.migration;
+package com.intershop.customization.migration.moving;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
+
+import static com.intershop.customization.migration.moving.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
 public class MoveFolder implements MigrationPreparer
 {
@@ -28,23 +29,22 @@ public class MoveFolder implements MigrationPreparer
         this.targetConfiguration = step.getOption(YAML_KEY_TARGET_MAP);
     }
 
-    private String cartridgeName;
     public void migrate(Path cartridgeDir)
     {
-        cartridgeName = getResourceName(cartridgeDir);
+        String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.info("Processing cartridge {}.", cartridgeName);
 
         for (Map.Entry<String, String> sourceEntry : sourceConfiguration.entrySet())
         {
             String artifactName = sourceEntry.getKey();
-            Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue());
+            Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue().replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
             if (!sourcePath.toFile().exists())
             {
-                LOGGER.debug("Can't find cartridges folder {}.", sourcePath);
+                LOGGER.debug("Can't find cartridges folder '{}'.", sourcePath);
                 continue;
             }
             String targetPathAsString = targetConfiguration.get(artifactName);
-            Path targetPath = cartridgeDir.resolve(targetPathAsString.replace("{cartridgeName}", cartridgeName));
+            Path targetPath = cartridgeDir.resolve(targetPathAsString.replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
             // move everything at once
             try
             {
@@ -59,7 +59,7 @@ public class MoveFolder implements MigrationPreparer
                     Files.move(sourcePath, targetPath);
                 }
                 else {
-                    LoggerFactory.getLogger(getClass()).warn("Folder {} exists.", targetPath);
+                    LoggerFactory.getLogger(getClass()).warn("Folder '{}' exists.", targetPath);
                 }
             }
             catch(IOException e)
