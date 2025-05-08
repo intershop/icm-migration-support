@@ -1,4 +1,4 @@
-package com.intershop.customization.migration;
+package com.intershop.customization.migration.pfconfigurationfs;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,29 +9,40 @@ import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
+import com.intershop.customization.migration.Migrator;
+
 /**
  * helper class  to  Convert ICM 7.10 configuration .resource file into .properties file.
- * @see https://intershop.atlassian.net/wiki/spaces/INTTCHNL/pages/49623072922/Tools+for+ICM+N+Migration+Draft#*.resource-Files-in-share/system/config/domains
- * Abstract:
+ * They are used for 
+ * <ul>
+ *  <li>transport - name *_transport.resource</li>
+ * <li>application preferencees - name *_appprfrnce.resource</li>
+ * <li>user - name *_usr.resource</li>
+ * <li>... w.i.p</li>
+ * <7ul>
+ * and converted into prooertty files.<br/>
+ * 
+ * <p/>Bacgground:
  * "When using the “Test System Configuration Solution Kit”, a rework is necessary 
  * according to pf_configuration_fs versions for IS7.10 vs. for ICM11. 
  * See 
  * <ul>
- *   <li><a href="https://intershop.atlassian.net/wiki/spaces/ENFDEVDOC/pages/1895598402">Cookbook - 7.10 Test System Configuration Solution Kit</a> vs. </li>
- *   <li><a href="https://intershop.atlassian.net/wiki/pages/createpage.action?spaceKey=ENFDEVDOC&title=Cookbook%20-%20ICM%2011%20Test%20System%20Configuration%20Solution%20Kit">Cookbook - ICM 11 Test System Configuration Solution Kit</a></li>. 
+ *   <li>"Cookbook - 7.10 Test System Configuration Solution" Kit vs. </li>
+ *   <li>"Cookbook - ICM 11 Test System Configuration Solution Kit"</li>. 
  * </ul>
  * The *.resource files need to be migrated to *.properties files and 
  * wired in cartridge-specific configuration.xml file."
  * 
  */
 public class CfgResourceConverter {
+
     private Path source;
     private Path target;
-    private String resourceType = "";
+    private String resourceType;
 
     private String prefix="";
 
-    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CfgResourceConverter.class);
 
     /**
      * @param resourceType the type of the resource, e.g. "transport", prefixed as  "pfconfigurationfs>transport"
@@ -41,6 +52,8 @@ public class CfgResourceConverter {
     public CfgResourceConverter(String resourceType, Path source, Path target) {
         this.source = source;
         this.target = target;
+
+        this.resourceType = "";
         switch (resourceType)
         {
             case "transport":
@@ -93,9 +106,9 @@ public class CfgResourceConverter {
             ArrayList<String> targetLines = new ArrayList<>();
             for (String line : lines) {
                 line = line.trim();
+                String key = "";
 
                 // transport resource file
-                String key = "";
                 if(line.isEmpty() || (line.startsWith("#")))
                 {
                     targetLine = line;
@@ -110,7 +123,7 @@ public class CfgResourceConverter {
                     }
                     else
                     {
-                        String entry[] = line.split("=");
+                        String[] entry = line.split("=");
 
                         // scam inputz lin
                         String cfgGroup = "";

@@ -1,24 +1,22 @@
-package com.intershop.customization.migration;
+package com.intershop.customization.migration.pfconfigurationfs;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.LoggerFactory;
 
-import com.intershop.customization.migration.CfgResourceConverter;
 import com.intershop.customization.migration.common.MigrationPreparer;
 
-public class MigrateConfigResurces  implements MigrationPreparer
+public class MigrateConfigResources  implements MigrationPreparer
  {
 
-    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
     @Override
     public void migrate(Path cartridgeDir) {
@@ -39,16 +37,9 @@ public class MigrateConfigResurces  implements MigrationPreparer
         try
         {
             Set<Path> toRemove = new HashSet<>();
-            ArrayList<Path> toBeMigrated = new ArrayList<>();
-            toBeMigrated.add(staticCartridgeFolder);
-            toBeMigrated.add(staticshareFolder);
-            toBeMigrated.add(staticSitesFolder);
-            toBeMigrated.add(sourceMain);
-            Iterator<Path> toBeMigratedPaths= toBeMigrated.iterator(); 
-
-            while (toBeMigratedPaths.hasNext()){
-
-                Path path= (Path) toBeMigratedPaths.next();
+            List<Path> toBeMigrated = List.of(staticCartridgeFolder, staticshareFolder, staticSitesFolder, sourceMain);
+            for (Path path : toBeMigrated)
+            {
 
                 if(path.toFile().isDirectory() && path.toFile().isDirectory())
                 {
@@ -59,7 +50,6 @@ public class MigrateConfigResurces  implements MigrationPreparer
                     LOGGER.warn("Can't find  files {}.", path);
                     continue;
                 }
-                System.out.println("~~~ "+ path);
 
                 Files.walk(path)
                 .filter(p -> p.getNameCount() > staticFilesFolder.getNameCount() + 1)
@@ -76,27 +66,27 @@ public class MigrateConfigResurces  implements MigrationPreparer
 
                             targetFile.toFile().getParentFile().mkdirs();
 
-                            // resource foles must be cinverted @see CfgResourceConverter
-                            String targetTpe ="";
+                            // resource files must be cinverted @see CfgResourceConverter
+                            String targetType  ="";
                             if (targetFileName.endsWith("transport.resource")) 
                             {
-                                targetTpe = "transport";
+                                targetType  = "transport";
                             }
                             else if (targetFileName.endsWith("application.resource"))
                             {
-                                targetTpe = "application";
+                                targetType  = "application";
                             }
                             else if (targetFileName.endsWith("usr.resource"))
                             {
-                                targetTpe = "user";
+                                targetType = "user";
                             }
-                            if (!"".equals(targetTpe))
+                            if (!targetType.isEmpty())
                             {
                                 // convert resource file to properties file
                                 String targetName = targetFile.toFile().getAbsolutePath();
                                 targetName= targetName.replace(".resource", ".properties");
                                 Path target = Paths.get(targetName);
-                                convertResourceFile(targetTpe, source, target);
+                                convertResourceFile(targetType, source, target);
                                 Files.delete(source);
                                 LOGGER.debug("Convered file {} ==>  {}.", source, target);
                             }
@@ -136,26 +126,30 @@ public class MigrateConfigResurces  implements MigrationPreparer
 
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
-        String filName = source.getName(0).toString();
+        String fileName = source.getName(0).toString();
         Path  targetPath =sourceMain.resolve("resources/resources").resolve(cartridgeName);
         if(targetPath.toString().contains("resources"+java.io.File.separator+"resources"+java.io.File.separator+cartridgeName))
         {
             // targetPath = targetPath.resolve("resources/resources").resolve(cartridgeName);
-            switch(filName)
+            switch(fileName)
             {
                 case "domains":
+                    // staticfiles/share/system/config/domains -> src/main/resources/resources/{cartridgeName}/config/domains
                     Path targetSubDomains = source.subpath(2, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubDomains);
                     break;
                 case "system":
+                    // staticfiles/share/system/config -> src/main/resources/resources/{cartridgeName}/config
                     Path targetSubConfig = source.subpath(1, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubConfig);
                     break;
                 case "cartridge":
+                    // staticfiles/share/sites -> src/main/resources/resources/{cartridgeName}/sites
                     Path targetSubSites = source.subpath(2, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubSites);
                     break;
                 default:
+                    // others -> src/main/resources/resources/{cartridgeName}
                     Path targetSub = source.subpath(3, source.getNameCount());
                     targetPath = targetPath.resolve(targetSub);
             }
