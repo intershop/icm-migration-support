@@ -119,11 +119,6 @@ public class MigrateConfigResources implements MigrationPreparer
         }
     }
 
-    private Set<String> getArtifactTypes()
-    {
-        return Set.of("config", "sites");
-    }
-
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
         String fileName = source.getName(0).toString();
@@ -162,11 +157,7 @@ public class MigrateConfigResources implements MigrationPreparer
 
     private boolean shouldMigrate(Path path)
     {
-        if (getArtifactTypes().contains("sites") || getArtifactTypes().contains("config"))
-        {
-            return path.getFileName().toString().endsWith(".resource");
-        }
-        return false;
+        return path.getFileName().toString().endsWith(".resource");
     }
 
     /**
