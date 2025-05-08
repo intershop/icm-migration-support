@@ -1,36 +1,32 @@
-package com.intershop.customization.migration.moving;
+package com.intershop.customization.migration.file;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 
-import static com.intershop.customization.migration.moving.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
+import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
-public class MoveFiles implements MigrationPreparer
+public class MoveFolder implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private static final String YAML_KEY_SOURCE_MAP = "source-map";
     private static final String YAML_KEY_TARGET_MAP = "target-map";
-    private static final String YAML_KEY_FILTER_MAP = "filter-map";
     private Map<String, String> sourceConfiguration = Collections.emptyMap();
     private Map<String, String> targetConfiguration = Collections.emptyMap();
-    private Map<String, String> filterConfiguration = Collections.emptyMap();
 
     @Override
     public void setStep(MigrationStep step)
     {
         this.sourceConfiguration = step.getOption(YAML_KEY_SOURCE_MAP);
         this.targetConfiguration = step.getOption(YAML_KEY_TARGET_MAP);
-        this.filterConfiguration = step.getOption(YAML_KEY_FILTER_MAP);
     }
 
     public void migrate(Path cartridgeDir)
@@ -44,50 +40,32 @@ public class MoveFiles implements MigrationPreparer
             Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue().replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
             if (!sourcePath.toFile().exists())
             {
-                LOGGER.debug("Can't find cartridges folder {}.", sourcePath);
+                LOGGER.debug("Can't find cartridges folder '{}'.", sourcePath);
                 continue;
             }
             String targetPathAsString = targetConfiguration.get(artifactName);
             Path targetPath = cartridgeDir.resolve(targetPathAsString.replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
-            // create target if not exists
-            if (!targetPath.toFile().exists())
+            // move everything at once
+            try
             {
-                targetPath.toFile().mkdirs();
-            }
-            File[] files = sourcePath.toFile().listFiles();
-            if (files != null)
-            {
-                for(File file : files)
+                // create parent if not exists (required by Files.move)
+                if (!targetPath.getParent().toFile().exists())
                 {
-                    if (file.isDirectory())
-                    {
-                        continue;
-                    }
-                    String fileName = file.getName();
-                    if (!shouldMigrate(fileName, artifactName))
-                    {
-                        continue;
-                    }
-                    Path targetFile = targetPath.resolve(fileName);
-                    try
-                    {
-                        Files.move(file.toPath(), targetFile);
-                    }
-                    catch(IOException e)
-                    {
-                        throw new RuntimeException(e);
-                    }
+                    targetPath.getParent().toFile().mkdirs();
+                }
+                // target must not exist (required by Files.move)
+                if (!targetPath.toFile().exists())
+                {
+                    Files.move(sourcePath, targetPath);
+                }
+                else {
+                    LoggerFactory.getLogger(getClass()).warn("Folder '{}' exists.", targetPath);
                 }
             }
+            catch(IOException e)
+            {
+                throw new RuntimeException(e);
+            }
         }
-    }
-
-    private boolean shouldMigrate(String fileName, String artifactName)
-    {
-        if (filterConfiguration.containsKey(artifactName))
-        {
-            return fileName.matches(filterConfiguration.get(artifactName));
-        }
-        return false;
     }
 }

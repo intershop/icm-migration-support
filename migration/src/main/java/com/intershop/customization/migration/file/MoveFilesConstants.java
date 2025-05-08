@@ -1,4 +1,4 @@
-package com.intershop.customization.migration.moving;
+package com.intershop.customization.migration.file;
 
 public class MoveFilesConstants
 {
