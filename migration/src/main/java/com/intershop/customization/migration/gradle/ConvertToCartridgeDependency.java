@@ -1,5 +1,11 @@
 package com.intershop.customization.migration.gradle;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -7,20 +13,17 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
-import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
-
 public class ConvertToCartridgeDependency implements MigrationPreparer
 {
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
     private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
     public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
     
     private List<String> cartridgeDependencies = Collections.emptyList();
+
     @Override
     public void setStep(MigrationStep step)
     {
@@ -38,7 +41,7 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         }
         catch(IOException e)
         {
-            LoggerFactory.getLogger(getClass()).error("Can't convert build.gradle", e);
+            LOGGER.error("Can't convert build.gradle", e);
         }
     }
 

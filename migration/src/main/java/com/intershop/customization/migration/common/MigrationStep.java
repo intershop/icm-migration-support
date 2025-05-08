@@ -31,6 +31,7 @@ public class MigrationStep
 
     private static final String MIGRATOR_KEY = "migrator";
     private static final String OPTIONS_KEY = "options";
+    private static final String MESSAGE_KEY = "message";
     private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     private Map<String, Object> yamlConf = Collections.emptyMap();
@@ -53,6 +54,12 @@ public class MigrationStep
     {
         Map<String, Object> op = getRootKey(OPTIONS_KEY);
         return (T) op.get(key);
+    }
+
+    @SuppressWarnings("unchecked")
+    public String getMessage()
+    {
+        return getRootKey(MESSAGE_KEY);
     }
 
     @SuppressWarnings("unchecked")
