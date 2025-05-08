@@ -26,7 +26,7 @@ public class Position
         int counterBrackets = 0;
         for (int i = 0; i < lines.size(); i++)
         {
-            String line = lines.get(i);
+            String line = lines.get(i).trim();
             if (line.startsWith(startMarker))
             {
                 startIntershop = i;
@@ -79,6 +79,30 @@ public class Position
         result.addAll(lines.subList(0, this.begin));
         result.addAll(lines.subList(this.end + 1, lines.size()));
         return result;
+    }
+
+    /**
+     * @return lines which are not included in and before the identified position
+     */
+    public List<String> nonMatchingLinesBefore()
+    {
+        if (this.begin == -1)
+        {
+            return lines;
+        }
+        return lines.subList(0, this.begin);
+    }
+
+    /**
+     * @return lines which are not included in and after the identified position
+     */
+    public List<String> nonMatchingLinesAfter()
+    {
+        if (this.begin == -1)
+        {
+            return lines;
+        }
+        return lines.subList(this.end + 1, lines.size());
     }
 
     /**
