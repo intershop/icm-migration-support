@@ -1,4 +1,4 @@
-package com.intershop.customization.migration;
+package com.intershop.customization.migration.moving;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
+
+import static com.intershop.customization.migration.moving.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
 public class MoveFiles implements MigrationPreparer
 {
@@ -39,14 +41,14 @@ public class MoveFiles implements MigrationPreparer
         for (Map.Entry<String, String> sourceEntry : sourceConfiguration.entrySet())
         {
             String artifactName = sourceEntry.getKey();
-            Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue());
+            Path sourcePath = cartridgeDir.resolve(sourceEntry.getValue().replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
             if (!sourcePath.toFile().exists())
             {
                 LOGGER.debug("Can't find cartridges folder {}.", sourcePath);
                 continue;
             }
             String targetPathAsString = targetConfiguration.get(artifactName);
-            Path targetPath = cartridgeDir.resolve(targetPathAsString.replace("{cartridgeName}", cartridgeName));
+            Path targetPath = cartridgeDir.resolve(targetPathAsString.replace(PLACEHOLDER_CARTRIDGE_NAME, cartridgeName));
             // create target if not exists
             if (!targetPath.toFile().exists())
             {
