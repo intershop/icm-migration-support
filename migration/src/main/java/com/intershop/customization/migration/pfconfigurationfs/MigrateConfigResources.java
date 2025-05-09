@@ -37,7 +37,6 @@ public class MigrateConfigResources implements MigrationPreparer
 
         try
         {
-            Set<Path> toRemove = new HashSet<>();
             List<Path> toBeMigrated = List.of(staticCartridgeFolder, staticshareFolder, staticSitesFolder, sourceMain);
             for (Path path : toBeMigrated)
             {
@@ -81,6 +80,10 @@ public class MigrateConfigResources implements MigrationPreparer
                                  {
                                      targetType = "user";
                                  }
+                                 else if (targetFileName.endsWith("mngdsrvc.resource"))
+                                 {
+// w.i.p.                                     targetType = "service";
+                                 }
                                  if (!targetType.isEmpty())
                                  {
                                      // convert resource file to properties file
@@ -97,11 +100,6 @@ public class MigrateConfigResources implements MigrationPreparer
                                      LOGGER.warn("file {} not yet handled.", source);
                                  }
                              }
-                             else
-                             {
-                                 LOGGER.debug("to be deleted {} ==>  {}.", source);
-                                 toRemove.add(source);
-                             }
                          }
                          catch(Exception e)
                          {
@@ -109,8 +107,6 @@ public class MigrateConfigResources implements MigrationPreparer
                          }
                      });
             }
-
-            toRemove.stream().filter(this::isEmpty).forEach(this::delete);
 
         }
         catch(IOException e)

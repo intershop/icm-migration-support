@@ -63,6 +63,10 @@ public class CfgResourceConverter
             case "user":
                 this.prefix = "pfconfigurationfs>usr";
                 break;
+            case "service":
+//w.i.p.                 this.prefix = "pfconfigurationfs>mngdsrvc";
+                LOGGER.error("Unknown resource type: {}", resourceType);
+                break;
             default:
                 LOGGER.error("Unknown resource type: {}", resourceType);
                 return;
