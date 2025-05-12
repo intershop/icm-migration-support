@@ -96,7 +96,6 @@ public class MigrateConfigResources implements MigrationPreparer
                                      Path target = Paths.get(targetName);
                                      convertResourceFile(targetType, source, target);
                                      Files.delete(source);
-                                     LOGGER.debug("Convered file {} ==>  {}.", source, target);
                                  }
                                  else
                                  {
@@ -168,7 +167,7 @@ public class MigrateConfigResources implements MigrationPreparer
     private void convertResourceFile(String resurceCfgType, Path source, Path target)
     {
         CfgResourceConverter converter = new CfgResourceConverter(resurceCfgType, source, target);
-        converter.convertTransportResource();
+        converter.convertResource();
 
     }
 

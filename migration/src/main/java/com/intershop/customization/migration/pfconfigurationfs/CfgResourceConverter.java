@@ -75,13 +75,12 @@ public class CfgResourceConverter
                 break;
             case "service":
 //                this.prefix = "pfconfigurationfs>mngdsrvc";
-                LOGGER.error("Unknown resource type: {}", resourceType);
-                break;
+                return;
             case "domain":
 //                this.prefix = "pfconfigurationfs>dmnprfrnc";
-                LOGGER.error("Unknown resource type: {}", resourceType);
+                return;
             default:
-                LOGGER.error("Unknown resource type: {}", resourceType);
+                LOGGER.warn("Unknown resource type: {}", resourceType);
                 return;
         }
         this.resourceType = resourceType;
@@ -90,9 +89,9 @@ public class CfgResourceConverter
     /**
      * onvert a transport configuration
      */
-    public void convertTransportResource()
+    public void convertResource()
     {
-        if (resourceType.isEmpty())
+        if (this.resourceType.isEmpty())
         {
             LOGGER.error("No resource type set. Can't convert file {}.", source);
             return;
@@ -109,98 +108,141 @@ public class CfgResourceConverter
             return;
         }
 
-        String cfgDomainDir = source.getParent().toFile().getName();
-
         try
         {
             // Read lines from a file
             List<String> lines = Files.readAllLines(source);
-
-            // Process and write lines to another file
-            String lastKey = "";
-            String targetLine = "";
-            ArrayList<String> tartEntry = new ArrayList<>();
-
             ArrayList<String> targetLines = new ArrayList<>();
-            for (String line : lines)
+
+            if("application".equals(this.resourceType) || "transport".equals(this.resourceType))
             {
-                line = line.trim();
-                String key = "";
-
-                // transport resource file
-                if (line.isEmpty() || (line.startsWith("#")))
-                {
-                    targetLine = line;
-                    targetLines.add(targetLine);
-                }
-                else
-                {
-                    if ("user".equals(this.resourceType))
-                    {
-                        targetLine = this.prefix + ">" + line.trim();
-                        targetLines.add(targetLine);
-                    }
-                    else
-                    {
-                        String[] entry = line.split("=");
-
-                        // scam inputz lin
-                        String cfgGroup = "";
-                        String cfgKey = "";
-                        String cfgValue = "";
-                        if (entry.length == 2)
-                        {
-                            cfgKey = entry[0].trim();
-                            cfgValue = entry[1].trim();
-                            if ((!"user".equals(this.resourceType)) && (0 >= cfgKey.indexOf(".")))
-                            {
-                                cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
-                                cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
-                            }
-                            else
-                            {
-                                cfgGroup = "N/A";
-                            }
-                        }
-                        // fuill target line
-                        if (!cfgGroup.isEmpty() && !cfgKey.isEmpty() && !cfgValue.isEmpty())
-                        {
-                            List<String> sourceEentry = Arrays.asList(cfgGroup, cfgKey, cfgValue);
-                            key = sourceEentry.get(0).trim();
-                            if (sourceEentry.size() == 3)
-                            {
-                                if (tartEntry.size() < 3)
-                                {
-                                    tartEntry.add(sourceEentry.get(2).trim());
-                                }
-                                if (tartEntry.size() == 3)
-                                {
-                                    String groupStr = tartEntry.get(0).trim();
-                                    if ("application".equals(this.resourceType))
-                                    {
-                                        groupStr = cfgDomainDir + ">" + groupStr;
-                                    }
-                                    targetLine = this.prefix 
-                                    + ">" + groupStr
-                                    + ">" + tartEntry.get(1).trim() 
-                                    + " = " + tartEntry.get(2).trim();
-                                    if (!targetLine.endsWith(" = n/a"))
-                                    {
-                                        targetLines.add(targetLine);
-                                    }
-                                    tartEntry = new ArrayList<String>();
-                                }
-                            }
-                        }
-                    }
-                }
-                lastKey = key;
+                targetLines = migrateTransportCfg(lines);
             }
+            else if ("user".equals(this.resourceType))
+            {
+                targetLines = migrateUserCfg(lines);
+            }
+            else
+            {
+                //return;
+            }
+
             Files.write(target, targetLines);
         }
         catch(IOException e)
         {
             LOGGER.error("Error reading file: " + source, e);
         }
+        LOGGER.debug("Convered file {} ==>  {}.", source, target);
+
+    }
+
+    private ArrayList<String> migrateUserCfg(List<String> lines)
+     {
+        String targetLine = "";
+        ArrayList<String> targetLines = new ArrayList<>();
+
+        for (String line : lines)
+        {
+            line = line.trim();
+            String key = "";
+
+            // transport resource file
+            if (line.isEmpty() || (line.startsWith("#")))
+            {
+                targetLine = line;
+                targetLines.add(targetLine);
+            }
+            else
+            {
+                    targetLine = this.prefix + ">" + line.trim();
+                    targetLines.add(targetLine);
+            }
+        }
+        return targetLines;
+    }
+
+    private ArrayList<String> migrateTransportCfg(List<String> lines) {
+        ArrayList<String> targetLines = new ArrayList<>();
+
+
+        // Process and write lines to another file
+        String lastKey = "";
+        String targetLine = "";
+        String cfgDomainDir = source.getParent().toFile().getName();
+
+        // fuill target line
+        ArrayList<String> tartEntry = new ArrayList<>();
+
+        for (String line : lines)
+        {
+            line = line.trim();
+            String key = "";
+
+            // transport resource file
+            if (line.isEmpty() || (line.startsWith("#")))
+            {
+                targetLine = line;
+                targetLines.add(targetLine);
+            }
+            else
+            {
+                if ("user".equals(this.resourceType))
+                {
+                    targetLine = this.prefix + ">" + line.trim();
+                    targetLines.add(targetLine);
+                }
+                else
+                {
+                    String[] entry = line.split("=");
+
+                    // scam inputz lin
+                    String cfgGroup = "";
+                    String cfgKey = "";
+                    String cfgValue = "";
+                    if (entry.length == 2)
+                    {
+                        cfgKey = entry[0].trim();
+                        cfgValue = entry[1].trim();
+                        if ((!"user".equals(this.resourceType)) && (0 >= cfgKey.indexOf(".")))
+                        {
+                            cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
+                            cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
+                        }
+                    }
+                    
+                    List<String> sourceEentry = Arrays.asList(cfgGroup, cfgKey, cfgValue);
+                    key = sourceEentry.get(0).trim();
+                    if (sourceEentry.size() == 3)
+                    {
+                        if (tartEntry.size() < 3)
+                        {
+                            tartEntry.add(sourceEentry.get(2).trim());
+                        }
+                        if (tartEntry.size() == 3)
+                        {
+                            System.out.println("~~~" + cfgGroup + ", "  + cfgKey + ", " + cfgValue);
+                        
+                            String groupStr = tartEntry.get(0).trim();
+                            if ("application".equals(this.resourceType))
+                            {
+                                groupStr = cfgDomainDir + ">" + groupStr;
+                            }
+                            targetLine = this.prefix 
+                            + ">" + groupStr
+                            + ">" + tartEntry.get(1).trim() 
+                            + " = " + tartEntry.get(2).trim();
+                            if (!targetLine.endsWith(" = n/a"))
+                            {
+                                targetLines.add(targetLine);
+                            }
+                            tartEntry = new ArrayList<String>();
+                        }
+                    }
+                }
+            }
+            lastKey = key;
+        }
+        return targetLines;
     }
 }
