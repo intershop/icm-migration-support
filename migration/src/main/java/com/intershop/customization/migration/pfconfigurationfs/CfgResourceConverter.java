@@ -29,6 +29,16 @@ import com.intershop.customization.migration.Migrator;
  * The *.resource files need to be migrated to *.properties files and wired in cartridge-specific configuration.xml
  * file."
  * 
+ * <p/>
+ * <b><u>.resource types</u><b>
+ * <p/>
+ * <u>usr  -* _transport.resource</u>
+ * <p/>
+ * <u>usr  -* _usr.resource</u>
+ * <p/>
+ * <u>usr  -* _usr.resource</u>
+ * <p/>
+ * 
  */
 public class CfgResourceConverter
 {
@@ -64,9 +74,12 @@ public class CfgResourceConverter
                 this.prefix = "pfconfigurationfs>usr";
                 break;
             case "service":
-//w.i.p.                 this.prefix = "pfconfigurationfs>mngdsrvc";
+//                this.prefix = "pfconfigurationfs>mngdsrvc";
                 LOGGER.error("Unknown resource type: {}", resourceType);
                 break;
+            case "domain":
+//                this.prefix = "pfconfigurationfs>dmnprfrnc";
+                LOGGER.error("Unknown resource type: {}", resourceType);
             default:
                 LOGGER.error("Unknown resource type: {}", resourceType);
                 return;
