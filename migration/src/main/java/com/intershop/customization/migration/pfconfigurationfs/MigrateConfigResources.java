@@ -82,7 +82,11 @@ public class MigrateConfigResources implements MigrationPreparer
                                  }
                                  else if (targetFileName.endsWith("mngdsrvc.resource"))
                                  {
-// w.i.p.                                     targetType = "service";
+                                     targetType = "service";
+                                 }
+                                 else if (targetFileName.endsWith("dmnprfrnc.resource"))
+                                 {
+                                     targetType = "domain";
                                  }
                                  if (!targetType.isEmpty())
                                  {
@@ -120,10 +124,10 @@ public class MigrateConfigResources implements MigrationPreparer
         String fileName = source.getName(0).toString();
         Path targetPath = sourceMain.resolve("resources/resources").resolve(cartridgeName);
         if (targetPath.toString()
-                      .contains("resources" + java.io.File.separator + "resources" + java.io.File.separator
-                                      + cartridgeName))
+            .contains("resources" + java.io.File.separator 
+            + "resources" + java.io.File.separator
+            + cartridgeName))
         {
-            // targetPath = targetPath.resolve("resources/resources").resolve(cartridgeName);
             switch(fileName)
             {
                 case "domains":
@@ -133,12 +137,14 @@ public class MigrateConfigResources implements MigrationPreparer
                     targetPath = targetPath.resolve(targetSubDomains);
                     break;
                 case "system":
-                    // staticfiles/share/system/config -> src/main/resources/resources/{cartridgeName}/config
+                    // staticfiles/share/system/config 
+                    // -> src/main/resources/resources/{cartridgeName}/config
                     Path targetSubConfig = source.subpath(1, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubConfig);
                     break;
                 case "cartridge":
-                    // staticfiles/share/sites -> src/main/resources/resources/{cartridgeName}/sites
+                    // staticfiles/share/sites 
+                    // -> src/main/resources/resources/{cartridgeName}/sites
                     Path targetSubSites = source.subpath(2, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubSites);
                     break;
