@@ -12,13 +12,19 @@ How to Work with the ICM Migration Support
 - $ICM is a symbolic marker for the root directory of your ICM 7.10 project
 - $ICM_11 is a symbolic marker for the root directory of your ICM 11+ project (template)
 
-# Before you start
-
-TODO  backup
-
-
 # Prerequisites
+This project is based on Java 21.
+An appropriate JDK must be installed and configured in your environment.
 
+The migration tool tries to commit the made changes after each step. 
+This means the root project must be a git repository. 
+Even though it is possible to disable the feature, this is not recommended. 
+
+Perform a backup of the cartridge list of your deployed ICM 7.10 project.
+Since the cartridge list in ICM 11+ is generated based on the declared dependencies, the current list becomes later 
+important to compare the cartridge list of the ICM 7.10 project with the generated one.
+
+# Preparation
 Retrieve customization template and follow the prerequisites steps.
 
 Use customization template to create initial project structure
@@ -60,9 +66,9 @@ cp -r $(ICM_11)/* $(ICM)/
 
 # Migration
 
-The migration tool tries to commit the made changes after each step. 
+
+As stated in the chapter [Preparation](#preparation), the migration tool tries to commit the made changes after each step.
 By this fine granular commit approach, it is possible to revert the changes step by step.
-To benefit from this feature, the path of the root project must be a git repository.
 Currently, it is not possible to use that option with a subproject because the `.git` folder is not available in the subproject level.
 To disable the auto commit, the `-PnoAutoCommit` parameter must be set.
 
@@ -131,14 +137,18 @@ Add the migration task to the `dbinit.properties` or desired `migration-to-xxx.p
 pre.Class0=com.intershop.site.dbinit.SiteContentPreparer
 ```
 
-### Remove assembly projects
+### Remove assembly projects / Verify and correct dependencies
+In ICM11+, dependencies must be declared at the cartridge level. This applies to both implementation and runtime dependencies.
+In version 7.10, runtime dependencies were not utilized. The server necessitated a cartridge list, the sequence of which reflected these runtime dependencies indirectly.
+The previous approach exhibited inherent limitations, and the dependencies were not always accurate at the cartridge level.
 
-Assembly projects are no longer needed. Just remove it.
+The cartridge list, built in the `build.gradle` file of the assembly project, defined the runtime dependencies only indirectly and on
+the wrong level. 
+It is not of interest anymore and was already deleted. 
+The backup of the generated cartridge list becomes in
+this step important since it is a helpful tool to verify and correct the dependencies between the cartridges.
 
-___TODO___ explain handling of deploy.gradle and cartridge list
-
-### Remove .version files
-
-Version numbers are declared inside the two subprojects `versions`, `versions_test` for third party libraries.
-The ICM version and required customization/extension versions are managed in `gradle.properties`
-If a `*.version` file contains version declaration of specific dependencies, these must be transferred to versions projects.
+It is imperative that each cartridge be meticulously examined to ascertain its dependencies on other cartridges, and that these dependencies be documented in its respective `build.gradle` file.
+Therefore, it is imperative to meticulously examine the code of each code artifact to ascertain its dependencies on other cartridges.
+This assertion holds true for the complete array of code artifacts, including component files, ISML templates, Java classes, and the like.
+In summary, when an additional code or output from another cartridge is necessary, a dependency on that cartridge must be declared.
