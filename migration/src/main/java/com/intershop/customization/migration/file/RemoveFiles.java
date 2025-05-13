@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -33,36 +34,69 @@ import com.intershop.customization.migration.common.MigrationStep;
  * migrator: migrator: com.intershop.customization.migration.file.RemoveFiles
  * message: "refactor: removed *.bak files"
  * options:
- *   glob:
- *   - "*.bak"
- *   regex:
- *   - "*\\.bak$"
+ *   root-project:  // only applied to root project
+ *     glob:
+ *     - "*.bak"
+ *     regex:
+ *     - "*\\.bak$"
+ *   sub-projects:  // applied to all sub-projects
+ *     glob:
+ *     - "*.bak"
+ *     regex:
+ *     - "*\\.bak$"
  * </pre>
  */
 public class RemoveFiles implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
+    private static final String YAML_KEY_ROOT_PROJECT = "root-project";
+    private static final String YAML_KEY_SUB_PROJECTS = "sub-projects";
     private static final String YAML_KEY_GLOB = "glob";
     private static final String YAML_KEY_REGEX = "regex";
 
+    private List<String> rootGlobPattern = Collections.emptyList();
+    private List<String> rootRegexPattern = Collections.emptyList();
     private List<String> globPattern = Collections.emptyList();
     private List<String> regexPattern = Collections.emptyList();
 
     @Override
-    @SuppressWarnings("unchecked")
     public void setStep(MigrationStep step)
     {
-        this.globPattern = (List<String>)Optional.ofNullable(step.getOption(YAML_KEY_GLOB))
-                                                 .orElse(Collections.emptyList());
-        this.regexPattern = (List<String>)Optional.ofNullable(step.getOption(YAML_KEY_REGEX))
-                                                  .orElse(Collections.emptyList());
+        this.rootGlobPattern = getPatternFor(step, YAML_KEY_ROOT_PROJECT, YAML_KEY_GLOB);
+        this.rootRegexPattern = getPatternFor(step, YAML_KEY_ROOT_PROJECT, YAML_KEY_REGEX);
+        this.globPattern = getPatternFor(step, YAML_KEY_SUB_PROJECTS, YAML_KEY_GLOB);
+        this.regexPattern = getPatternFor(step, YAML_KEY_SUB_PROJECTS, YAML_KEY_REGEX);
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> getPatternFor(MigrationStep step, String type, String patternKey)
+    {
+        Object root = step.getOption(type);
+        if (root instanceof Map<?,?> rootData)
+        {
+            return Optional.ofNullable(rootData.get(patternKey))
+                                           .map(o -> (List<String>)o)
+                                           .orElse(Collections.emptyList());
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void migrateRoot(Path projectRoot)
+    {
+        String cartridgeName = getResourceName(projectRoot);
+        LOGGER.info("Processing root project '{}'.", cartridgeName);
+
+        rootGlobPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_GLOB, pattern));
+        rootRegexPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_REGEX, pattern));
     }
 
     public void migrate(Path cartridgeDir)
     {
         String cartridgeName = getResourceName(cartridgeDir);
-        LOGGER.info("Processing cartridge {}.", cartridgeName);
+        LOGGER.info("Processing cartridge '{}'.", cartridgeName);
 
         globPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_GLOB, pattern));
         regexPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_REGEX, pattern));
@@ -80,7 +114,6 @@ public class RemoveFiles implements MigrationPreparer
                 .filter(Files::isRegularFile)
                 .filter(path -> matcher.matches(path.getFileName()))
                 .forEach(file -> {
-                    LOGGER.info("Deleting file: '{}'", file);
                     try
                     {
                         Files.delete(file);
