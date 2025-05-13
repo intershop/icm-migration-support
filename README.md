@@ -1,140 +1,55 @@
 How to Work with the ICM Migration Support
 ==========================================
 
-[TOC]:
+A tool to support the migration from one major ICM version to another.
 
-# Table of Contents
+## Table of Contents
 - [Prerequisites](#prerequisites)
+- [Preparation](#preparation)
 - [Migration](#migration)
-
-# Marker
-
-- $ICM is a symbolic marker for the root directory of your ICM 7.10 project
-- $ICM_11 is a symbolic marker for the root directory of your ICM 11+ project (template)
-
-# Before you start
-
-TODO  backup
+  - [Migration all at once](#migration-all-at-once)
+  - [Migration step by step](#migration-step-by-step)
+  - [Available Migration Steps](#available-migration-steps)
+- [Third Party Libraries](#third-party-libraries)
 
 
-# Prerequisites
+## Prerequisites
+* This tool is based on Java 21. An appropriate JDK must be installed and configured in your environment.
+* One step requires a Kotlin environment. The Kotlin compiler must be installed and configured in your environment.
+* The ICM project to be migrated must be managed by Git repository, checked out and deployed locally.
 
-Retrieve customization template and follow the prerequisites steps.
+## Preparation
+Perform a backup of the cartridge list of your deployed ICM 7.10 project.
+Since the cartridge list in ICM 11+ is generated based on the declared dependencies, the current list becomes later 
+important to compare the cartridge list of the ICM 7.10 project with the generated one.
 
-Use customization template to create initial project structure
-
-* checkout customization template
-* follow the documentation to configure the template 
-  * use versions for ICM 11 in the first step
-* execute the initialization script
-
-As result following files are created
-- build.gradle.kts - root build script to configure subprojects (cartridges)
--- define and apply gradle repositories (allows to download ICM cartridges)
--- apply version filter to subproject (allows central definition of versions at two subprojects "versions" and "versions_test")
-- my_* directories containing example cartridges for different purposes
-- ft_production directory defines the cartridge set of production
-- ft_test directory defines the test cartridge set for server tests (mostly test data)
-
-## Prepare ICM11+ template
-
-- go to your ICM11+ project
-- check that result of customization template is working
-- set marker
-
-```
-gradlew compileTestJava
-export ICM_11="$PWD"
-```
-
-## Prepare ICM11+ branch
-
-- create and checkout a feature branch on $ICM
-- copy result of customization template into $ICM
-
-```
-export ICM="$PWD"
-git checkout -b feature/migration-to-11
-rsync -av --exclude='.git' "$(ICM_11)/" "$(ICM)/"
-```
-
-# Migration
-
-The migration tool tries to commit the made changes after each step. 
+## Migration
+As stated in the beginning, the migration tool tries to commit the made changes after each step.
 By this fine granular commit approach, it is possible to revert the changes step by step.
-To benefit from this feature, the path of the root project must be a git repository.
 Currently, it is not possible to use that option with a subproject because the `.git` folder is not available in the subproject level.
 To disable the auto commit, the `-PnoAutoCommit` parameter must be set.
 
-## Migration all at once
+### Migration all at once
 
 This command will execute all migration steps on all subprojects of the $ICM directory
 ```
-gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8
+gradlew migration:migrateAll -Ptarget=$ICM -Psteps=<path_to_migration_steps> [-PnoAutoCommit]
 ```
 
-## Migration step by step
+### Migration step by step
 
 - run migration script (TODO build a gradle task)
 
 ```
-gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml -PnoAutoCommit
-gradlew migration:migrateOne -Ptask=projects -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7.10-11.0.8/001_MoveArtifacts.yml
+gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
+gradlew migration:migrateOne -Ptask=projects -Ptarget=$ICM -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
 ```
 
-## Manual Migration steps
+### Available Migration Steps
+The migration steps are located in the `migration/src/main/resources/migration` folder of the project and grouped by major ICM versions. This allows to
+migrate from one major version to another, while keeping different start points in mind and supporting a migration in more maintainable steps.
 
-### Global defined dependencies
+* [Migration 7.10 to 11](docs/migration-7.10-11.md)
 
-- add central defined libs to subprojects section, as in 7.10 or better at the dependencies to the subprojects as needed.
-
-```
-subprojects {
-...
-    plugins.withType<JavaPlugin> {
-
-        dependencies {
-            val cartridge by configurations
-            val implementation by configurations
-            val testImplementation by configurations
-...
-            // central defined libs
-            implementation ("com.intershop.platform:bc_spreadsheet")
-            implementation ("com.intershop.platform:pipeline")
-            implementation ("javax.inject:javax.inject")
-            implementation ("org.slf4j:slf4j-api")
-            implementation ("ch.qos.logback:logback-core")
-            implementation ("com.google.inject:guice")
-            implementation ("org.apache.tomcat:tomcat-el-api")
-            implementation ("org.apache.tomcat:tomcat-servlet-api")
-...
-```
-### Remove Sites Folder Copy Tasks
-
-Remove site tasks from build.gradle files, like the following example.
-The content of `sites` folder will be prepared as dbprepare step. The required `SiteContentPerparer` will be added for these subprojects 
-where such a folder exists.
-
-```
-/*
- * create a copy of the smb whitestore content for the simple smb storefront
- */
-task copySimpleSMBWhiteStore(type: Copy) {
-    from "$projectDir/staticfiles/share/sites/inSPIRED-inTRONICS_Business-Site/units/inSPIRED-inTRONICS_Business-smb-responsive/impex/src/whitestore"
-    into "$projectDir/staticfiles/share/sites/inSPIRED-inTRONICS-Site/units/inSPIRED-inTRONICS-smb-responsive/impex/src/whitestore"
-}
-zipShare.dependsOn copySimpleSMBWhiteStore
-```
-
-
-### Remove assembly projects
-
-Assembly projects are no longer needed. Just remove it.
-
-___TODO___ explain handling of deploy.gradle and cartridge list
-
-### Remove .version files
-
-Version numbers are declared inside the two subprojects `versions`, `versions_test` for third party libraries.
-The ICM version and required customization/extension versions are managed in `gradle.properties`
-If a `*.version` file contains version declaration of specific dependencies, these must be transferred to versions projects.
+### Third Party Libraries
+Dieses Projekt verwendet Code aus dem Projekt [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), lizenziert unter der Apache License 2.0.
