@@ -92,7 +92,7 @@ public class Migrator
      * Initializes the git repository for the project.
      *
      * @param autoCommit if true, the git repository will be initialized and changes will be committed automatically
-     * @param projectPath
+     * @param projectPath the path to the project directory
      */
     public void initializeGitRepository(boolean autoCommit, File projectPath)
     {
@@ -122,12 +122,16 @@ public class Migrator
     protected void migrateProjects(File rootProject)
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
+
+        // migrate root project
         for (MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
             migrator.migrateRoot(rootProject.toPath());
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
+
+        // migrate all cartridges
         for (MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
