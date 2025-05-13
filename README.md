@@ -12,6 +12,11 @@ How to Work with the ICM Migration Support
 - $ICM is a symbolic marker for the root directory of your ICM 7.10 project
 - $ICM_11 is a symbolic marker for the root directory of your ICM 11+ project (template)
 
+# Before you start
+
+TODO  backup
+
+
 # Prerequisites
 
 Retrieve customization template and follow the prerequisites steps.
