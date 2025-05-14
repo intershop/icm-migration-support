@@ -123,18 +123,11 @@ public class Migrator
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
 
-        // migrate root project
         for (MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
-            migrator.migrateRoot(rootProject.toPath());
-            gitRepository.ifPresent(r -> commitChanges(r, step));
-        }
 
-        // migrate all cartridges
-        for (MigrationStep step: steps.getSteps())
-        {
-            MigrationPreparer migrator = step.getMigrator();
+            migrator.migrateRoot(rootProject.toPath());
 
             File[] files = rootProject.listFiles();
             if (files == null)
@@ -150,7 +143,6 @@ public class Migrator
             }
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
-
     }
 
     /**
@@ -163,6 +155,7 @@ public class Migrator
         for(MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
+            LOGGER.info(">>> Executing migration step '{}' for project.", migrator.getClass().getName());
 
             migrator.migrate(projectDir.toPath());
             gitRepository.ifPresent(r -> commitChanges(r, step));
