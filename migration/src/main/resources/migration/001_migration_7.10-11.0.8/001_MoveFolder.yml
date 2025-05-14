@@ -1,5 +1,5 @@
 type: specs.intershop.com/v1beta/migrate
-migrator: com.intershop.customization.migration.moving.MoveFolder
+migrator: com.intershop.customization.migration.file.MoveFolder
 message: "refactor: move staticfiles to resources"
 options:
   source-map:
