@@ -61,7 +61,7 @@ export ICM_11="$PWD"
 ```
 export ICM="$PWD"
 git checkout -b feature/migration-to-11
-cp -r $(ICM_11)/* $(ICM)/
+rsync -av --exclude='.git' "$(ICM_11)/" "$(ICM)/"
 ```
 
 # Migration
