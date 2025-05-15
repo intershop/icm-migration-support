@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +22,13 @@ public class MigrationStepFolder
 {
     public static MigrationStepFolder valueOf(Path path)
     {
-        try
+        try (Stream<Path> pathStream = Files.walk(path))
         {
-            return new MigrationStepFolder(Files.walk(path).filter(Files::isRegularFile).toList());
+            List<Path> steps = pathStream
+                                    .filter(Files::isRegularFile)
+                                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                                    .toList();
+            return new MigrationStepFolder(steps);
         }
         catch(IOException e)
         {
