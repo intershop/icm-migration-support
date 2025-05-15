@@ -13,18 +13,15 @@ How to Work with the ICM Migration Support
 - $ICM_11 is a symbolic marker for the root directory of your ICM 11+ project (template)
 
 # Prerequisites
-This project is based on Java 21.
-An appropriate JDK must be installed and configured in your environment.
+* This tool is based on Java 21. An appropriate JDK must be installed and configured in your environment.
+* The ICM project to be migrated must be managed by Git repository, checked out and deployed locally.
 
-The migration tool tries to commit the made changes after each step. 
-This means the root project must be a git repository. 
-Even though it is possible to disable the feature, this is not recommended. 
-
+# Preparation
 Perform a backup of the cartridge list of your deployed ICM 7.10 project.
 Since the cartridge list in ICM 11+ is generated based on the declared dependencies, the current list becomes later 
 important to compare the cartridge list of the ICM 7.10 project with the generated one.
 
-# Preparation
+## Prepare ICM11+ template
 Retrieve customization template and follow the prerequisites steps.
 
 Use customization template to create initial project structure
@@ -42,7 +39,7 @@ As result following files are created
 - ft_production directory defines the cartridge set of production
 - ft_test directory defines the test cartridge set for server tests (mostly test data)
 
-## Prepare ICM11+ template
+## Verify ICM11+ template
 
 - go to your ICM11+ project
 - check that result of customization template is working
@@ -56,7 +53,7 @@ export ICM_11="$PWD"
 ## Prepare ICM11+ branch
 
 - create and checkout a feature branch on $ICM
-- copy result of customization template into $ICM
+- copy result of customization template into $ICM (without overwriting the .git folder)
 
 ```
 export ICM="$PWD"
@@ -65,7 +62,6 @@ rsync -av --exclude='.git' "$(ICM_11)/" "$(ICM)/"
 ```
 
 # Migration
-
 
 As stated in the chapter [Preparation](#preparation), the migration tool tries to commit the made changes after each step.
 By this fine granular commit approach, it is possible to revert the changes step by step.
