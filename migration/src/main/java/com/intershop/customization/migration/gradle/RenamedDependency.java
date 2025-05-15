@@ -14,6 +14,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ * This migrator replaces the configured old dependencies in the 'build.gradle' files by their new
+ * group/artifact name.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.gradle.RenamedDependency
+ * message: "refactor: rename apache dependencies in build.gradle"
+ * options:
+ *   dependency-map:
+ *     commons-lang:commons-lang: org.apache.commons:commons-lang3
+ * </pre>
+ */
 public class RenamedDependency implements MigrationPreparer
 {
     private static final String YAML_KEY_RENAMED_DEPENDENCY = "dependency-map";

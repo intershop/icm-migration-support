@@ -14,6 +14,33 @@ import java.util.Map;
 
 import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
+/**
+ * This migration step is used to migrate the files structure of a cartridge
+ * by moving files from their old location to the new. The files to
+ * handle are defined in the migration step configuration.
+ * <p>
+ * The configuration is composed of the maps: `source-map`, `target-map`
+ * and `filter-map`. The keys of the maps are used to match the 3 parts
+ * together. The values are the paths to the source and
+ * target directories and the filter pattern, respectively.
+ * <p>
+ * The placeholder `{cartridgeName}` can be used in path names and will
+ * be replaced by the cartridge name.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.file.MoveFiles
+ * message: "refactor: move dbinit and migration properties to new location"
+ * options:
+ *   source-map:
+ *     "dbprepare" : "staticfiles/cartridge"
+ *   target-map:
+ *     "dbprepare" : "src/main/resources/resources/{cartridgeName}"
+ *   filter-map:
+ *     "dbprepare" : "(migration|dbinit).*\\.properties"
+ * </pre>
+ */
 public class MoveFiles implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());

@@ -13,6 +13,36 @@ import java.util.Map;
 
 import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
+/**
+ * This migration step is used to migrate the files structure of a cartridge
+ * by moving all files of a configured folder from their old location to the
+ * new source location. The folders to move are configured in the migration
+ * step configuration.
+ * <p>
+ * The configuration is composed of the 2 required maps: `source-map` and
+ * `target-map`.
+ * The keys of the `source-map` and `target-map` are used to join the 2
+ * definitions. It is recommended to use the name of the artifact groups
+ * here. The values are the paths to the source and target directories,
+ * respectively.
+ * <p>
+ * The placeholder `{cartridgeName}` can be used in path names and will
+ * be replaced by the cartridge name.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.file.MoveFolder
+ * message: "refactor: move staticfiles to resources"
+ * options:
+ *   source-map:
+ *     "pipelines" : "staticfiles/cartridge/pipelines"
+ *     "webforms" : "staticfiles/cartridge/webforms"
+ *   target-map:
+ *     "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
+ *     "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
+ * </pre>
+ */
 public class MoveFolder implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());

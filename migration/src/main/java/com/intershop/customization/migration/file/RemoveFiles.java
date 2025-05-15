@@ -31,7 +31,7 @@ import com.intershop.customization.migration.common.MigrationStep;
  * Example YAML configuration:
  * <pre>
  * type: specs.intershop.com/v1beta/migrate
- * migrator: migrator: com.intershop.customization.migration.file.RemoveFiles
+ * migrator: com.intershop.customization.migration.file.RemoveFiles
  * message: "refactor: removed *.bak files"
  * options:
  *   root-project:  // only applied to root project
