@@ -12,6 +12,20 @@ import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class removes old dependencies from the 'build.gradle' files. The dependencies
+ * to remove can be configured in the migration step configuration.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.gradle.RemovedDependency
+ * message: "refactor: remove obsolete dependencies in build.gradle"
+ * options:
+ *   dependencies:
+ *   - com.intershop.business:ac_inventory_service
+ * </pre>
+ */
 public class RemovedDependency implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());

@@ -11,6 +11,16 @@ import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class migrates plugins in the 'build.gradle' files to their declaration/usage.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.gradle.UpdateGradleBuild7to10
+ * message: "refactor: adapt plugins in build.gradle"
+ * </pre>
+ */
 public class UpdateGradleBuild7to10 implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
