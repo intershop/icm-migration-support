@@ -155,7 +155,6 @@ public class Migrator
         for(MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
-            LOGGER.info(">>> Executing migration step '{}' for project.", migrator.getClass().getName());
 
             migrator.migrate(projectDir.toPath());
             gitRepository.ifPresent(r -> commitChanges(r, step));
