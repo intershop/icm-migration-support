@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.parser.DBInitPropertiesParser;
 
 /**
  * This class is used to
@@ -50,7 +51,12 @@ public class AddSiteContentPreparer implements MigrationPreparer
                     return;
                 }
 
-                Files.writeString(dbinitProperties, injectSiteContentPreparer(lines), CHARSET_BUILD_GRADLE);
+                DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
+                List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
+                DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getFirstEntry( DBInitPropertiesParser.GroupType.PRE);
+                DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry( DBInitPropertiesParser.GroupType.MAIN);
+
+                Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
             }
             catch(IOException e)
             {
@@ -59,7 +65,6 @@ public class AddSiteContentPreparer implements MigrationPreparer
 
             // TODO remove possible enries in build.gradle (copy tasks)
         }
-
     }
 
     /**
@@ -116,7 +121,6 @@ public class AddSiteContentPreparer implements MigrationPreparer
                                             .resolve(cartridgeName);
         Path newDBInitProperties = cartridgeResources.resolve("dbinit.properties");
 
-        // TODO open: check file attributes (writable)
         if (newDBInitProperties.toFile().isFile() && newDBInitProperties.toFile().exists())
         {
             LOGGER.debug("'dbinit.properties' to have SiteContentPreparer located at '{}'", newDBInitProperties);
@@ -134,7 +138,6 @@ public class AddSiteContentPreparer implements MigrationPreparer
         try
         {
             LOGGER.debug("No 'dbinit.properties' found. Creating new file at '{}'", newDBInitProperties);
-            // TODO open: check permission to create file (writable)
             return Files.createFile(newDBInitProperties);
         }
         catch(IOException e)
@@ -144,65 +147,72 @@ public class AddSiteContentPreparer implements MigrationPreparer
     }
 
     /**
-     * Adds the SiteContentPreparer to the dbinit.properties file at the first
-     * possible position. The preparer is added to the 'pre' namespace with the
-     * first available class ID.
+     * Adds the SiteContentPreparer to the dbinit.properties file at the first possible position.
+     * The preparer is added to the 'pre' namespace with the first available class ID.
      * <p>
-     * Assumption: The pre classes are in the file before the normal preparer
-     * classes. All registered preparers are in ascending order. The check if
-     * the SiteContentPreparer is already registered is done beforehand.
+     * Assumption: The check if the SiteContentPreparer is already registered is done beforehand.
      *
-     * @param lines current lines of the dbinit.properties file
-     * @return string to be written to the dbinit.properties file
+     * @param parsedLines parsed content of the dbinit.properties file
+     * @param highestPreEntry the highest entry in the file with prefix 'pre.Class'
+     * @param firstMainEntry the first main entry in the file (prefix 'Class')
+     * @return new content to be written to the dbinit.properties file
      */
-    protected String injectSiteContentPreparer(List<String> lines)
+    protected String injectSiteContentPreparer(List<DBInitPropertiesParser.LineEntry> parsedLines,
+                    DBInitPropertiesParser.PropertyEntry highestPreEntry,
+                    DBInitPropertiesParser.PropertyEntry firstMainEntry)
     {
         StringBuilder result = new StringBuilder();
-        int preparerClassID = 0;
         boolean added = false;
 
-        for (String line : lines)
+        for (DBInitPropertiesParser.LineEntry line : parsedLines)
         {
-            // skip empty lines, comments and other preparers in the 'pre' namespace
-            String trimmedLine = line.trim();
-            // TODO skip empty lines too - but current approach causes issues when doing so
-            if (trimmedLine.startsWith("#") || line.trim().startsWith("pre.Class"))
+            if (line instanceof DBInitPropertiesParser.PropertyEntry propertyEntry)
             {
-                if (line.trim().startsWith("pre.Class"))
+                if (!added && highestPreEntry != null && propertyEntry == highestPreEntry)
                 {
-                    String[] pair = line.split("=");
-                    String classID = pair[0].trim().replace("pre.Class", "");
-                    if (classID.matches("\\d+"))
-                    {
-                        preparerClassID = Integer.parseInt(classID);
-                        if (preparerClassID > 0)
-                        {
-                            preparerClassID++;
-                        }
-                    }
+                    // add last line of the pre section
+                    result.append(propertyEntry.text()).append(LINE_SEP);
+                    appendSiteContentPreparerEntry(result, highestPreEntry.id()+1);
+                    added = true;
                 }
-                result.append(line).append(LINE_SEP);
-                continue;
-            }
-
-            if (!added)
-            {
-                // add the new preparer
-                result.append("# Prepare sites-folder")
-                      .append(LINE_SEP);
-                result.append("pre.Class").append(preparerClassID)
-                      .append("=com.intershop.site.dbinit.SiteContentPreparer")
-                      .append(LINE_SEP)
-                      .append(LINE_SEP);
-                added = true;
+                else if (!added && propertyEntry == firstMainEntry)
+                {
+                    // add the SiteContentPreparer first
+                    appendSiteContentPreparerEntry(result, 0);
+                    result.append(propertyEntry.text()).append(LINE_SEP);
+                    added = true;
+                }
+                else
+                {
+                    // not yet added, but appropriate line not yet found
+                    result.append(line.text()).append(LINE_SEP);
+                }
             }
             else
             {
-                // add the rest of the lines
-                result.append(line).append(LINE_SEP);
+                // handle all other lines
+                result.append(line.text()).append(LINE_SEP);
             }
         }
 
         return result.toString();
+    }
+
+    /**
+     * Adds the SiteContentPreparer entry to the dbinit.properties file.
+     * @param result the StringBuilder to append the entry to
+     * @param id the ID to use for the SiteContentPreparer entry
+     */
+    private void appendSiteContentPreparerEntry(StringBuilder result, Integer id)
+    {
+        // add the SiteContentPreparer
+        result.append(LINE_SEP)
+              .append("# Prepare sites-folder")
+              .append(LINE_SEP);
+        result.append("pre.Class")
+              .append(id)
+              .append("=com.intershop.site.dbinit.SiteContentPreparer")
+              .append(LINE_SEP)
+              .append(LINE_SEP);
     }
 }
