@@ -109,10 +109,11 @@ subprojects {
             implementation ("org.apache.tomcat:tomcat-servlet-api")
 ...
 ```
-### Sites Folder Copy Tasks
+### Remove Sites Folder Copy Tasks
 
 Remove site tasks from build.gradle files, like the following example.
-The content of sites folder will be prepared as dbprepare step.
+The content of `sites` folder will be prepared as dbprepare step. The required `SiteContentPerparer` will be added for these subprojects 
+where such a folder exists.
 
 ```
 /*
@@ -125,11 +126,6 @@ task copySimpleSMBWhiteStore(type: Copy) {
 zipShare.dependsOn copySimpleSMBWhiteStore
 ```
 
-Add the migration task to the `dbinit.properties` or desired `migration-to-xxx.properties` 
-```
-# Prepare sites-folder
-pre.Class0=com.intershop.site.dbinit.SiteContentPreparer
-```
 
 ### Remove assembly projects
 
