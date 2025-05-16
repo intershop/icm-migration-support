@@ -57,13 +57,13 @@ public class AddSiteContentPreparer implements MigrationPreparer
                 DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry( DBInitPropertiesParser.GroupType.MAIN);
 
                 Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
+
+                LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitProperties, projectDir.resolve("build.gradle"));
             }
             catch(IOException e)
             {
                 LOGGER.error("Can't register SiteContentPreparer in file " + dbinitProperties, e);
             }
-
-            // TODO remove possible enries in build.gradle (copy tasks)
         }
     }
 
