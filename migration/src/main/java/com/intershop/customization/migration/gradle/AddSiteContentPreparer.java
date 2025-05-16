@@ -53,8 +53,8 @@ public class AddSiteContentPreparer implements MigrationPreparer
 
                 DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
                 List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
-                DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getFirstEntry( DBInitPropertiesParser.GroupType.PRE);
-                DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry( DBInitPropertiesParser.GroupType.MAIN);
+                DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(DBInitPropertiesParser.GroupType.PRE);
+                DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(DBInitPropertiesParser.GroupType.MAIN);
 
                 Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
 
@@ -94,7 +94,7 @@ public class AddSiteContentPreparer implements MigrationPreparer
         Path newSitesFolder = cartridgeResources.resolve("sites");
         if (newSitesFolder.toFile().isDirectory() && newSitesFolder.toFile().exists())
         {
-            LOGGER.debug("project contains 'sites' folder at '{}'", oldSitesFolder);
+            LOGGER.debug("project contains 'sites' folder at '{}'", newSitesFolder);
             return Optional.of(newSitesFolder);
         }
 
