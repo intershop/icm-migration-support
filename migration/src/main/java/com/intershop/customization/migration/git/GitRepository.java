@@ -75,15 +75,19 @@ public class GitRepository implements Closeable
         }
     }
 
-    public boolean hasUncommittedChanges()
+    /**
+     * Checks if the Git status is clean. Means there are no uncommitted changes or untracked files in the git repository.
+     * @return true if status is clean (no uncommitted changes or untracked files), false otherwise
+     */
+    public boolean isClean()
     {
         try
         {
-            return git.status().call().hasUncommittedChanges();
+            return git.status().call().isClean();
         }
         catch(GitAPIException e)
         {
-            LOGGER.error("Error while checking for uncommitted changes in git repository at {}.", repositoryDirectory, e);
+            LOGGER.error("Error while checking the status of git repository  '{}'.", repositoryDirectory, e);
             return false;
         }
     }

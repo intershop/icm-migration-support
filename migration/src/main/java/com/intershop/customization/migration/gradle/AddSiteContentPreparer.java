@@ -40,29 +40,33 @@ public class AddSiteContentPreparer implements MigrationPreparer
         if (sitesFolderOptional.isPresent())
         {
             // sites folder found - get or create dbinit.properties
-            Path dbinitProperties = getDBinitProperties(projectDir);
+            Optional<Path> dbinitPropsOptional = getDBinitProperties(projectDir);
 
-            try (Stream<String> linesStream = Files.lines(dbinitProperties, CHARSET_BUILD_GRADLE))
+            if (dbinitPropsOptional.isPresent())
             {
-                List<String> lines = linesStream.toList();
-                if (lines.stream().anyMatch(l -> l.contains("com.intershop.site.dbinit.SiteContentPreparer")))
+                Path dbinitProperties = dbinitPropsOptional.get();
+                try (Stream<String> linesStream = Files.lines(dbinitProperties, CHARSET_BUILD_GRADLE))
                 {
-                    LOGGER.debug("SiteContentPreparer already registered in file '{}'. Nothing to do.", dbinitProperties);
-                    return;
+                    List<String> lines = linesStream.toList();
+                    if (lines.stream().anyMatch(l -> l.contains("com.intershop.site.dbinit.SiteContentPreparer")))
+                    {
+                        LOGGER.debug("SiteContentPreparer already registered in file '{}'. Nothing to do.", dbinitPropsOptional);
+                        return;
+                    }
+
+                    DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
+                    List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
+                    DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(DBInitPropertiesParser.GroupType.PRE);
+                    DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(DBInitPropertiesParser.GroupType.MAIN);
+
+                    Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
+
+                    LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitPropsOptional, projectDir.resolve("build.gradle"));
                 }
-
-                DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
-                List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
-                DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(DBInitPropertiesParser.GroupType.PRE);
-                DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(DBInitPropertiesParser.GroupType.MAIN);
-
-                Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
-
-                LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitProperties, projectDir.resolve("build.gradle"));
-            }
-            catch(IOException e)
-            {
-                LOGGER.error("Can't register SiteContentPreparer in file " + dbinitProperties, e);
+                catch(IOException e)
+                {
+                    LOGGER.error("Can't register SiteContentPreparer in file " + dbinitPropsOptional, e);
+                }
             }
         }
     }
@@ -111,7 +115,7 @@ public class AddSiteContentPreparer implements MigrationPreparer
      * @param projectDir the project dir to check.
      * @return the dbinit.properties file of the cartridge.
      */
-    protected Path getDBinitProperties(Path projectDir)
+    protected Optional<Path> getDBinitProperties(Path projectDir)
     {
         String cartridgeName = getResourceName(projectDir);
         Path cartridgeResources = projectDir.resolve("src")
@@ -124,7 +128,7 @@ public class AddSiteContentPreparer implements MigrationPreparer
         if (newDBInitProperties.toFile().isFile() && newDBInitProperties.toFile().exists())
         {
             LOGGER.debug("'dbinit.properties' to have SiteContentPreparer located at '{}'", newDBInitProperties);
-            return newDBInitProperties;
+            return Optional.of(newDBInitProperties);
         }
 
         Path oldDBinitProperties = projectDir.resolve("staticfiles").resolve("cartridge").resolve("dbinit.properties");
@@ -132,17 +136,25 @@ public class AddSiteContentPreparer implements MigrationPreparer
         if (oldDBinitProperties.toFile().isFile() && oldDBinitProperties.toFile().exists())
         {
             LOGGER.debug("'dbinit.properties' to have SiteContentPreparer located at '{}'", oldDBinitProperties);
-            return oldDBinitProperties;
+            return Optional.of(oldDBinitProperties);
         }
 
         try
         {
             LOGGER.debug("No 'dbinit.properties' found. Creating new file at '{}'", newDBInitProperties);
-            return Files.createFile(newDBInitProperties);
+
+            if (!cartridgeResources.toFile().exists())
+            {
+                LOGGER.debug("Source directory '{}' to store 'dbinit.properties' not present. Creating.", newDBInitProperties);
+                Files.createDirectories(cartridgeResources);
+            }
+
+            return Optional.of(Files.createFile(newDBInitProperties));
         }
         catch(IOException e)
         {
-            throw new RuntimeException("Could not create file " + newDBInitProperties, e);
+            LOGGER.error("Error while creating file '" + newDBInitProperties + "': ", e);
+            return Optional.empty();
         }
     }
 
