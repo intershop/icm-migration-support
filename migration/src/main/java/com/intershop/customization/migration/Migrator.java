@@ -1,7 +1,6 @@
 package com.intershop.customization.migration;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -162,13 +161,13 @@ public class Migrator
     }
 
     /**
-     * Commit changes to the git repository if there are any uncommited changes in the repository.
+     * Commit changes to the git repository if there are any uncommited changes or new files in the repository.
      * @param repository repository instance to commit changes
      * @param step current migration step
      */
     protected void commitChanges(GitRepository repository, MigrationStep step)
     {
-        if (repository.hasUncommittedChanges())
+        if (!repository.isClean())
         {
             String commitMessage = step.getMessage();
             String sha = repository.commit(commitMessage);
