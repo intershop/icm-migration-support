@@ -17,7 +17,6 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 public class ConvertToKotlin implements MigrationPreparer
 {
     public static final String GRADLEKOTLINCONVERTER = "kotlin/gradlekotlinconverter.kts";
-    public static final String KOTLIN = "kotlin";
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     public void migrate(Path resource)
@@ -44,12 +43,17 @@ public class ConvertToKotlin implements MigrationPreparer
         }
     }
 
+    private String getKotlinExecutable()
+    {
+        return System.getProperty("os.name").toLowerCase().contains("win") ? "kotlin.bat" : "kotlin";
+    }
+
     private String getKotlinRuntimeVersion()
     {
         try
         {
             return executeKotlinProcess(
-                            new String[] { KOTLIN, "-version" },
+                            new String[] { getKotlinExecutable(), "-version" },
                             (exitCode, output) -> {
                                 if (exitCode == 0)
                                 {
@@ -74,7 +78,7 @@ public class ConvertToKotlin implements MigrationPreparer
     {
         Path scriptPath = getKotlinScriptPath();
         return executeKotlinProcess(
-                        new String[] { KOTLIN, scriptPath.toString(), resource.toString(), "skipintro", "deleteInputFile" },
+                        new String[] { getKotlinExecutable(), scriptPath.toString(), resource.toString(), "skipintro", "deleteInputFile" },
                         (exitCode, output) -> {
                             if (exitCode != 0)
                             {
