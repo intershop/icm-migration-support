@@ -25,7 +25,8 @@ class ConvertToCartridgeDependencyTest
     {
         List<String> lines = Files.readAllLines(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.source")), BUILD_GRADLE_CHARSET);
         String expected = Files.readString(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.expected")), BUILD_GRADLE_CHARSET);
-        MigrationStep step = MigrationStep.valueOf(getGlobalResourceURI("migration/001_migration_7.10-11.0.8/003_ConvertToCartridgeDependency.yml"));
+        MigrationStep step = MigrationStep.valueOf(getGlobalResourceURI(
+                        "migration/001_migration_7.10-11.0.8/020_ConvertToCartridgeDependency.yml"));
         underTest.setStep(step);
         String result = underTest.migrate(lines);
         assertEquals(expected, result);
