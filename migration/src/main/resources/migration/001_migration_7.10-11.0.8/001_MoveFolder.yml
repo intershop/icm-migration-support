@@ -20,6 +20,7 @@ options:
     "dbmigrate" : "staticfiles/cartridge/lib/resources/{cartridgeName}/dbmigrate"
     "comresource" : "staticfiles/cartridge/lib/resources/com"
     "testsResource" : "staticfiles/cartridge/lib/resources/tests"
+    "logback" : "staticfiles/cartridge/logback"
   target-map:
     "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
     "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
@@ -38,3 +39,4 @@ options:
     "dbmigrate" : "src/main/resources/resources/{cartridgeName}/dbmigrate"
     "comresource" : "src/main/resources/com"
     "testsResource" : "src/test/resources/tests"
+    "logback" : "src/main/resources/resources/{cartridgeName}/logback"
