@@ -1,0 +1,10 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.gradle.RenamedPackages
+message: "refactor: rename apache packages in java and isml source files"
+options:
+  package-map:
+    org.apache.commons.lang: org.apache.commons.lang3
+    org.apache.commons.collections: org.apache.commons.collections4
+  file-extension:
+    - java
+    - isml
