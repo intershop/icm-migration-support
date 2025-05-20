@@ -107,7 +107,7 @@ public class MigrateVersionFiles implements MigrationPreparer
                 migratedConstraintsLines.add(EMPTY); // empty line
                 collectedVersionData.entrySet().stream()
                                 .flatMap(entry -> {
-                                    migratedConstraintsLines.add("        # migrated version information of '" + entry.getKey() + "'");
+                                    migratedConstraintsLines.add("        // migrated version information of '" + entry.getKey() + "'");
                                     return entry.getValue().stream();
                                 })
                                 .map(migratedLine -> ("        api \"" + migratedLine + "\"")).forEach(migratedConstraintsLines::add);
