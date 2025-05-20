@@ -106,6 +106,7 @@ public class RenamedPackages implements MigrationPreparer
         }
         catch(IOException e)
         {
+            LOGGER.error("An error occurred while retrieving the files in {}.", dir, e);
             throw new RuntimeException(e);
         }
     }
@@ -133,6 +134,7 @@ public class RenamedPackages implements MigrationPreparer
         }
         catch(Exception e)
         {
+            LOGGER.error("An error occurred while reading the file {}.", filePath, e);
             throw new RuntimeException(e);
         }
     }
@@ -157,6 +159,7 @@ public class RenamedPackages implements MigrationPreparer
         }
         catch(IOException e)
         {
+            LOGGER.error("An error occurred while modifying file {}.", filePath, e);
             throw new RuntimeException(e);
         }
     }
