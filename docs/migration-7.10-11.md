@@ -3,6 +3,8 @@
 This document outlines the migration process from ICM 7.10 to ICM 11, including automated steps performed by the
 migration tool and manual steps required afterward.
 
+> **Note:** `{cartridgeName}` is a placeholder and will be replaced by the name of the cartridge being migrated.
+
 ## Table of Contents
 
 - [Automated Migration Steps](#automated-migration-steps)
@@ -41,8 +43,6 @@ Moves all staticfiles to their new locations in the ICM 11 structure:
 - `staticfiles/cartridge/queries` -> `src/main/resources/resources/{cartridgeName}/queries`
 - `staticfiles/cartridge/templates` -> `src/main/isml/{cartridgeName}`
 - Various other resource directories moved to their new locations
-
-> **Note:** `{cartridgeName}` is a placeholder and will be replaced by the name of the cartridge being migrated.
 
 ### Convert build.gradle Files
 
