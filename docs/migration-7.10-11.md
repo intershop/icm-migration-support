@@ -42,6 +42,8 @@ Moves all staticfiles to their new locations in the ICM 11 structure:
 - `staticfiles/cartridge/templates` -> `src/main/isml/{cartridgeName}`
 - Various other resource directories moved to their new locations
 
+> **Note:** `{cartridgeName}` is a placeholder and will be replaced by the name of the cartridge being migrated.
+
 ### Convert build.gradle Files
 
 Migrator: `UpdateGradleBuild7to10`
