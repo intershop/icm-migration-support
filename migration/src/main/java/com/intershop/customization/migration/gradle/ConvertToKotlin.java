@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.function.BiFunction;
 
+import com.intershop.customization.migration.utils.OsCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,7 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 
 public class ConvertToKotlin implements MigrationPreparer
 {
-    public static final String GRADLEKOTLINCONVERTER = "kotlin/gradlekotlinconverter.kts";
+    public static final String GRADLE_KOTLIN_CONVERTER = "kotlin/gradlekotlinconverter.kts";
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     public void migrate(Path resource)
@@ -45,7 +46,7 @@ public class ConvertToKotlin implements MigrationPreparer
 
     private String getKotlinExecutable()
     {
-        return System.getProperty("os.name").toLowerCase().contains("win") ? "kotlin.bat" : "kotlin";
+        return OsCheck.isWindows() ? "kotlin.bat" : "kotlin";
     }
 
     private String getKotlinRuntimeVersion()
@@ -112,16 +113,16 @@ public class ConvertToKotlin implements MigrationPreparer
 
     private Path getKotlinScriptPath() throws IOException
     {
-        try (InputStream scriptStream = getClass().getClassLoader().getResourceAsStream(GRADLEKOTLINCONVERTER))
+        try (InputStream scriptStream = getClass().getClassLoader().getResourceAsStream(GRADLE_KOTLIN_CONVERTER))
         {
             if (scriptStream == null)
             {
-                throw new IOException("Kotlin script '" + GRADLEKOTLINCONVERTER + "' not found in classpath.");
+                throw new IOException("Kotlin script '" + GRADLE_KOTLIN_CONVERTER + "' not found in classpath.");
             }
 
-            Path tempScript = Files.createTempFile("gradlekotlinconverter", ".kts");
+            Path tempScript = Files.createTempFile("gradle_kotlin_converter", ".kts");
             Files.copy(scriptStream, tempScript, StandardCopyOption.REPLACE_EXISTING);
-            tempScript.toFile().deleteOnExit(); // Löscht die Datei nach Programmende
+            tempScript.toFile().deleteOnExit(); // Remove the temp file on exit
             return tempScript;
         }
     }
