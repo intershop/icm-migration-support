@@ -68,12 +68,10 @@ public class MigrateConfigResources implements MigrationPreparer
 
                                  String targetType = "";
                                  // resource files must be cinverted @see CfgResourceConverter
-                                 if ((targetFileName.endsWith(".resource")) && 
-                                 (-1 < targetFileName.lastIndexOf('_')))
+                                 if ((targetFileName.endsWith(".resource")) && (-1 < targetFileName.lastIndexOf('_')))
                                  {
-                                    targetType = targetFileName.substring(
-                                        targetFileName.lastIndexOf('_')+1
-                                        ,targetFileName.lastIndexOf(".resource"));
+                                     targetType = targetFileName.substring(targetFileName.lastIndexOf('_') + 1,
+                                                     targetFileName.lastIndexOf(".resource"));
                                  }
                                  if (!targetType.isEmpty())
                                  {
@@ -105,15 +103,13 @@ public class MigrateConfigResources implements MigrationPreparer
         }
     }
 
-
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
         String fileName = source.getName(0).toString();
         Path targetPath = sourceMain.resolve("resources/resources").resolve(cartridgeName);
         if (targetPath.toString()
-            .contains("resources" + java.io.File.separator 
-            + "resources" + java.io.File.separator
-            + cartridgeName))
+                      .contains("resources" + java.io.File.separator + "resources" + java.io.File.separator
+                                      + cartridgeName))
         {
             switch(fileName)
             {
@@ -124,13 +120,13 @@ public class MigrateConfigResources implements MigrationPreparer
                     targetPath = targetPath.resolve(targetSubDomains);
                     break;
                 case "system":
-                    // staticfiles/share/system/config 
+                    // staticfiles/share/system/config
                     // -> src/main/resources/resources/{cartridgeName}/config
                     Path targetSubConfig = source.subpath(1, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubConfig);
                     break;
                 case "cartridge":
-                    // staticfiles/share/sites 
+                    // staticfiles/share/sites
                     // -> src/main/resources/resources/{cartridgeName}/sites
                     Path targetSubSites = source.subpath(2, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubSites);

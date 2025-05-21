@@ -33,15 +33,15 @@ import com.intershop.customization.migration.Migrator;
  * <p/>
  * <b><u>.resource types</u><b>
  * <p/>
- * <u>usr  -* _transport.resource</u>
+ * <u>usr -* _transport.resource</u>
  * <p/>
- * <u>application  -* _appprfrnce.resource</u>
+ * <u>application -* _appprfrnce.resource</u>
  * <p/>
- * <u>usr  -* _usr.resource</u>
+ * <u>usr -* _usr.resource</u>
  * <p/>
- * <u>mngdsrvc  -* _mngdsrvc.resource</u>
+ * <u>mngdsrvc -* _mngdsrvc.resource</u>
  * <p/>
- * <u>dmnprfrnce  -* _dmnprfrnce.resource</u>
+ * <u>dmnprfrnce -* _dmnprfrnce.resource</u>
  * <p/>
  * 
  */
@@ -49,8 +49,7 @@ public class CfgResourceConverter
 {
 
     /**
-     * The resource type to be converted,
-     * mapping to the resource file name.
+     * The resource type to be converted, mapping to the resource file name.
      * <ul>
      * <li>transport - name *_transport.resource</li>
      * <li>application preferencees - name *_appprfrnce.resource</li>
@@ -59,25 +58,24 @@ public class CfgResourceConverter
      * <li>dmnprfrnce - name *_dmnprfrnce.resource</li>
      * </ul>
      */
-    public enum ResourceType {
-        TRANSPORT("transport"),
-        APPLICATION("application"),
-        USR("usr"),
-        MNGDSRVC("mngdsrvc"),
-        DMNPRFRNCE("dmnprfrnce");
-        
+    public enum ResourceType
+    {
+        TRANSPORT("transport"), APPLICATION("application"), USR("usr"), MNGDSRVC("mngdsrvc"), DMNPRFRNCE("dmnprfrnce");
+
         private final String value;
 
         // Constructor
-        ResourceType(String value) {
+        ResourceType(String value)
+        {
             this.value = value;
         }
-    
+
         // Getter method
-        public String getValue() {
+        public String getValue()
+        {
             return value;
         }
-    }           
+    }
 
     private Path source;
     private Path target;
@@ -97,10 +95,12 @@ public class CfgResourceConverter
         this.source = source;
         this.target = target;
 
-        this.resourceType="";
+        this.resourceType = "";
         // set with a valid resource type, only
-        for (ResourceType type : ResourceType.values()) {
-            if (type.getValue().equals(resourceType)) {
+        for (ResourceType type : ResourceType.values())
+        {
+            if (type.getValue().equals(resourceType))
+            {
                 this.resourceType = resourceType;
                 this.prefix = "pfconfigurationfs>" + resourceType;
                 break;
@@ -136,13 +136,13 @@ public class CfgResourceConverter
             List<String> lines = Files.readAllLines(source);
             ArrayList<String> targetLines = new ArrayList<>();
 
-            if(ResourceType.TRANSPORT.getValue().equals(this.resourceType) || 
-               ResourceType.APPLICATION.getValue().equals(this.resourceType))
+            if (ResourceType.TRANSPORT.getValue().equals(this.resourceType)
+                || ResourceType.APPLICATION.getValue().equals(this.resourceType))
             {
                 targetLines = migrateTransportCfg(lines);
             }
-            else if (ResourceType.USR.getValue().equals(this.resourceType) ||
-                     ResourceType.DMNPRFRNCE.getValue().equals(this.resourceType))
+            else if (ResourceType.USR.getValue().equals(this.resourceType)
+                     || ResourceType.DMNPRFRNCE.getValue().equals(this.resourceType))
             {
                 targetLines = migrateSimpleCfg(lines);
             }
@@ -168,19 +168,17 @@ public class CfgResourceConverter
     /**
      * similar for user credentials and domain preferences
      * <p/>
-     * The ICm 7.10 configuration:<br/>  
-     * #ParameterName# = #Value#
-     * InactivityPeriod = 0
-     * <br/> 
-     * gets converted to  ICM11+:<br/> 
-     * pfconfigurationfs>dmnprfrnce>#ParameterName# = #Value#<br/> 
+     * The ICm 7.10 configuration:<br/>
+     * #ParameterName# = #Value# InactivityPeriod = 0 <br/>
+     * gets converted to ICM11+:<br/>
+     * pfconfigurationfs>dmnprfrnce>#ParameterName# = #Value#<br/>
      * pfconfigurationfs>dmnprfrnce>InactivityPeriod = 0
      * 
      * @param lines the lones of the source file
      * @return targetLines the lines of the target file
      */
     private ArrayList<String> migrateSimpleCfg(List<String> lines)
-     {
+    {
         String targetLine = "";
         ArrayList<String> targetLines = new ArrayList<>();
 
@@ -196,28 +194,29 @@ public class CfgResourceConverter
             }
             else
             {
-                    targetLine = this.prefix + ">" + line.trim();
-                    targetLines.add(targetLine);
+                targetLine = this.prefix + ">" + line.trim();
+                targetLines.add(targetLine);
             }
         }
         return targetLines;
     }
 
     /**
-     * similar for  configirytions of #type# transport and application 
+     * similar for configirytions of #type# transport and application
      * <p/>
-     * The ICm 7.10 configuration:<br/>  
-     * <br/> 
-     * gets converted to  ICM11+:<br/> 
-     * pfconfigurationfs>#type#>#UrlIdentifier#>#ParameterName# = #Value#<br/>  
-     * pfconfigurationfs>#type#>rest>ExternalApplicationBaseURL = https://int-live-connect.roehm.com<br/>  
-     * whereby<br/>  
-     * #ParameterName# to #Value# for the application determined by <site = processed domain>&#UrlIdentifier#.<br/>  
+     * The ICm 7.10 configuration:<br/>
+     * <br/>
+     * gets converted to ICM11+:<br/>
+     * pfconfigurationfs>#type#>#UrlIdentifier#>#ParameterName# = #Value#<br/>
+     * pfconfigurationfs>#type#>rest>ExternalApplicationBaseURL = https://int-live-connect.roehm.com<br/>
+     * whereby<br/>
+     * #ParameterName# to #Value# for the application determined by <site = processed domain>&#UrlIdentifier#.<br/>
      * 
      * @param lines the lones of the source file
      * @return targetLines the lines of the target file
      */
-    private ArrayList<String> migrateTransportCfg(List<String> lines) {
+    private ArrayList<String> migrateTransportCfg(List<String> lines)
+    {
         ArrayList<String> targetLines = new ArrayList<>();
 
         // Process and write lines to another file
@@ -270,10 +269,8 @@ public class CfgResourceConverter
                     {
                         groupStr = cfgDomainDir + ">" + groupStr;
                     }
-                    targetLine = this.prefix 
-                    + ">" + groupStr
-                    + ">" + tartEntry.get(1).trim() 
-                    + " = " + tartEntry.get(2).trim();
+                    targetLine = this.prefix + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
+                                    + tartEntry.get(2).trim();
                     if (!targetLine.endsWith(" = n/a"))
                     {
                         targetLines.add(targetLine);
@@ -286,19 +283,19 @@ public class CfgResourceConverter
     }
 
     /**
-     * The ICm 7.10 configuration:<br/>  
-     * ConfigItemX.ServiceDefinitionID=...<br/> 
-     * ConfigItemX.ServiceConfigurationName=...<br/> 
-     * ConfigItemX.ParameterName=...<br/> 
-     * ConfigItemX.Value=...<br/> 
-     * <br/> 
-     * gets converted to  ICM11+:<br/> 
-     * pfconfigurationfs>mngdsrvc>#ServiceDefinitionID#>#ServiceConfigurationName#>#ParameterName# = #Value#b#<r/> 
+     * The ICm 7.10 configuration:<br/>
+     * ConfigItemX.ServiceDefinitionID=...<br/>
+     * ConfigItemX.ServiceConfigurationName=...<br/>
+     * ConfigItemX.ParameterName=...<br/>
+     * ConfigItemX.Value=...<br/>
+     * <br/>
+     * gets converted to ICM11+:<br/>
+     * pfconfigurationfs>mngdsrvc>#ServiceDefinitionID#>#ServiceConfigurationName#>#ParameterName# = #Value#b#<r/>
      * ...with the 4 values IS7.10
      */
-    private ArrayList<String> migrateManagedServiceCfg(List<String> lines) {
+    private ArrayList<String> migrateManagedServiceCfg(List<String> lines)
+    {
         ArrayList<String> targetLines = new ArrayList<>();
-
 
         // Process and write lines to another file
         String targetLine = "";
@@ -318,14 +315,14 @@ public class CfgResourceConverter
             }
             else
             {
-                // scan input line 
+                // scan input line
 
                 String cfgGroup = "";
                 String cfgKey = "";
                 String cfgValue = "";
 
                 // gather the source data
-                if(taretEntry.size() < 4)
+                if (taretEntry.size() < 4)
                 {
                     // scan the source line
                     String[] entry = line.split("=");
@@ -341,25 +338,26 @@ public class CfgResourceConverter
                     }
                     taretEntry.put(cfgKey, cfgValue);
                 }
-                // all values found - build and add the target line and 
+                // all values found - build and add the target line and
                 // reset the source data
-                if(taretEntry.size() == 4)
+                if (taretEntry.size() == 4)
                 {
-                    if(0 >= cfgKey.indexOf("."))
+                    if (0 >= cfgKey.indexOf("."))
                     {
-                        cfgKey = cfgKey.substring(cfgKey.indexOf(".")+1, cfgKey.length());
+                        cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
                     }
                     cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
-                    StringBuffer bTargetLine = new StringBuffer()
-                    .append(this.prefix).append(">")
-                    .append(taretEntry.get(cfgGroup+".ServiceDefinitionID")).append(">")
-                    .append(taretEntry.get(cfgGroup+".ServiceConfigurationName")).append(">")
-                    .append(taretEntry.get(cfgGroup+".ParameterName")).append(" = ")
-                    .append(taretEntry.get(cfgGroup+".Value"));
-                    
+                    StringBuffer bTargetLine
+                    = new StringBuffer().append(this.prefix)
+                      .append(">")
+                      .append(taretEntry.get( cfgGroup + ".ServiceDefinitionID"))
+                      .append(">").append(taretEntry.get(cfgGroup + ".ServiceConfigurationName"))
+                      .append(">").append(taretEntry.get(cfgGroup + ".ParameterName"))
+                      .append(" = ").append(taretEntry.get(cfgGroup + ".Value"));
+
                     targetLine = bTargetLine.toString();
                     targetLines.add(targetLine);
-                    
+
                     taretEntry.clear();
                 }
             }
