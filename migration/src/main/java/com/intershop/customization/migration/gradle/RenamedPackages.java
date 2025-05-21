@@ -1,19 +1,16 @@
 package com.intershop.customization.migration.gradle;
 
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
+import java.util.*;
+import java.util.function.Predicate;
+
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is used to migrate used packages in the source files.
@@ -43,7 +40,6 @@ public class RenamedPackages implements MigrationPreparer
     private final static String PACKAGE_SEPARATOR = ".";
 
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private final static Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
 
     private Map<String, String> renamedPackages = Collections.emptyMap();
     private List<String> allowedFileExtensions = Collections.emptyList();
@@ -97,12 +93,13 @@ public class RenamedPackages implements MigrationPreparer
     // based on the list of allowed file extensions
     protected List<Path> getFileList(Path dir)
     {
-        // ensure streams are closed after use
-        try (Stream<Path> walk = Files.walk(dir))
+        Predicate<Path> filter1 = Files::isRegularFile;
+        Predicate<Path> filter2 = this::validateFileExtension;
+        Predicate<Path> combined = filter1.and(filter2);
+
+        try
         {
-            return walk.filter(Files::isRegularFile)
-                       .filter(this::validateFileExtension)
-                       .toList();
+            return FileUtils.listFiles(dir, Optional.of(combined), Optional.empty());
         }
         catch(IOException e)
         {
@@ -128,9 +125,9 @@ public class RenamedPackages implements MigrationPreparer
     // check if the file contains the old package name
     protected boolean containsText(Path filePath, String text)
     {
-        try (Stream<String> lines = Files.lines(filePath, CHARSET_BUILD_GRADLE))
+        try
         {
-            return lines.anyMatch(line -> line.contains(text));
+            return FileUtils.containsText(filePath, text);
         }
         catch(Exception e)
         {
@@ -144,7 +141,7 @@ public class RenamedPackages implements MigrationPreparer
     {
         try
         {
-            List<String> lines = Files.readAllLines(filePath, CHARSET_BUILD_GRADLE);
+            List<String> lines = FileUtils.readAllLines(filePath);
             for (int i = 0; i < lines.size(); i++)
             {
                 String line = lines.get(i);
@@ -155,7 +152,7 @@ public class RenamedPackages implements MigrationPreparer
                 }
             }
 
-            Files.write(filePath, lines, CHARSET_BUILD_GRADLE);
+            FileUtils.writeLines(filePath, lines);
         }
         catch(IOException e)
         {

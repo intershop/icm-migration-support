@@ -3,14 +3,12 @@ package com.intershop.customization.migration.common;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Map;
 
+import com.intershop.customization.migration.utils.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
 public class MigrationStep
@@ -32,7 +30,6 @@ public class MigrationStep
     private static final String MIGRATOR_KEY = "migrator";
     private static final String OPTIONS_KEY = "options";
     private static final String MESSAGE_KEY = "message";
-    private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     private Map<String, Object> yamlConf = Collections.emptyMap();
 
@@ -85,7 +82,7 @@ public class MigrationStep
     {
         try
         {
-            return importOptions(Files.readString(path, DEFAULT_CHARSET));
+            return importOptions(FileUtils.readString(path));
         }
         catch(IOException e)
         {

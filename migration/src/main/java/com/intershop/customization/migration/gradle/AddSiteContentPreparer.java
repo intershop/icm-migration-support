@@ -1,18 +1,16 @@
 package com.intershop.customization.migration.gradle;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.parser.DBInitPropertiesParser;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is used to check if the project contains a 'sites' folder.
@@ -30,7 +28,6 @@ public class AddSiteContentPreparer implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String LINE_SEP = System.lineSeparator();
 
     @Override
@@ -47,27 +44,27 @@ public class AddSiteContentPreparer implements MigrationPreparer
             if (dbinitPropsOptional.isPresent())
             {
                 Path dbinitProperties = dbinitPropsOptional.get();
-                try (Stream<String> linesStream = Files.lines(dbinitProperties, CHARSET_BUILD_GRADLE))
+                try
                 {
-                    List<String> lines = linesStream.toList();
-                    if (lines.stream().anyMatch(l -> l.contains("com.intershop.site.dbinit.SiteContentPreparer")))
+                    if (FileUtils.containsText(dbinitProperties, "com.intershop.site.dbinit.SiteContentPreparer"))
                     {
                         LOGGER.debug("SiteContentPreparer already registered in file '{}'. Nothing to do.", dbinitPropsOptional);
                         return;
                     }
 
+                    List<String> lines = FileUtils.readAllLines(dbinitProperties);
                     DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
                     List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
                     DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(DBInitPropertiesParser.GroupType.PRE);
                     DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(DBInitPropertiesParser.GroupType.MAIN);
 
-                    Files.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry), CHARSET_BUILD_GRADLE);
+                    FileUtils.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry));
 
                     LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitPropsOptional, projectDir.resolve("build.gradle"));
                 }
                 catch(IOException e)
                 {
-                    LOGGER.error("Can't register SiteContentPreparer in file " + dbinitPropsOptional, e);
+                    LOGGER.error("Can't register SiteContentPreparer in file {}", dbinitPropsOptional, e);
                 }
             }
         }
@@ -155,7 +152,7 @@ public class AddSiteContentPreparer implements MigrationPreparer
         }
         catch(IOException e)
         {
-            LOGGER.error("Error while creating file '" + newDBInitProperties + "': ", e);
+            LOGGER.error("Error while creating file '{}': ", newDBInitProperties, e);
             return Optional.empty();
         }
     }

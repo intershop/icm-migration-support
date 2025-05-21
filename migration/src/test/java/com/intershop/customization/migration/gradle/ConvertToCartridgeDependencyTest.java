@@ -1,30 +1,26 @@
 package com.intershop.customization.migration.gradle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-
 import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.junit.jupiter.api.Test;
 
 class ConvertToCartridgeDependencyTest
 {
-    private static final Charset BUILD_GRADLE_CHARSET = StandardCharsets.UTF_8;
     private final ConvertToCartridgeDependency underTest = new ConvertToCartridgeDependency();
 
     @Test
     void testAll() throws IOException, URISyntaxException
     {
-        List<String> lines = Files.readAllLines(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.source")), BUILD_GRADLE_CHARSET);
-        String expected = Files.readString(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.expected")), BUILD_GRADLE_CHARSET);
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.source")));
+        String expected = FileUtils.readString(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.expected")));
         MigrationStep step = MigrationStep.valueOf(getGlobalResourceURI(
                         "migration/001_migration_7.10-11.0.8/020_ConvertToCartridgeDependency.yml"));
         underTest.setStep(step);
