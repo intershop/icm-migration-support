@@ -15,7 +15,9 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.parser.DBInitPropertiesParser;
 
 /**
- * This class is used to
+ * This class is used to check if the project contains a 'sites' folder.
+ * If so, it checks the 'dbinit.properties' file is extended with a
+ * SiteContentPreparer entry.
  * <p>
  * Example YAML configuration:
  * <pre>

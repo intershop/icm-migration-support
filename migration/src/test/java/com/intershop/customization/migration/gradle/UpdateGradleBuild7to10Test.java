@@ -1,6 +1,6 @@
 package com.intershop.customization.migration.gradle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UpdateGradleBuild7to10Test
 {
@@ -23,8 +23,10 @@ class UpdateGradleBuild7to10Test
     void testAll() throws IOException, URISyntaxException
     {
         List<String> lines = Files.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.source").toURI()), BUILD_GRADLE_CHARSET);
-        String expected = Files.readString(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.expected").toURI()), BUILD_GRADLE_CHARSET);
-        String result = underTest.migrate(lines);
+        List<String> expected = Files.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.expected").toURI()), BUILD_GRADLE_CHARSET);
+
+        // split result into List of strings to handle different OS specific line endings
+        List<String> result = Arrays.asList(underTest.migrate(lines).split("\\R"));
         assertEquals(expected, result);
     }
 
