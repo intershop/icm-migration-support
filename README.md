@@ -52,4 +52,4 @@ migrate from one major version to another, while keeping different start points 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
 
 ### Third Party Libraries
-Dieses Projekt verwendet Code aus dem Projekt [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), lizenziert unter der Apache License 2.0.
+This project uses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0.
