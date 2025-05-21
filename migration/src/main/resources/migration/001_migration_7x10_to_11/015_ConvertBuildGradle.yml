@@ -1,3 +1,3 @@
 type: specs.intershop.com/v1beta/migrate
-migrator: com.intershop.customization.migration.gradle.UpdateGradleBuild7to10
+migrator: com.intershop.customization.migration.gradle.ConvertBuildGradle
 message: "refactor: adapt plugins in build.gradle"

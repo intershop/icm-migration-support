@@ -17,11 +17,11 @@ import org.slf4j.LoggerFactory;
  * Example YAML configuration:
  * <pre>
  * type: specs.intershop.com/v1beta/migrate
- * migrator: com.intershop.customization.migration.gradle.UpdateGradleBuild7to10
+ * migrator: com.intershop.customization.migration.gradle.ConvertBuildGradle
  * message: "refactor: adapt plugins in build.gradle"
  * </pre>
  */
-public class UpdateGradleBuild7to10 implements MigrationPreparer
+public class ConvertBuildGradle implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private static final String START_DEPENDENCIES = "dependencies";
