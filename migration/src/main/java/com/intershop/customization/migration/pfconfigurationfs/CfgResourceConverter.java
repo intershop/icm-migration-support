@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
@@ -36,14 +35,49 @@ import com.intershop.customization.migration.Migrator;
  * <p/>
  * <u>usr  -* _transport.resource</u>
  * <p/>
- * <u>usr  -* _usr.resource</u>
+ * <u>application  -* _appprfrnce.resource</u>
  * <p/>
  * <u>usr  -* _usr.resource</u>
+ * <p/>
+ * <u>mngdsrvc  -* _mngdsrvc.resource</u>
+ * <p/>
+ * <u>dmnprfrnce  -* _dmnprfrnce.resource</u>
  * <p/>
  * 
  */
 public class CfgResourceConverter
 {
+
+    /**
+     * The resource type to be converted,
+     * mapping to the resource file name.
+     * <ul>
+     * <li>transport - name *_transport.resource</li>
+     * <li>application preferencees - name *_appprfrnce.resource</li>
+     * <li>usr - name *_usr.resource</li>
+     * <li>mngdsrvc - name *_mngdsrvc.resource</li>
+     * <li>dmnprfrnce - name *_dmnprfrnce.resource</li>
+     * </ul>
+     */
+    public enum ResourceType {
+        TRANSPORT("transport"),
+        APPLICATION("application"),
+        USR("usr"),
+        MNGDSRVC("mngdsrvc"),
+        DMNPRFRNCE("dmnprfrnce");
+        
+        private final String value;
+
+        // Constructor
+        ResourceType(String value) {
+            this.value = value;
+        }
+    
+        // Getter method
+        public String getValue() {
+            return value;
+        }
+    }           
 
     private Path source;
     private Path target;
@@ -63,29 +97,15 @@ public class CfgResourceConverter
         this.source = source;
         this.target = target;
 
-        this.resourceType = "";
-        switch(resourceType)
-        {
-            case "transport":
-                this.prefix = "pfconfigurationfs>transport";
+        this.resourceType="";
+        // set with a valid resource type, only
+        for (ResourceType type : ResourceType.values()) {
+            if (type.getValue().equals(resourceType)) {
+                this.resourceType = resourceType;
+                this.prefix = "pfconfigurationfs>" + resourceType;
                 break;
-            case "application":
-                this.prefix = "pfconfigurationfs>appprfrnce";
-                break;
-            case "user":
-                this.prefix = "pfconfigurationfs>usr";
-                break;
-            case "service":
-                this.prefix = "pfconfigurationfs>mngdsrvc";
-                break;
-            case "domain":
-                this.prefix = "pfconfigurationfs>dmnprfrnc";
-                break;
-            default:
-                LOGGER.warn("Unknown resource type: {}", resourceType);
-                return;
+            }
         }
-        this.resourceType = resourceType;
     }
 
     /**
@@ -116,25 +136,23 @@ public class CfgResourceConverter
             List<String> lines = Files.readAllLines(source);
             ArrayList<String> targetLines = new ArrayList<>();
 
-            if("application".equals(this.resourceType) || "transport".equals(this.resourceType))
+            if(ResourceType.TRANSPORT.getValue().equals(this.resourceType) || 
+               ResourceType.APPLICATION.getValue().equals(this.resourceType))
             {
                 targetLines = migrateTransportCfg(lines);
             }
-            else if ("user".equals(this.resourceType))
+            else if (ResourceType.USR.getValue().equals(this.resourceType) ||
+                     ResourceType.DMNPRFRNCE.getValue().equals(this.resourceType))
             {
                 targetLines = migrateSimpleCfg(lines);
             }
-            else if ("service".equals(this.resourceType))
+            else if (ResourceType.MNGDSRVC.getValue().equals(this.resourceType))
             {
                 targetLines = migrateManagedServiceCfg(lines);
             }
-            else if ("domain".equals(this.resourceType))
-            {
-                targetLines = migrateSimpleCfg(lines);
-            }
             else
             {
-                //return;
+                LOGGER.debug("Cannot convert file {}", source);
             }
 
             Files.write(target, targetLines);
@@ -160,7 +178,6 @@ public class CfgResourceConverter
         for (String line : lines)
         {
             line = line.trim();
-            String key = "";
 
             // transport resource file
             if (line.isEmpty() || (line.startsWith("#")))
@@ -181,7 +198,6 @@ public class CfgResourceConverter
         ArrayList<String> targetLines = new ArrayList<>();
 
         // Process and write lines to another file
-        String lastKey = "";
         String targetLine = "";
         String cfgDomainDir = source.getParent().toFile().getName();
 
@@ -191,14 +207,12 @@ public class CfgResourceConverter
         for (String line : lines)
         {
             line = line.trim();
-            String key = "";
 
             // transport resource file
             if (line.isEmpty() || (line.startsWith("#")))
             {
                 targetLine = line;
                 targetLines.add(targetLine);
-                lastKey = "";
             }
             else
             {
@@ -215,7 +229,6 @@ public class CfgResourceConverter
                     if (0 >= cfgKey.indexOf("."))
                     {
                         cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
-                        lastKey = cfgGroup;
                         cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
                     }
                 }
@@ -223,31 +236,26 @@ public class CfgResourceConverter
                 // gather configuration paremeters
 
                 List<String> sourceEentry = Arrays.asList(cfgGroup, cfgKey, cfgValue);
-                key = sourceEentry.get(0).trim();
-                if (sourceEentry.size() == 3)
+                if (tartEntry.size() < 3)
                 {
-                    if (tartEntry.size() < 3)
+                    tartEntry.add(sourceEentry.get(2).trim());
+                }
+                if (tartEntry.size() == 3)
+                {
+                    String groupStr = tartEntry.get(0).trim();
+                    if (ResourceType.APPLICATION.getValue().equals(this.resourceType))
                     {
-                        tartEntry.add(sourceEentry.get(2).trim());
+                        groupStr = cfgDomainDir + ">" + groupStr;
                     }
-                    if (tartEntry.size() == 3)
+                    targetLine = this.prefix 
+                    + ">" + groupStr
+                    + ">" + tartEntry.get(1).trim() 
+                    + " = " + tartEntry.get(2).trim();
+                    if (!targetLine.endsWith(" = n/a"))
                     {
-                    
-                        String groupStr = tartEntry.get(0).trim();
-                        if ("application".equals(this.resourceType))
-                        {
-                            groupStr = cfgDomainDir + ">" + groupStr;
-                        }
-                        targetLine = this.prefix 
-                        + ">" + groupStr
-                        + ">" + tartEntry.get(1).trim() 
-                        + " = " + tartEntry.get(2).trim();
-                        if (!targetLine.endsWith(" = n/a"))
-                        {
-                            targetLines.add(targetLine);
-                        }
-                        tartEntry = new ArrayList<String>();
+                        targetLines.add(targetLine);
                     }
+                    tartEntry = new ArrayList<String>();
                 }
             }
         }
@@ -270,14 +278,10 @@ public class CfgResourceConverter
 
 
         // Process and write lines to another file
-        String lastKey = "";
         String targetLine = "";
         HashMap<String, String> taretEntry = new HashMap<>();
 
-        String cfgDomainDir = source.getParent().toFile().getName();
-
-        // fuill target line
-        ArrayList<String> tartEntry = new ArrayList<>();
+        // String cfgDomainDir = source.getParent().toFile().getName();
 
         for (String line : lines)
         {
@@ -335,8 +339,6 @@ public class CfgResourceConverter
                     
                     taretEntry.clear();
                 }
-
-                lastKey = cfgGroup;
             }
         }
         return targetLines;

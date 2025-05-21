@@ -66,27 +66,14 @@ public class MigrateConfigResources implements MigrationPreparer
 
                                  targetFile.toFile().getParentFile().mkdirs();
 
-                                 // resource files must be cinverted @see CfgResourceConverter
                                  String targetType = "";
-                                 if (targetFileName.endsWith("transport.resource"))
+                                 // resource files must be cinverted @see CfgResourceConverter
+                                 if ((targetFileName.endsWith(".resource")) && 
+                                 (-1 < targetFileName.lastIndexOf('_')))
                                  {
-                                     targetType = "transport";
-                                 }
-                                 else if (targetFileName.endsWith("application.resource"))
-                                 {
-                                     targetType = "application";
-                                 }
-                                 else if (targetFileName.endsWith("usr.resource"))
-                                 {
-                                     targetType = "user";
-                                 }
-                                 else if (targetFileName.endsWith("mngdsrvc.resource"))
-                                 {
-                                     targetType = "service";
-                                 }
-                                 else if (targetFileName.endsWith("dmnprfrnce.resource"))
-                                 {
-                                     targetType = "domain";
+                                    targetType = targetFileName.substring(
+                                        targetFileName.lastIndexOf('_')+1
+                                        ,targetFileName.lastIndexOf(".resource"));
                                  }
                                  if (!targetType.isEmpty())
                                  {
@@ -117,6 +104,7 @@ public class MigrateConfigResources implements MigrationPreparer
             throw new RuntimeException(e);
         }
     }
+
 
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
