@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.MigrationStepFolder;
@@ -120,6 +121,9 @@ public class Migrator
      */
     protected void migrateProjects(File rootProject)
     {
+        MigrationContext context = MigrationContext.getInstance();
+        context.reset();
+
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
 
         for (MigrationStep step: steps.getSteps())
@@ -142,6 +146,8 @@ public class Migrator
             }
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
+
+        LOGGER.info(context.generateSummaryReport());
     }
 
     /**
@@ -150,6 +156,9 @@ public class Migrator
      */
     protected void migrateProject(File projectDir)
     {
+        MigrationContext context = MigrationContext.getInstance();
+        context.reset();
+
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         for(MigrationStep step: steps.getSteps())
         {
@@ -158,6 +167,8 @@ public class Migrator
             migrator.migrate(projectDir.toPath());
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
+
+        LOGGER.info(context.generateSummaryReport());
     }
 
     /**
