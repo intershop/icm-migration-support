@@ -84,7 +84,7 @@ public class MigrateConfigResources implements MigrationPreparer
                                  {
                                      targetType = "service";
                                  }
-                                 else if (targetFileName.endsWith("dmnprfrnc.resource"))
+                                 else if (targetFileName.endsWith("dmnprfrnce.resource"))
                                  {
                                      targetType = "domain";
                                  }

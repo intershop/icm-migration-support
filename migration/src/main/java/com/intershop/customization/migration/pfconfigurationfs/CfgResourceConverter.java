@@ -79,8 +79,8 @@ public class CfgResourceConverter
                 this.prefix = "pfconfigurationfs>mngdsrvc";
                 break;
             case "domain":
-//                this.prefix = "pfconfigurationfs>dmnprfrnc";
-                return;
+                this.prefix = "pfconfigurationfs>dmnprfrnc";
+                break;
             default:
                 LOGGER.warn("Unknown resource type: {}", resourceType);
                 return;
@@ -122,11 +122,15 @@ public class CfgResourceConverter
             }
             else if ("user".equals(this.resourceType))
             {
-                targetLines = migrateUserCfg(lines);
+                targetLines = migrateSimpleCfg(lines);
             }
             else if ("service".equals(this.resourceType))
             {
                 targetLines = migrateManagedServiceCfg(lines);
+            }
+            else if ("domain".equals(this.resourceType))
+            {
+                targetLines = migrateSimpleCfg(lines);
             }
             else
             {
@@ -142,8 +146,13 @@ public class CfgResourceConverter
         }
 
     }
-
-    private ArrayList<String> migrateUserCfg(List<String> lines)
+/**
+ * similar for user credentials and domain preferences
+ * 
+ * @param lines
+ * @return
+ */
+    private ArrayList<String> migrateSimpleCfg(List<String> lines)
      {
         String targetLine = "";
         ArrayList<String> targetLines = new ArrayList<>();
