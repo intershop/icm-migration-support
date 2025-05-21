@@ -1,5 +1,7 @@
 package com.intershop.customization.migration.utils;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,27 +31,27 @@ public class OsCheckTest
     void testIsWindows()
     {
         System.setProperty(OS_NAME_PROPERTY, "Windows 11");
-        assert OsCheck.isWindows();
+        assertTrue(OsCheck.isWindows());
     }
 
     @Test
     void testIsMac()
     {
         System.setProperty(OS_NAME_PROPERTY, "Mac OS X");
-        assert OsCheck.isMac();
+        assertTrue(OsCheck.isMac());
     }
 
     @Test
     void testIsLinux()
     {
         System.setProperty(OS_NAME_PROPERTY, "Linux");
-        assert OsCheck.isLinux();
+        assertTrue(OsCheck.isLinux());
     }
 
     @Test
     void testIsSolaris()
     {
         System.setProperty(OS_NAME_PROPERTY, "SunOS");
-        assert OsCheck.isSolaris();
+        assertTrue(OsCheck.isSolaris());
     }
 }
