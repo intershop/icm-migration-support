@@ -109,7 +109,7 @@ public class CfgResourceConverter
     }
 
     /**
-     * onvert a transport configuration
+     * convert am ICM 7.10 reaource configuration to an ICM 11+ property file
      */
     public void convertResource()
     {
@@ -164,12 +164,21 @@ public class CfgResourceConverter
         }
 
     }
-/**
- * similar for user credentials and domain preferences
- * 
- * @param lines
- * @return
- */
+
+    /**
+     * similar for user credentials and domain preferences
+     * <p/>
+     * The ICm 7.10 configuration:<br/>  
+     * #ParameterName# = #Value#
+     * InactivityPeriod = 0
+     * <br/> 
+     * gets converted to  ICM11+:<br/> 
+     * pfconfigurationfs>dmnprfrnce>#ParameterName# = #Value#<br/> 
+     * pfconfigurationfs>dmnprfrnce>InactivityPeriod = 0
+     * 
+     * @param lines the lones of the source file
+     * @return targetLines the lines of the target file
+     */
     private ArrayList<String> migrateSimpleCfg(List<String> lines)
      {
         String targetLine = "";
@@ -194,6 +203,20 @@ public class CfgResourceConverter
         return targetLines;
     }
 
+    /**
+     * similar for  configirytions of #type# transport and application 
+     * <p/>
+     * The ICm 7.10 configuration:<br/>  
+     * <br/> 
+     * gets converted to  ICM11+:<br/> 
+     * pfconfigurationfs>#type#>#UrlIdentifier#>#ParameterName# = #Value#<br/>  
+     * pfconfigurationfs>#type#>rest>ExternalApplicationBaseURL = https://int-live-connect.roehm.com<br/>  
+     * whereby<br/>  
+     * #ParameterName# to #Value# for the application determined by <site = processed domain>&#UrlIdentifier#.<br/>  
+     * 
+     * @param lines the lones of the source file
+     * @return targetLines the lines of the target file
+     */
     private ArrayList<String> migrateTransportCfg(List<String> lines) {
         ArrayList<String> targetLines = new ArrayList<>();
 
@@ -263,14 +286,14 @@ public class CfgResourceConverter
     }
 
     /**
-     * The ICm 7.10 configuration<br/>  
-     * ConfigItemX.ServiceDefinitionID=...br/> 
-     * ConfigItemX.ServiceConfigurationName=...br/> 
-     * ConfigItemX.ParameterName=...br/> 
-     * ConfigItemX.Value=...br/> 
-     * br/> 
-     * gets converted to  ICM11+:br/> 
-     * pfconfigurationfs>mngdsrvc>#ServiceDefinitionID#>#ServiceConfigurationName#>#ParameterName# = #Value#br/> 
+     * The ICm 7.10 configuration:<br/>  
+     * ConfigItemX.ServiceDefinitionID=...<br/> 
+     * ConfigItemX.ServiceConfigurationName=...<br/> 
+     * ConfigItemX.ParameterName=...<br/> 
+     * ConfigItemX.Value=...<br/> 
+     * <br/> 
+     * gets converted to  ICM11+:<br/> 
+     * pfconfigurationfs>mngdsrvc>#ServiceDefinitionID#>#ServiceConfigurationName#>#ParameterName# = #Value#b#<r/> 
      * ...with the 4 values IS7.10
      */
     private ArrayList<String> migrateManagedServiceCfg(List<String> lines) {
@@ -322,11 +345,11 @@ public class CfgResourceConverter
                 // reset the source data
                 if(taretEntry.size() == 4)
                 {
-                    String keys="";for(String k : taretEntry.keySet()) 
-                    { 
-                        cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
-                        break;
+                    if(0 >= cfgKey.indexOf("."))
+                    {
+                        cfgKey = cfgKey.substring(cfgKey.indexOf(".")+1, cfgKey.length());
                     }
+                    cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
                     StringBuffer bTargetLine = new StringBuffer()
                     .append(this.prefix).append(">")
                     .append(taretEntry.get(cfgGroup+".ServiceDefinitionID")).append(">")
