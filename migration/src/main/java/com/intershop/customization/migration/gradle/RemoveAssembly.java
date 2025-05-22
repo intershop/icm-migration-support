@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -71,7 +70,7 @@ public class RemoveAssembly implements MigrationPreparer
                     throw new RuntimeException(e);
                 }
             };
-            FileUtils.listFiles(directory, Optional.empty(), Optional.of(Comparator.reverseOrder()))
+            FileUtils.listFiles(directory, null, Comparator.reverseOrder())
                             .forEach(removeConsumer);
         }
         catch(IOException e)

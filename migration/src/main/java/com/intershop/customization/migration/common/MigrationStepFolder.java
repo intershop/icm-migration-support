@@ -8,14 +8,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import com.intershop.customization.migration.utils.FileUtils;
-import org.slf4j.LoggerFactory;
-
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
+import org.slf4j.LoggerFactory;
 
 /**
  * A MigrationStepFolder represents a resource folder containing migrations steps for a specific release
@@ -27,7 +24,7 @@ public class MigrationStepFolder
         try
         {
             Comparator<Path> comparator = Comparator.comparing(p -> p.getFileName().toString());
-            List<Path> steps = FileUtils.listFiles(path, Optional.of(Files::isRegularFile), Optional.of(comparator));
+            List<Path> steps = FileUtils.listFiles(path, Files::isRegularFile, comparator);
 
             return new MigrationStepFolder(steps);
         }

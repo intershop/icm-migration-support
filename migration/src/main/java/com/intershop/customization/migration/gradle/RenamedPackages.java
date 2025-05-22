@@ -99,7 +99,7 @@ public class RenamedPackages implements MigrationPreparer
 
         try
         {
-            return FileUtils.listFiles(dir, Optional.of(combined), Optional.empty());
+            return FileUtils.listFiles(dir, combined, null);
         }
         catch(IOException e)
         {

@@ -64,7 +64,7 @@ public class AddSiteContentPreparer implements MigrationPreparer
                 }
                 catch(IOException e)
                 {
-                    LOGGER.error("Can't register SiteContentPreparer in file {}", dbinitPropsOptional, e);
+                    LOGGER.error("Can't register SiteContentPreparer in file " + dbinitPropsOptional, e);
                 }
             }
         }

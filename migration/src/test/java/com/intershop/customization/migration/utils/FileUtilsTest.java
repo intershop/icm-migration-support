@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -55,16 +54,6 @@ class FileUtilsTest {
     }
 
     @Test
-    void testLinesStream() throws IOException
-    {
-        Path file = tempDir.resolve("stream.txt");
-        List<String> lines = List.of("alpha", "beta", "gamma");
-        FileUtils.writeLines(file, lines);
-        List<String> result = FileUtils.lines(file).toList();
-        assertEquals(lines, result);
-    }
-
-    @Test
     void testContainsText() throws IOException
     {
         Path file = tempDir.resolve("contains.txt");
@@ -84,7 +73,7 @@ class FileUtilsTest {
         Files.createFile(file1);
         Files.createFile(file2);
 
-        List<Path> files = FileUtils.listFiles(tempDir, Optional.of(Files::isRegularFile), Optional.empty());
+        List<Path> files = FileUtils.listFiles(tempDir, Files::isRegularFile, null);
         assertTrue(files.contains(file1));
         assertTrue(files.contains(file2));
         assertEquals(2, files.size());
@@ -101,7 +90,7 @@ class FileUtilsTest {
         Predicate<Path> txtFilter = p -> p.toString().endsWith(".txt");
         Comparator<Path> byName = Comparator.comparing(p -> p.getFileName().toString());
 
-        List<Path> files = FileUtils.listFiles(tempDir, Optional.of(txtFilter), Optional.of(byName));
+        List<Path> files = FileUtils.listFiles(tempDir, txtFilter, byName);
         assertEquals(List.of(file1), files);
     }
 }
