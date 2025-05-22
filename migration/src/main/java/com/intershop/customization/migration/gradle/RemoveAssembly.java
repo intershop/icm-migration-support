@@ -31,10 +31,9 @@ import org.slf4j.LoggerFactory;
 public class RemoveAssembly implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private final MigrationContext context = MigrationContext.getInstance();
 
     @Override
-    public void migrate(Path projectDir)
+    public void migrate(Path projectDir, MigrationContext context)
     {
         Pattern assemblyPattern = Pattern.compile("^assembly\\s*\\{");// it is a top level block and should appear at the beginning of the line
 
@@ -44,14 +43,13 @@ public class RemoveAssembly implements MigrationPreparer
             List<String> lines = FileUtils.readAllLines(buildGradle);
             if (lines.stream().anyMatch(l -> assemblyPattern.matcher(l).find()))
             {
-                deleteAssembly(projectDir);
-                LoggerFactory.getLogger(getClass()).info("Assembly '{}' removed at location '{}'.",
-                                getResourceName(projectDir), projectDir);
+                deleteAssembly(projectDir, context);
+                LOGGER.info("Assembly '{}' removed at location '{}'.", getResourceName(projectDir), projectDir);
             }
         }
         catch (IOException e)
         {
-            LoggerFactory.getLogger(getClass()).error("Can't delete build.gradle", e);
+            LOGGER.error("Can't delete build.gradle", e);
             context.recordFailure(getResourceName(projectDir), DELETE, buildGradle, null,
                     "Error reading build.gradle: " + e.getMessage());
         }
@@ -61,7 +59,7 @@ public class RemoveAssembly implements MigrationPreparer
      * Deletes the entire given directory.
      * @param directory directory to delete
      */
-    protected void deleteAssembly(Path directory)
+    protected void deleteAssembly(Path directory, MigrationContext context)
     {
         String projectName = getResourceName(directory);
 

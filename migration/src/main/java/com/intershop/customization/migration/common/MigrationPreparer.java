@@ -7,12 +7,34 @@ public interface MigrationPreparer
     /**
      * @param resource contains information, what needs to be migrated
      */
-    void migrate(Path resource);
+    default void migrate(Path resource)
+    {
+    }
 
     /**
      * @param resource contains information, what needs to be migrated on root directory
      */
-    default void migrateRoot(Path resource) {}
+    default void migrateRoot(Path resource)
+    {
+    }
+
+    /**
+     * @param resource contains information, what needs to be migrated
+     * @param context contains information about the migration context
+     */
+    default void migrate(Path resource, MigrationContext context)
+    {
+        migrate(resource);
+    }
+
+    /**
+     * @param resource contains information, what needs to be migrated on root directory
+     * @param context contains information about the migration context
+     */
+    default void migrateRoot(Path resource, MigrationContext context)
+    {
+        migrateRoot(resource);
+    }
 
     /**
      * Define options for migrator

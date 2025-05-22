@@ -13,12 +13,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Global context for migration operations that tracks file and folder operations. Provides a way for migrators to
- * report success, skipped, and failed operations.
+ * report success, skipped, unknown, and failed operations.
  */
 public class MigrationContext
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(MigrationContext.class);
-    private static final MigrationContext INSTANCE = new MigrationContext();
 
     public enum OperationType
     {
@@ -32,7 +31,6 @@ public class MigrationContext
 
     public record Operation(OperationType type, Path source, Path target, OperationStatus status, String message)
     {
-
         @Override
         public String toString()
         {
@@ -45,25 +43,6 @@ public class MigrationContext
     private final Map<String, List<Operation>> operationsByProject = new ConcurrentHashMap<>();
     private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new ConcurrentHashMap<>();
 
-    private MigrationContext()
-    {
-        // Private constructor for singleton
-    }
-
-    public static MigrationContext getInstance()
-    {
-        return INSTANCE;
-    }
-
-    /**
-     * Resets the context to a clean state (typically used between migrations)
-     */
-    public void reset()
-    {
-        operationsByProject.clear();
-        statisticsByProject.clear();
-    }
-
     /**
      * Record a file/folder operation
      *
@@ -71,7 +50,7 @@ public class MigrationContext
      * @param type Operation type (MOVE, COPY, etc.)
      * @param source Source path (can be null for CREATE operations)
      * @param target Target path (can be null for DELETE operations)
-     * @param status Success, skipped, or failed
+     * @param status success, skipped, unknown, or failed
      * @param message Optional message explaining the operation's status
      */
     public void recordOperation(String projectName, OperationType type, Path source, Path target,
@@ -172,9 +151,10 @@ public class MigrationContext
             int skipped = stats.getOrDefault(OperationStatus.SKIPPED, 0);
             int unknown = stats.getOrDefault(OperationStatus.UNKNOWN, 0);
             int failed = stats.getOrDefault(OperationStatus.FAILED, 0);
+            int operationsSum = success + skipped + unknown + failed;
 
-            report.append(String.format("Project '%s': %d operations (%d successful, %d skipped, %d unknown, %d failed)\n", project,
-                    success + skipped + failed, success, skipped, unknown, failed));
+            report.append(String.format("Project '%s': %d operations (%d successful, %d skipped, %d unknown, %d failed)%n",
+                    project, operationsSum, success, skipped, unknown, failed));
 
             // List unknown operations for quick review
             if (unknown > 0)
