@@ -1,27 +1,19 @@
 package com.intershop.customization.migration.gradle;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.Position;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is used to parse version files (except: 'intershopBuild.version', '.ivy*.version', '.pom*.version')
@@ -41,7 +33,6 @@ public class MigrateVersionFiles implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String LINE_SEP = System.lineSeparator();
     private static final String START_CONSTRAINTS = "constraints";
     public static final String EMPTY = "";
@@ -65,9 +56,10 @@ public class MigrateVersionFiles implements MigrationPreparer
         }
 
         Path versionsBuild = projectDir.resolve("versions").resolve("build.gradle");
-        try (Stream<String> linesStream = Files.lines(versionsBuild, CHARSET_BUILD_GRADLE))
+        try
         {
-            Files.writeString(versionsBuild, migrate(linesStream.toList(), collectedVersionData), CHARSET_BUILD_GRADLE);
+            List<String> linesStream = FileUtils.readAllLines(versionsBuild);
+            FileUtils.writeString(versionsBuild, migrate(linesStream, collectedVersionData));
         }
         catch(IOException e)
         {
@@ -164,10 +156,11 @@ public class MigrateVersionFiles implements MigrationPreparer
         for (Path versionFile : versionFiles)
         {
             LOGGER.info("Migrating version information for '{}'", versionFile);
-            try (Stream<String> versionFileStream = Files.lines(versionFile, CHARSET_BUILD_GRADLE))
+            try
             {
+                List<String> versionFileLines = FileUtils.readAllLines(versionFile);
                 migratedVersions.addAll(
-                    versionFileStream.toList().stream()
+                                versionFileLines.stream()
                                      .map(this::migrateVersion)
                                      .filter(Objects::nonNull)
                                      .collect(Collectors.toSet()));

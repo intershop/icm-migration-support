@@ -1,15 +1,13 @@
 package com.intershop.customization.migration.pfconfigurationfs;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.LoggerFactory;
-
-import com.intershop.customization.migration.Migrator;
 
 /**
  * helper class to Convert ICM 7.10 configuration .resource file into .properties file. They are used for
@@ -111,8 +109,8 @@ public class CfgResourceConverter
         try
         {
             // Read lines from a file
-            List<String> lines = Files.readAllLines(source);
-            ArrayList<String> targetLines = new ArrayList<>();
+            List<String> lines = FileUtils.readAllLines(source);
+            List<String> targetLines = new ArrayList<>();
 
             if("application".equals(this.resourceType) || "transport".equals(this.resourceType))
             {
@@ -127,7 +125,7 @@ public class CfgResourceConverter
                 //return;
             }
 
-            Files.write(target, targetLines);
+            FileUtils.writeLines(target, targetLines);
         }
         catch(IOException e)
         {

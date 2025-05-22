@@ -1,17 +1,17 @@
 package com.intershop.customization.migration.gradle;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This migration step is used to search for the assembly block in the build.gradle file,
@@ -29,17 +29,16 @@ public class RemoveAssembly implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
-
     @Override
     public void migrate(Path projectDir)
     {
         Pattern assemblyPattern = Pattern.compile("^assembly\\s*\\{");// it is a top level block and should appear at the beginning of the line
 
         Path buildGradle = projectDir.resolve("build.gradle");
-        try (Stream<String> linesStream = Files.lines(buildGradle, CHARSET_BUILD_GRADLE))
+        try
         {
-            if (linesStream.anyMatch(l -> assemblyPattern.matcher(l).find()))
+            List<String> lines = FileUtils.readAllLines(buildGradle);
+            if (lines.stream().anyMatch(l -> assemblyPattern.matcher(l).find()))
             {
                 deleteAssembly(projectDir);
                 LoggerFactory.getLogger(getClass()).info("Assembly '{}' removed at location '{}'.",
@@ -58,22 +57,23 @@ public class RemoveAssembly implements MigrationPreparer
      */
     protected void deleteAssembly(Path directory)
     {
-        try (Stream<Path> paths = Files.walk(directory))
+        try
         {
-            paths.sorted(Comparator.reverseOrder()) // process files before directories
-                 .forEach(path -> {
-                     try
-                     {
-                         Files.delete(path);
-                         LOGGER.debug("Deleted: {}", path);
-                     }
-                     catch (IOException e)
-                     {
-                         LOGGER.error("Error while deleting '{}': {}", path, e.getMessage());
-                     }
-                 });
+            Consumer<Path> removeConsumer = p -> {
+                try
+                {
+                    Files.delete(p);
+                    LOGGER.debug("Deleted: {}", p);
+                }
+                catch(IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            };
+            FileUtils.listFiles(directory, null, Comparator.reverseOrder())
+                            .forEach(removeConsumer);
         }
-        catch (IOException e)
+        catch(IOException e)
         {
             LOGGER.error("Error while processing directory '{}': {}", directory, e.getMessage());
         }

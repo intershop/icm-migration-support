@@ -1,28 +1,24 @@
 package com.intershop.customization.migration.gradle;
 
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.Position;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Predicate;
 
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.Position;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UpdateGradleBuild7to10 implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String START_INTERSHOP = "intershop";
 
     private static final String LINE_SEP = System.lineSeparator();
-    private static final Predicate<String> IS_OLD_PLUGIN_LINE = (l) -> {
-        return l.contains("apply plugin");
-    };
+    private static final Predicate<String> IS_OLD_PLUGIN_LINE = (l) -> l.contains("apply plugin");
 
     private static final Map<String, String> REPLACE_LINES = Map.of(
                     "zipCartridge.dependsOn lessCompile", "tasks.compileJava.dependsOn(tasks.lessCompile)"
@@ -66,9 +62,9 @@ public class UpdateGradleBuild7to10 implements MigrationPreparer
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
-            List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
+            List<String> lines = FileUtils.readAllLines(buildGradle);
             String newContent = migrate(lines);
-            Files.write(buildGradle, newContent.getBytes(CHARSET_BUILD_GRADLE));
+            FileUtils.writeString(buildGradle, newContent);
         }
         catch(IOException e)
         {
