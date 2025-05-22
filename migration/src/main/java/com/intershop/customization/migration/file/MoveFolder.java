@@ -48,7 +48,6 @@ import static com.intershop.customization.migration.file.MoveFilesConstants.PLAC
 public class MoveFolder implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private final MigrationContext context = MigrationContext.getInstance();
 
     private static final String YAML_KEY_SOURCE_MAP = "source-map";
     private static final String YAML_KEY_TARGET_MAP = "target-map";
@@ -62,7 +61,8 @@ public class MoveFolder implements MigrationPreparer
         this.targetConfiguration = step.getOption(YAML_KEY_TARGET_MAP);
     }
 
-    public void migrate(Path cartridgeDir)
+    @Override
+    public void migrate(Path cartridgeDir, MigrationContext context)
     {
         String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.info("Processing cartridge {}.", cartridgeName);
@@ -107,7 +107,7 @@ public class MoveFolder implements MigrationPreparer
             }
         }
 
-        checkRemainingStaticFiles(cartridgeDir, cartridgeName);
+        checkRemainingStaticFiles(cartridgeDir, cartridgeName, context);
     }
 
     /**
@@ -116,8 +116,9 @@ public class MoveFolder implements MigrationPreparer
      *
      * @param cartridgeDir The cartridge directory
      * @param cartridgeName The name of the cartridge
+     * @param context The migration context
      */
-    private void checkRemainingStaticFiles(Path cartridgeDir, String cartridgeName)
+    private void checkRemainingStaticFiles(Path cartridgeDir, String cartridgeName, MigrationContext context)
     {
         Path staticFilesDir = cartridgeDir.resolve("staticfiles");
         if (Files.exists(staticFilesDir))
