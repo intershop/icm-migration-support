@@ -1,23 +1,21 @@
 package com.intershop.customization.migration.gradle;
 
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConvertToCartridgeDependency implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
     public static final String YAML_KEY_CARTRIDGE_DEPENDENCY = "cartridgeDependencyGroups";
@@ -36,8 +34,8 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
-            List<String> lines = Files.lines(buildGradle, CHARSET_BUILD_GRADLE).toList();
-            Files.write(buildGradle, migrate(lines).getBytes(CHARSET_BUILD_GRADLE));
+            List<String> lines = FileUtils.readAllLines(buildGradle);
+            FileUtils.writeString(buildGradle, migrate(lines));
         }
         catch(IOException e)
         {

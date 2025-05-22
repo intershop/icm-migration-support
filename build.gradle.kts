@@ -9,6 +9,8 @@ plugins {
     idea
     // Gradle base plugin
     base
+    // java plugin - required for kotlin scripts
+    java
 }
 
 description = "Migration support for Intershop project updates"
@@ -38,6 +40,18 @@ subprojects {
         tasks.withType<JavaCompile> {
             //enable compilation in a separate daemon process
             options.isFork = true
+        }
+    }
+}
+
+java {
+    withSourcesJar()
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs("src/main/resources")
         }
     }
 }

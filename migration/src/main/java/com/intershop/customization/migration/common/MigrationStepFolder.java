@@ -8,12 +8,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
-import org.slf4j.LoggerFactory;
-
+import com.intershop.customization.migration.utils.FileUtils;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
+import org.slf4j.LoggerFactory;
 
 /**
  * A MigrationStepFolder represents a resource folder containing migrations steps for a specific release
@@ -22,12 +21,11 @@ public class MigrationStepFolder
 {
     public static MigrationStepFolder valueOf(Path path)
     {
-        try (Stream<Path> pathStream = Files.walk(path))
+        try
         {
-            List<Path> steps = pathStream
-                                    .filter(Files::isRegularFile)
-                                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
-                                    .toList();
+            Comparator<Path> comparator = Comparator.comparing(p -> p.getFileName().toString());
+            List<Path> steps = FileUtils.listFiles(path, Files::isRegularFile, comparator);
+
             return new MigrationStepFolder(steps);
         }
         catch(IOException e)

@@ -1,23 +1,20 @@
 package com.intershop.customization.migration.gradle;
 
-import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+
+import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.Position;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.slf4j.LoggerFactory;
 
 public class RenamedDependency implements MigrationPreparer
 {
     private static final String YAML_KEY_RENAMED_DEPENDENCY = "dependency-map";
-    private static final Charset CHARSET_BUILD_GRADLE = Charset.defaultCharset();
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
 
@@ -27,10 +24,11 @@ public class RenamedDependency implements MigrationPreparer
     public void migrate(Path projectDir)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
-        try (Stream<String> linesStream = Files.lines(buildGradle, CHARSET_BUILD_GRADLE))
+        try
         {
-            List<String> lines = linesStream.toList();
-            Files.writeString(buildGradle, migrate(lines), CHARSET_BUILD_GRADLE);
+            List<String> lines = FileUtils.readAllLines(buildGradle);
+
+            FileUtils.writeString(buildGradle, migrate(lines));
             LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
         }
         catch (IOException e)

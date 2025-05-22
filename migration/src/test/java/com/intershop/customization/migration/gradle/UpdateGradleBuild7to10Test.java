@@ -5,26 +5,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import com.intershop.customization.migration.utils.FileUtils;
 import org.junit.jupiter.api.Test;
 
 class UpdateGradleBuild7to10Test
 {
-    private static final Charset BUILD_GRADLE_CHARSET = StandardCharsets.UTF_8;
     private final UpdateGradleBuild7to10 underTest = new UpdateGradleBuild7to10();
 
     @Test
     void testAll() throws IOException, URISyntaxException
     {
-        List<String> lines = Files.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.source").toURI()), BUILD_GRADLE_CHARSET);
-        String expected = Files.readString(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.expected").toURI()), BUILD_GRADLE_CHARSET);
-        String result = underTest.migrate(lines);
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.source").toURI()));
+        List<String> expected = FileUtils.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.expected").toURI()));
+
+        // split result into List of strings to handle different OS specific line endings
+        List<String> result = Arrays.asList(underTest.migrate(lines).split("\\R"));
         assertEquals(expected, result);
     }
 

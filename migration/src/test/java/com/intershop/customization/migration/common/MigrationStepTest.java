@@ -1,24 +1,20 @@
 package com.intershop.customization.migration.common;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
-
 import com.intershop.customization.migration.gradle.ConvertToCartridgeDependency;
+import com.intershop.customization.migration.utils.FileUtils;
+import org.junit.jupiter.api.Test;
 
 class MigrationStepTest
 {
-    private static final Charset DEFAULT_CHARSET = Charset.forName("utf-8");
     private static final String KEY_CARTRIDGE_DEPENDENCY_GROUPS = ConvertToCartridgeDependency.YAML_KEY_CARTRIDGE_DEPENDENCY;
     MigrationStep underTest = new MigrationStep();
 
@@ -26,8 +22,7 @@ class MigrationStepTest
     @Test
     void testOptionLoading() throws IOException, URISyntaxException
     {
-        List<String> lines = Files.readAllLines(
-                        Paths.get(getResourceURI("MigrationStepTest.yml").toURI()), DEFAULT_CHARSET);
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("MigrationStepTest.yml").toURI()));
         Map<String, Object> expected = Map.of(
                         "type", "specs.intershop.com/v1beta/migrate",
                         "migrator", "com.intershop.customization.migration.gradle.ConvertToCartridgeDependency",
@@ -51,8 +46,7 @@ class MigrationStepTest
     @Test
     void testLoader() throws IOException, URISyntaxException
     {
-        List<String> lines = Files.readAllLines(
-                        Paths.get(getResourceURI("MigrationStepTest.yml").toURI()), DEFAULT_CHARSET);
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("MigrationStepTest.yml").toURI()));
         underTest.importOptions(String.join(System.lineSeparator(), lines));
         
         MigrationPreparer migrator = underTest.getMigrator();
@@ -62,8 +56,7 @@ class MigrationStepTest
     @Test
     void testGetVars() throws IOException, URISyntaxException
     {
-        List<String> lines = Files.readAllLines(
-                        Paths.get(getResourceURI("MigrationStepTest.yml").toURI()), DEFAULT_CHARSET);
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("MigrationStepTest.yml").toURI()));
         underTest.importOptions(String.join(System.lineSeparator(), lines));
         
         List<String> pkgs = underTest.getOption(KEY_CARTRIDGE_DEPENDENCY_GROUPS);
