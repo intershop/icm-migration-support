@@ -911,7 +911,7 @@ fun writeToFile(file : File, content : String) {
     val fileIsAlreadyKts = file.path.takeLast(4) == ".kts"
 
     if (fileIsAlreadyKts) {
-        println("\n### ### ### Warning! The script will overrite ${file.path}, since it ends with \".kts\"".red() +
+        println("\n### ### ### Warning! The script will overwrite ${file.path}, since it ends with \".kts\"".red() +
                 "\n### ### ### Gradle might get crazy and all red, so you might want to \"gradle build\"\n".red())
     }
 
@@ -957,7 +957,7 @@ if (showWarningGroovyVariables) {
 
 println("""
 Info on manual work:
-  If you have custom flavor implemetation dependencies, use quotes like "myCustomFlavorImplementation"("a.lib")
+  If you have custom flavor implementation dependencies, use quotes like "myCustomFlavorImplementation"("a.lib")
   --- see https://github.com/jnizet/gradle-kotlin-dsl-migration-guide/blob/master/README.adoc#custom-configurations""")
 
 

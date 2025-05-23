@@ -12,6 +12,21 @@ import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * This class migrates the 'build.gradle' files to use new cartridge dependencies.
+ * <p>
+ * Example YAML configuration:
+ * <pre>
+ * type: specs.intershop.com/v1beta/migrate
+ * migrator: com.intershop.customization.migration.gradle.ConvertToCartridgeDependency
+ * message: "refactor: adapt intershop dependencies in build.gradle"
+ * options:
+ *   cartridgeDependencyGroups:
+ *   - com.intershop.platform
+ *   - com.intershop.business
+ * </pre>
+ */
 public class ConvertToCartridgeDependency implements MigrationPreparer
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
