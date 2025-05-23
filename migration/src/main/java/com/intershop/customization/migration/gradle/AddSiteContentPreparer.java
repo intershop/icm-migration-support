@@ -1,11 +1,15 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.parser.DBInitPropertiesParser;
 import com.intershop.customization.migration.utils.FileUtils;
@@ -31,8 +35,9 @@ public class AddSiteContentPreparer implements MigrationPreparer
     private static final String LINE_SEP = System.lineSeparator();
 
     @Override
-    public void migrate(Path projectDir)
+    public void migrate(Path projectDir, MigrationContext context)
     {
+        String cartridgeName = getResourceName(projectDir);
         LOGGER.debug("starting SiteContent migration for project {}", projectDir);
         Optional<Path> sitesFolderOptional = getSitesFolder(projectDir);
 
@@ -61,10 +66,13 @@ public class AddSiteContentPreparer implements MigrationPreparer
                     FileUtils.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry));
 
                     LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitPropsOptional, projectDir.resolve("build.gradle"));
+                    context.recordSuccess(cartridgeName, MODIFY, dbinitProperties, dbinitProperties);
                 }
                 catch(IOException e)
                 {
                     LOGGER.error("Can't register SiteContentPreparer in file " + dbinitPropsOptional, e);
+                    context.recordFailure(cartridgeName, MOVE, dbinitProperties, dbinitProperties,
+                            "Can't register SiteContentPreparer in file: " + e.getMessage());
                 }
             }
         }

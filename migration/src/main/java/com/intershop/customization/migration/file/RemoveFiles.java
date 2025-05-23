@@ -1,5 +1,7 @@
 package com.intershop.customization.migration.file;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.DELETE;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -14,6 +16,7 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 
@@ -84,26 +87,28 @@ public class RemoveFiles implements MigrationPreparer
     }
 
     @Override
-    public void migrateRoot(Path projectRoot)
+    public void migrateRoot(Path projectRoot, MigrationContext context)
     {
         String cartridgeName = getResourceName(projectRoot);
         LOGGER.info("Processing root project '{}'.", cartridgeName);
 
-        rootGlobPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_GLOB, pattern));
-        rootRegexPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_REGEX, pattern));
+        rootGlobPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_GLOB, pattern, context));
+        rootRegexPattern.forEach(pattern -> deleteByPattern(projectRoot, YAML_KEY_REGEX, pattern, context));
     }
 
-    public void migrate(Path cartridgeDir)
+    @Override
+    public void migrate(Path cartridgeDir, MigrationContext context)
     {
         String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.info("Processing cartridge '{}'.", cartridgeName);
 
-        globPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_GLOB, pattern));
-        regexPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_REGEX, pattern));
+        globPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_GLOB, pattern, context));
+        regexPattern.forEach(pattern -> deleteByPattern(cartridgeDir, YAML_KEY_REGEX, pattern, context));
     }
 
-    private void deleteByPattern(Path cartridgeDir, String patternType, String pattern)
+    private void deleteByPattern(Path cartridgeDir, String patternType, String pattern, MigrationContext context)
     {
+        String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.debug("Deleting files with '{}' pattern '{}'", patternType, pattern);
 
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher(patternType + ":" + pattern);
@@ -117,16 +122,21 @@ public class RemoveFiles implements MigrationPreparer
                     try
                     {
                         Files.delete(file);
+                        context.recordSuccess(cartridgeName, DELETE, file, null);
                     }
                     catch (IOException e)
                     {
                         LOGGER.error("Error while deleting file '{}': {}", file, e.getMessage());
+                        context.recordFailure(cartridgeName, DELETE, file, null,
+                                "Error while deleting file: " + e.getMessage());
                     }
                 });
         }
         catch (IOException e)
         {
             LOGGER.error("Error while resolving files of '{}': {}", cartridgeDir, e.getMessage());
+            context.recordFailure(cartridgeName, DELETE, null, null,
+                    "Error while resolving files of '" + cartridgeDir + "': " + e.getMessage());
         }
     }
 }

@@ -3,6 +3,7 @@ package com.intershop.customization.migration.common;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class MigrationContext
 
     public enum OperationType
     {
-        MOVE, COPY, DELETE, CREATE, MODIFY
+        MOVE, DELETE, CREATE, MODIFY
     }
 
     public enum OperationStatus
@@ -46,7 +47,7 @@ public class MigrationContext
      * Record a file/folder operation
      *
      * @param projectName Project or cartridge name
-     * @param type Operation type (MOVE, COPY, etc.)
+     * @param type Operation type (MOVE, DELETE, etc.)
      * @param source Source path (can be null for CREATE operations)
      * @param target Target path (can be null for DELETE operations)
      * @param status success, skipped, unknown, or failed
@@ -58,7 +59,7 @@ public class MigrationContext
         Operation op = new Operation(type, source, target, status, message);
 
         operationsByProject.computeIfAbsent(projectName, k -> new ArrayList<>()).add(op);
-        statisticsByProject.computeIfAbsent(projectName, k -> new java.util.EnumMap<>(OperationStatus.class))
+        statisticsByProject.computeIfAbsent(projectName, k -> new EnumMap<>(OperationStatus.class))
                 .merge(status, 1, Integer::sum);
 
         if (status == OperationStatus.FAILED)

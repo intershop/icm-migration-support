@@ -1,14 +1,24 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.CREATE;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
@@ -38,9 +48,10 @@ public class MigrateVersionFiles implements MigrationPreparer
     public static final String EMPTY = "";
 
     @Override
-    public void migrateRoot(Path projectDir)
+    public void migrateRoot(Path projectDir, MigrationContext context)
     {
         List<Path> versionFiles = collectVersionFiles(projectDir);
+        String projectName = getResourceName(projectDir);
 
         if (versionFiles.isEmpty())
         {
@@ -60,17 +71,14 @@ public class MigrateVersionFiles implements MigrationPreparer
         {
             List<String> linesStream = FileUtils.readAllLines(versionsBuild);
             FileUtils.writeString(versionsBuild, migrate(linesStream, collectedVersionData));
+            context.recordSuccess(projectName, CREATE, null, projectDir);
         }
         catch(IOException e)
         {
             LOGGER.error("Can't migrate *.version files to 'versions' project", e);
+            context.recordFailure(projectName, CREATE, null, projectDir,
+                    "Can't migrate *.version files to 'versions' project: " + e.getMessage());
         }
-    }
-
-    @Override
-    public void migrate(Path resource)
-    {
-        // nothing to do on subproject level (for now
     }
 
     /**
