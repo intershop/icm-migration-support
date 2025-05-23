@@ -4,18 +4,20 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.MigrationStepFolder;
 import com.intershop.customization.migration.git.GitInitializationException;
 import com.intershop.customization.migration.git.GitRepository;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class Migrator
 {
-    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(Migrator.class);
     private static final int POS_TASK = 0;
     private static final int POS_PATH = 1;
     private static final int POS_STEPS = 2;
@@ -24,6 +26,7 @@ public class Migrator
 
     private final File migrationStepFolder;
     private Optional<GitRepository> gitRepository = Optional.empty();
+    private MigrationContext context = new MigrationContext();
 
     /**
      * Initializes the migrator
@@ -125,8 +128,7 @@ public class Migrator
         for (MigrationStep step: steps.getSteps())
         {
             MigrationPreparer migrator = step.getMigrator();
-
-            migrator.migrateRoot(rootProject.toPath());
+            migrator.migrateRoot(rootProject.toPath(), context);
 
             File[] files = rootProject.listFiles();
             if (files == null)
@@ -137,11 +139,13 @@ public class Migrator
             {
                 if (cartridgeDir.isDirectory() && !cartridgeDir.getName().startsWith(".") && (new File(cartridgeDir, "build.gradle")).exists())
                 {
-                    migrator.migrate(cartridgeDir.toPath());
+                    migrator.migrate(cartridgeDir.toPath(), context);
                 }
             }
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
+
+        LOGGER.info(context.generateSummaryReport());
     }
 
     /**
@@ -155,9 +159,11 @@ public class Migrator
         {
             MigrationPreparer migrator = step.getMigrator();
 
-            migrator.migrate(projectDir.toPath());
+            migrator.migrate(projectDir.toPath(), context);
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
+
+        LOGGER.info(context.generateSummaryReport());
     }
 
     /**

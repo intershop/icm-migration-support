@@ -1,11 +1,18 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.utils.FileUtils;
@@ -34,7 +41,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RenamedPackages implements MigrationPreparer
 {
-
     private final static String YAML_KEY_RENAMED_PACKAGES = "package-map";
     private final static String YAML_KEY_FILE_EXTENSION = "file-extension";
     private final static String PACKAGE_SEPARATOR = ".";
@@ -74,7 +80,7 @@ public class RenamedPackages implements MigrationPreparer
     }
 
     @Override
-    public void migrate(Path resource)
+    public void migrate(Path resource, MigrationContext context)
     {
         LOGGER.debug("Rename packages for cartridge {}.", getResourceName(resource));
 
@@ -86,7 +92,7 @@ public class RenamedPackages implements MigrationPreparer
         }
 
         List<Path> fileList = getFileList(srcDir);
-        fileList.forEach(this::processFile);
+        fileList.forEach(filePath -> processFile(filePath, resource, context));
     }
 
     // get all files in the src directory and its subdirectories
@@ -111,13 +117,13 @@ public class RenamedPackages implements MigrationPreparer
     // process the given file
     // 1. check if the file contains any of the old package names
     // 2. if yes, replace it with the new package name
-    protected void processFile(Path filePath)
+    protected void processFile(Path filePath, Path resource, MigrationContext context)
     {
         renamedPackages.forEach((key,value) -> {
             if (containsText(filePath, key))
             {
                 LOGGER.debug("Replace '{}' with '{}' in '{}'.", key, value, filePath);
-                modifyFile(filePath, key, value);
+                modifyFile(filePath, key, value, resource, context);
             }
         });
     }
@@ -137,8 +143,9 @@ public class RenamedPackages implements MigrationPreparer
     }
 
     // replace the old package name with the new package name and write the changes back to the file
-    protected void modifyFile(Path filePath, String pattern, String replacement)
+    protected void modifyFile(Path filePath, String pattern, String replacement, Path resource, MigrationContext context)
     {
+        String cartridgeName = getResourceName(resource);
         try
         {
             List<String> lines = FileUtils.readAllLines(filePath);
@@ -153,10 +160,13 @@ public class RenamedPackages implements MigrationPreparer
             }
 
             FileUtils.writeLines(filePath, lines);
+            context.recordSuccess(cartridgeName, MODIFY, filePath, filePath);
         }
         catch(IOException e)
         {
             LOGGER.error("An error occurred while modifying file {}.", filePath, e);
+            context.recordFailure(cartridgeName, MOVE, filePath, filePath,
+                    "An error occurred while modifying file: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -1,17 +1,19 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * This class migrates the 'build.gradle' files to use new cartridge dependencies.
@@ -44,17 +46,21 @@ public class ConvertToCartridgeDependency implements MigrationPreparer
     }
     
     @Override
-    public void migrate(Path projectDir)
+    public void migrate(Path projectDir, MigrationContext context)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
+        String cartridgeName = getResourceName(projectDir);
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
             FileUtils.writeString(buildGradle, migrate(lines));
+            context.recordSuccess(cartridgeName, MODIFY, buildGradle, buildGradle);
         }
         catch(IOException e)
         {
             LOGGER.error("Can't convert build.gradle", e);
+            context.recordFailure(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "Can't convert build.gradle: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,9 @@
 package com.intershop.customization.migration.file;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
+import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
+
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import org.slf4j.Logger;
@@ -11,8 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
-
-import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
 /**
  * This migration step is used to migrate the files structure of a cartridge
@@ -60,7 +62,8 @@ public class MoveFiles implements MigrationPreparer
         this.filterConfiguration = step.getOption(YAML_KEY_FILTER_MAP);
     }
 
-    public void migrate(Path cartridgeDir)
+    @Override
+    public void migrate(Path cartridgeDir, MigrationContext context)
     {
         String cartridgeName = getResourceName(cartridgeDir);
         LOGGER.info("Processing cartridge {}.", cartridgeName);
@@ -99,9 +102,12 @@ public class MoveFiles implements MigrationPreparer
                     try
                     {
                         Files.move(file.toPath(), targetFile);
+                        context.recordSuccess(cartridgeName, MOVE, file.toPath(), targetFile);
                     }
                     catch(IOException e)
                     {
+                        context.recordFailure(cartridgeName, MOVE, file.toPath(), targetFile,
+                                "Can't move file: " + e.getMessage());
                         throw new RuntimeException(e);
                     }
                 }
