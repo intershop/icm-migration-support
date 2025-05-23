@@ -16,6 +16,7 @@ public interface MigrationPreparer
      *
      * @param resource Path to the resource that needs to be migrated
      */
+    @Deprecated(forRemoval = true)
     default void migrate(Path resource)
     {
     }
@@ -26,6 +27,7 @@ public interface MigrationPreparer
      *
      * @param resource Path to the root directory that needs to be processed
      */
+    @Deprecated(forRemoval = true)
     default void migrateRoot(Path resource)
     {
     }
@@ -65,8 +67,7 @@ public interface MigrationPreparer
     }
 
     /**
-     * Extracts the name of the resource from its path. For cartridge migrations, this is typically the cartridge name
-     * (the last segment of the path).
+     * Extracts the name of the resource from its path. For cartridge migrations, this is typically the cartridge name.
      *
      * @param resource The resource path to extract the name from
      * @return The name of the resource, or null if the resource path is null

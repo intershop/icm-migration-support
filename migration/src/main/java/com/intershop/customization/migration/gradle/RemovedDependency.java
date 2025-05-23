@@ -1,10 +1,13 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.Position;
@@ -37,18 +40,22 @@ public class RemovedDependency implements MigrationPreparer
     private List<String> removedDependencies = Collections.emptyList();
 
     @Override
-    public void migrate(Path projectDir)
+    public void migrate(Path projectDir, MigrationContext context)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
+        String cartridgeName = getResourceName(projectDir);
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
             FileUtils.writeString(buildGradle, migrate(lines));
             LOGGER.info("build.gradle converted at {}.", projectDir);
+            context.recordSuccess(cartridgeName, MODIFY, buildGradle, buildGradle);
         }
         catch(IOException e)
         {
             LOGGER.error("Can't convert build.gradle", e);
+            context.recordFailure(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "Can't convert build.gradle: " + e.getMessage());
         }
     }
 

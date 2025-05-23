@@ -1,15 +1,20 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
+
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -28,6 +33,8 @@ import org.slf4j.LoggerFactory;
  */
 public class RenamedDependency implements MigrationPreparer
 {
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+
     private static final String YAML_KEY_RENAMED_DEPENDENCY = "dependency-map";
     private static final String START_DEPENDENCIES = "dependencies";
     private static final String LINE_SEP = System.lineSeparator();
@@ -35,19 +42,23 @@ public class RenamedDependency implements MigrationPreparer
     private Map<String, String> renamedDependencies = Collections.emptyMap();
 
     @Override
-    public void migrate(Path projectDir)
+    public void migrate(Path projectDir, MigrationContext context)
     {
         Path buildGradle = projectDir.resolve("build.gradle");
+        String cartridgeName = getResourceName(projectDir);
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
 
             FileUtils.writeString(buildGradle, migrate(lines));
-            LoggerFactory.getLogger(getClass()).info("build.gradle converted at {}.", projectDir);
+            LOGGER.info("build.gradle converted at {}.", projectDir);
+            context.recordSuccess(cartridgeName, MODIFY, buildGradle, buildGradle);
         }
         catch (IOException e)
         {
-            LoggerFactory.getLogger(getClass()).error("Can't convert build.gradle", e);
+            LOGGER.error("Can't convert build.gradle", e);
+            context.recordFailure(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "Can't convert build.gradle: " + e.getMessage());
         }
     }
 

@@ -1,10 +1,19 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
@@ -32,7 +41,7 @@ public class ConvertBuildGradle implements MigrationPreparer
 
     private static final Map<String, String> REPLACE_LINES = Map.of(
                     "zipCartridge.dependsOn lessCompile", "tasks.compileJava.dependsOn(tasks.lessCompile)"
-    );
+                                                                   );
     private static final Map<String, String> PLUGIN_TASK = Map.of(
                     "com.intershop.gradle.isml", "tasks.test.dependsOn(tasks.isml)"
                 );
@@ -67,18 +76,24 @@ public class ConvertBuildGradle implements MigrationPreparer
                     "static-cartridge", Arrays.asList("com.intershop.icm.cartridge.product", "java"),
                     "test-cartridge", Arrays.asList("com.intershop.icm.cartridge.test", "java")
                     );
-    public void migrate(Path projectDir)
+
+    @Override
+    public void migrate(Path projectDir, MigrationContext context)
     {
+        String cartridgeName = getResourceName(projectDir);
         Path buildGradle = projectDir.resolve("build.gradle");
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
             String newContent = migrate(lines);
             FileUtils.writeString(buildGradle, newContent);
+            context.recordSuccess(cartridgeName, MODIFY, buildGradle, buildGradle);
         }
         catch(IOException e)
         {
             LOGGER.error("Can't convert build.gradle", e);
+            context.recordFailure(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "Can't convert build.gradle: " + e.getMessage());
         }
     }
 
@@ -140,7 +155,7 @@ public class ConvertBuildGradle implements MigrationPreparer
         {
             return "";
         }
-        List<String> tasks = new ArrayList<>(); 
+        List<String> tasks = new ArrayList<>();
         for(String plugin : newPlugins)
         {
             if (PLUGIN_TASK.containsKey(plugin))

@@ -1,5 +1,8 @@
 package com.intershop.customization.migration.file;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
+import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
+
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
@@ -12,9 +15,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
-
-import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
-import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
 /**
  * This migration step is used to migrate the files structure of a cartridge
@@ -101,7 +101,8 @@ public class MoveFolder implements MigrationPreparer
             }
             catch(IOException e)
             {
-                context.recordFailure(cartridgeName, MOVE, sourcePath, targetPath, e.getMessage());
+                context.recordFailure(cartridgeName, MOVE, sourcePath, targetPath,
+                        "Can't move folder: " + e.getMessage());
                 throw new RuntimeException(e);
             }
         }
