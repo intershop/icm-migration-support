@@ -11,15 +11,17 @@ import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.LoggerFactory;
 
 /**
- * helper class to Convert ICM 7.10 configuration .resource file into .properties file. They are used for
+ * Helper class to Convert ICM 7.10 configuration .resource file to .properties file. They are used for
  * <ul>
- * <li>transport - name *_transport.resource</li>
- * <li>application preferencees - name *_appprfrnce.resource</li>
- * <li>user - name *_usr.resource</li>
- * <li>... w.i.p</li> <7ul> and converted into prooertty files.<br/>
+ *     <li>transport settings - * _transport.resource</li>
+ *     <li>application - * _appprfrnce.resource </li>
+ *     <li>user credentials - * _usr.resource </li>
+ *     <li>manages services - *_mngdsrvc.resource</li> 
+•	   <li> domain preferences - * _dmnprfrnce.resource </li> 
+•	</7ul> and converted into property files.<br/>
  * 
  * <p/>
- * Bacgground: "When using the “Test System Configuration Solution Kit”, a rework is necessary according to
+ * background: "When using the “Test System Configuration Solution Kit”, a rework is necessary according to
  * pf_configuration_fs versions for IS7.10 vs. for ICM11. See
  * <ul>
  * <li>"Cookbook - 7.10 Test System Configuration Solution" Kit vs.</li>
@@ -28,21 +30,9 @@ import org.slf4j.LoggerFactory;
  * The *.resource files need to be migrated to *.properties files and wired in cartridge-specific configuration.xml
  * file."
  * 
- * <p/>
- * <b><u>.resource types</u><b>
- * <p/>
- * <u>usr -* _transport.resource</u>
- * <p/>
- * <u>application -* _appprfrnce.resource</u>
- * <p/>
- * <u>usr -* _usr.resource</u>
- * <p/>
- * <u>mngdsrvc -* _mngdsrvc.resource</u>
- * <p/>
- * <u>dmnprfrnce -* _dmnprfrnce.resource</u>
- * <p/>
- * 
  */
+
+
 public class CfgResourceConverter
 {
 
@@ -84,6 +74,8 @@ public class CfgResourceConverter
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CfgResourceConverter.class);
 
     /**
+     * constructor<br/>
+     * 
      * @param resourceType the type of the resource, e.g. "transport", prefixed as "pfconfigurationfs>transport"
      * @param source the source file to convert
      * @param target the target file to write the converted content
@@ -165,7 +157,7 @@ public class CfgResourceConverter
     }
 
     /**
-     * similar for user credentials and domain preferences
+     * Similar for user credentials and domain preferences
      * <p/>
      * The ICm 7.10 configuration:<br/>
      * #ParameterName# = #Value# InactivityPeriod = 0 <br/>
@@ -173,7 +165,7 @@ public class CfgResourceConverter
      * pfconfigurationfs>dmnprfrnce>#ParameterName# = #Value#<br/>
      * pfconfigurationfs>dmnprfrnce>InactivityPeriod = 0
      * 
-     * @param lines the lones of the source file
+     * @param lines the lines of the source file
      * @return targetLines the lines of the target file
      */
     private ArrayList<String> migrateSimpleCfg(List<String> lines)
@@ -201,9 +193,9 @@ public class CfgResourceConverter
     }
 
     /**
-     * similar for configirytions of #type# transport and application
+     * similar for configurations of #type# transport and application
      * <p/>
-     * The ICm 7.10 configuration:<br/>
+     * The ICM 7.10 configuration:<br/>
      * <br/>
      * gets converted to ICM11+:<br/>
      * pfconfigurationfs>#type#>#UrlIdentifier#>#ParameterName# = #Value#<br/>

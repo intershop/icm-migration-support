@@ -53,7 +53,7 @@ public class MigrateConfigResources implements MigrationPreparer
             for (Path path : toBeMigrated)
             {
 
-                if (path.toFile().isDirectory() && path.toFile().isDirectory())
+                if (path.toFile().isDirectory())
                 {
                     LOGGER.debug("Processing  files {}.", path);
                 }
@@ -165,45 +165,6 @@ public class MigrateConfigResources implements MigrationPreparer
         CfgResourceConverter converter = new CfgResourceConverter(resurceCfgType, source, target);
         converter.convertResource();
 
-    }
-
-    private boolean isEmpty(Path p)
-    {
-        if (!p.toFile().isDirectory())
-        {
-            return false;
-        }
-        File[] children = p.toFile().listFiles();
-        assert children != null;
-        for (File child : children)
-        {
-            if (!isEmpty(child.toPath()))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void delete(Path p)
-    {
-        try
-        {
-            if (p.toFile().isDirectory())
-            {
-                File[] children = p.toFile().listFiles();
-                assert children != null;
-                for (File child : children)
-                {
-                    delete(child.toPath());
-                }
-            }
-            Files.deleteIfExists(p);
-        }
-        catch(IOException e)
-        {
-            throw new RuntimeException(e);
-        }
     }
 
 }
