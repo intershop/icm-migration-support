@@ -3,6 +3,7 @@ package com.intershop.customization.migration.file;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,18 +92,16 @@ public class MoveFolder implements MigrationPreparer
                 if (!targetPath.toFile().exists())
                 {
                     Files.move(sourcePath, targetPath);
-                    context.recordSuccess(cartridgeName, MigrationContext.OperationType.MOVE, sourcePath, targetPath);
+                    context.recordSuccess(cartridgeName, MOVE, sourcePath, targetPath);
                 }
                 else {
                     LoggerFactory.getLogger(getClass()).warn("Folder '{}' exists.", targetPath);
-                    context.recordSkipped(cartridgeName, MigrationContext.OperationType.MOVE, sourcePath, targetPath,
-                            "Target folder already exists");
+                    context.recordSkipped(cartridgeName, MOVE, sourcePath, targetPath, "Target folder already exists");
                 }
             }
             catch(IOException e)
             {
-                context.recordFailure(cartridgeName, MigrationContext.OperationType.MOVE, sourcePath, targetPath,
-                        e.getMessage());
+                context.recordFailure(cartridgeName, MOVE, sourcePath, targetPath, e.getMessage());
                 throw new RuntimeException(e);
             }
         }
@@ -129,45 +128,34 @@ public class MoveFolder implements MigrationPreparer
                 Path cartridgeStaticDir = staticFilesDir.resolve("cartridge");
                 if (Files.exists(cartridgeStaticDir))
                 {
-                    try (var paths = Files.list(cartridgeStaticDir))
-                    {
-                        paths.filter(Files::isDirectory).forEach(dir -> {
-                            Path relativePath = cartridgeDir.relativize(dir);
-                            LOGGER.warn("Unmapped directory found in staticfiles/cartridge: {}", relativePath);
-                            context.recordUnknown(cartridgeName, MigrationContext.OperationType.MOVE, dir, null,
-                                    "Unmapped directory in staticfiles/cartridge");
-                        });
-                    }
+                    Files.list(cartridgeStaticDir).filter(Files::isDirectory).forEach(dir -> {
+                        Path relativePath = cartridgeDir.relativize(dir);
+                        LOGGER.warn("Unmapped directory found in staticfiles/cartridge: {}", relativePath);
+                        context.recordUnknown(cartridgeName, MOVE, dir, null,
+                                "Unmapped directory in staticfiles/cartridge");
+                    });
                 }
 
                 // Check other directories in staticfiles (not cartridge)
-                try (var paths = Files.list(staticFilesDir))
-                {
-                    paths.filter(Files::isDirectory)
-                            .filter(p -> !p.getFileName().toString().equals("cartridge"))
-                            .forEach(dir -> {
-                                Path relativePath = cartridgeDir.relativize(dir);
-                                LOGGER.warn("Unmapped directory found in staticfiles: {}", relativePath);
-                                context.recordUnknown(cartridgeName, MigrationContext.OperationType.MOVE, dir, null,
-                                        "Unmapped directory in staticfiles");
-                            });
-                }
+                Files.list(staticFilesDir)
+                        .filter(path -> Files.isDirectory(path) && !"cartridge".equals(path.getFileName().toString()))
+                        .forEach(dir -> {
+                            Path relativePath = cartridgeDir.relativize(dir);
+                            LOGGER.warn("Unmapped directory found in staticfiles: {}", relativePath);
+                            context.recordUnknown(cartridgeName, MOVE, dir, null, "Unmapped directory in staticfiles");
+                        });
 
                 // Check for files directly in staticfiles
-                try (var paths = Files.list(staticFilesDir))
-                {
-                    paths.filter(Files::isRegularFile).forEach(file -> {
-                        Path relativePath = cartridgeDir.relativize(file);
-                        LOGGER.warn("Unmapped file found in staticfiles: {}", relativePath);
-                        context.recordUnknown(cartridgeName, MigrationContext.OperationType.MOVE, file, null,
-                                "Unmapped file in staticfiles");
-                    });
-                }
+                Files.list(staticFilesDir).filter(path -> !Files.isDirectory(path)).forEach(file -> {
+                    Path relativePath = cartridgeDir.relativize(file);
+                    LOGGER.warn("Unmapped file found in staticfiles: {}", relativePath);
+                    context.recordUnknown(cartridgeName, MOVE, file, null, "Unmapped file in staticfiles");
+                });
             }
             catch (IOException e)
             {
                 LOGGER.error("Error checking remaining staticfiles: {}", e.getMessage());
-                context.recordFailure(cartridgeName, MigrationContext.OperationType.MOVE, staticFilesDir, null,
+                context.recordFailure(cartridgeName, MOVE, staticFilesDir, null,
                         "Error checking remaining staticfiles: " + e.getMessage());
             }
         }
