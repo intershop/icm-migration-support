@@ -26,16 +26,15 @@ public class Migrator
 
     private final File migrationStepFolder;
     private Optional<GitRepository> gitRepository = Optional.empty();
-    private final MigrationContext context;
+    private MigrationContext context = new MigrationContext();
 
     /**
      * Initializes the migrator
      * @param migrationStepFolder folder containing the migration step descriptions
      */
-    public Migrator(File migrationStepFolder, MigrationContext context)
+    public Migrator(File migrationStepFolder)
     {
         this.migrationStepFolder = migrationStepFolder;
-        this.context = context;
     }
 
     /**
@@ -59,8 +58,7 @@ public class Migrator
                     System.exit(2);
                 }
 
-                MigrationContext context = new MigrationContext();
-                Migrator migrator = new Migrator(new File(args[POS_STEPS]), context);
+                Migrator migrator = new Migrator(new File(args[POS_STEPS]));
                 migrator.initializeGitRepository(Arrays.stream(args)
                                                        .noneMatch(o -> o.equalsIgnoreCase(OPTION_NO_AUTO_COMMIT)), projectPath);
 

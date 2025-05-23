@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MigrationContext
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MigrationContext.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     public enum OperationType
     {
@@ -40,8 +39,8 @@ public class MigrationContext
     }
 
     // Store operations by cartridge/project
-    private final Map<String, List<Operation>> operationsByProject = new ConcurrentHashMap<>();
-    private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new ConcurrentHashMap<>();
+    private final Map<String, List<Operation>> operationsByProject = new HashMap<>();
+    private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new HashMap<>();
 
     /**
      * Record a file/folder operation
@@ -58,18 +57,13 @@ public class MigrationContext
     {
         Operation op = new Operation(type, source, target, status, message);
 
-        operationsByProject.computeIfAbsent(projectName, k -> Collections.synchronizedList(new ArrayList<>())).add(op);
-
-        // Update statistics
-        statisticsByProject.computeIfAbsent(projectName, k -> new HashMap<>()).merge(status, 1, Integer::sum);
+        operationsByProject.computeIfAbsent(projectName, k -> new ArrayList<>()).add(op);
+        statisticsByProject.computeIfAbsent(projectName, k -> new java.util.EnumMap<>(OperationStatus.class))
+                .merge(status, 1, Integer::sum);
 
         if (status == OperationStatus.FAILED)
         {
             LOGGER.warn("Failed operation in {}: {} - {}", projectName, op, message);
-        }
-        else
-        {
-            LOGGER.debug("Recorded operation in {}: {}", projectName, op);
         }
     }
 
@@ -103,38 +97,6 @@ public class MigrationContext
     public void recordFailure(String projectName, OperationType type, Path source, Path target, String error)
     {
         recordOperation(projectName, type, source, target, OperationStatus.FAILED, error);
-    }
-
-    /**
-     * Get operations for a specific project
-     */
-    public List<Operation> getOperations(String projectName)
-    {
-        return operationsByProject.getOrDefault(projectName, Collections.emptyList());
-    }
-
-    /**
-     * Get all operations across projects
-     */
-    public Map<String, List<Operation>> getAllOperations()
-    {
-        return Collections.unmodifiableMap(operationsByProject);
-    }
-
-    /**
-     * Get statistics for a specific project
-     */
-    public Map<OperationStatus, Integer> getStatistics(String projectName)
-    {
-        return statisticsByProject.getOrDefault(projectName, Collections.emptyMap());
-    }
-
-    /**
-     * Get a summary of operations for all projects
-     */
-    public Map<String, Map<OperationStatus, Integer>> getAllStatistics()
-    {
-        return Collections.unmodifiableMap(statisticsByProject);
     }
 
     /**

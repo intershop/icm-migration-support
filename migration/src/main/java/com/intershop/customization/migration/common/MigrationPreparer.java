@@ -2,25 +2,40 @@ package com.intershop.customization.migration.common;
 
 import java.nio.file.Path;
 
+/**
+ * Interface for implementing migration preparers that handle specific migration tasks.
+ * </p>
+ * A migration preparer is responsible for transforming resources according to migration rules. Implementations should
+ * provide logic for modifying directories, files, and other resources to ensure compatibility with target platform
+ * versions.
+ */
 public interface MigrationPreparer
 {
     /**
-     * @param resource contains information, what needs to be migrated
+     * Migrates a resource.
+     *
+     * @param resource Path to the resource that needs to be migrated
      */
     default void migrate(Path resource)
     {
     }
 
     /**
-     * @param resource contains information, what needs to be migrated on root directory
+     * Migrates resources at the root level.
+     * This is typically used for project-wide migrations that need to be applied once.
+     *
+     * @param resource Path to the root directory that needs to be processed
      */
     default void migrateRoot(Path resource)
     {
     }
 
     /**
-     * @param resource contains information, what needs to be migrated
-     * @param context contains information about the migration context
+     * Migrates a resource with context tracking. This is the preferred method for implementations as it allows
+     * recording success, failures, and other metrics.
+     *
+     * @param resource Path to the resource that needs to be migrated
+     * @param context The migration context for tracking operations and their results
      */
     default void migrate(Path resource, MigrationContext context)
     {
@@ -28,8 +43,11 @@ public interface MigrationPreparer
     }
 
     /**
-     * @param resource contains information, what needs to be migrated on root directory
-     * @param context contains information about the migration context
+     * Migrates resources at the root level with context tracking. This is the preferred method for project-wide
+     * migrations as it allows recording success, failures, and other metrics.
+     *
+     * @param resource Path to the root directory that needs to be processed
+     * @param context The migration context for tracking operations and their results
      */
     default void migrateRoot(Path resource, MigrationContext context)
     {
@@ -37,17 +55,21 @@ public interface MigrationPreparer
     }
 
     /**
-     * Define options for migrator
-     * @param step assigns a migration step to the preparer
+     * Configures this preparer with a migration step, which may contain options and other configuration details needed
+     * for the migration process.
+     *
+     * @param step The migration step containing configuration options for this preparer
      */
     default void setStep(MigrationStep step)
     {
     }
 
     /**
-     * Gets the name of the resource (cartridge).
-     * @param resource the resource to get the name from
-     * @return the name of the resource (cartridge)
+     * Extracts the name of the resource from its path. For cartridge migrations, this is typically the cartridge name
+     * (the last segment of the path).
+     *
+     * @param resource The resource path to extract the name from
+     * @return The name of the resource, or null if the resource path is null
      */
     default String getResourceName(Path resource)
     {
