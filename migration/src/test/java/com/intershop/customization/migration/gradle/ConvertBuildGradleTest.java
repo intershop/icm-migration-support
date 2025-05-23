@@ -12,15 +12,15 @@ import java.util.List;
 import com.intershop.customization.migration.utils.FileUtils;
 import org.junit.jupiter.api.Test;
 
-class UpdateGradleBuild7to10Test
+class ConvertBuildGradleTest
 {
-    private final UpdateGradleBuild7to10 underTest = new UpdateGradleBuild7to10();
+    private final ConvertBuildGradle underTest = new ConvertBuildGradle();
 
     @Test
     void testAll() throws IOException, URISyntaxException
     {
-        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.source").toURI()));
-        List<String> expected = FileUtils.readAllLines(Paths.get(getResourceURI("UpdateGradleBuild7to10Test.expected").toURI()));
+        List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertBuildGradleTest.source").toURI()));
+        List<String> expected = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertBuildGradleTest.expected").toURI()));
 
         // split result into List of strings to handle different OS specific line endings
         List<String> result = Arrays.asList(underTest.migrate(lines).split("\\R"));
