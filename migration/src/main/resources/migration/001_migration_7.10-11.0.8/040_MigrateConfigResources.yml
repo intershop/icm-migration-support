@@ -1,2 +1,5 @@
 type: specs.intershop.com/v1beta/migrate
 migrator: com.intershop.customization.migration.pfconfigurationfs.MigrateConfigResources
+message: "feature: migrate configuration resources"
+# configuration-xml: "src/main/resources/resources/lang_init/config/configuration.xml"
+

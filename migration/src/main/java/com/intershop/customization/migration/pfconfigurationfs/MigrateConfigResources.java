@@ -5,18 +5,30 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
 
 public class MigrateConfigResources implements MigrationPreparer
 {
 
+    private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
+
+    private String configurationXML = "";
+
+
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+
+    /* w.i.p.
+    @Override
+    public void setStep(MigrationStep step)
+    {
+        this.configurationXML = step.getOption(YAML_KEY_CONFIGURATION_XML);
+    }
+    */
 
     @Override
     public void migrate(Path cartridgeDir)
