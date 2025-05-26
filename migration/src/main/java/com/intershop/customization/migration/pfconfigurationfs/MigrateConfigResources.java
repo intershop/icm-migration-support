@@ -1,5 +1,7 @@
 package com.intershop.customization.migration.pfconfigurationfs;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -9,6 +11,7 @@ import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
 
@@ -30,8 +33,16 @@ public class MigrateConfigResources implements MigrationPreparer
     }
     */
 
+       /**
+     * Migrates a resource with context tracking.
+     * It allows recording success, failures, and other metrics.
+     *
+     * @param resource Path to the resource that needs to be migrated
+     * @param context The migration context for tracking operations and their results
+     */
+
     @Override
-    public void migrate(Path cartridgeDir)
+    public void migrate(Path cartridgeDir, MigrationContext context)
     {
         Path staticFilesFolder = cartridgeDir.resolve("staticfiles");
         Path staticCartridgeFolder = staticFilesFolder.resolve("cartridge");
@@ -39,6 +50,7 @@ public class MigrateConfigResources implements MigrationPreparer
         Path staticSitesFolder = staticFilesFolder.resolve("sites");
         Path cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
         Path sourceMain = cartridgeDir.resolve("src/main");
+        String migrationSubject = cartridgeName.getFileName().toString();
 
         if (!staticCartridgeFolder.toFile().exists())
         {
@@ -93,16 +105,18 @@ public class MigrateConfigResources implements MigrationPreparer
                                      Path target = Paths.get(targetName);
                                      convertResourceFile(targetType, source, target);
                                      Files.delete(source);
+                                     context.recordSuccess(migrationSubject, MODIFY, source, target);
                                  }
                                  else
                                  {
                                      // other than resouirce files are just moved to their new location
-                                     LOGGER.warn("file {} not yet handled.", source);
+                                     context.recordFailure(migrationSubject, MODIFY, source, targetFile, "target Type is unkonwn.");
                                  }
                              }
                          }
                          catch(Exception e)
                          {
+                             context.recordFailure(migrationSubject, MODIFY, path, p, e.getMessage());
                              throw new RuntimeException(e);
                          }
                      });
