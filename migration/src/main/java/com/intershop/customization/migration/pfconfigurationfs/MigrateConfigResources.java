@@ -5,18 +5,30 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
 
 public class MigrateConfigResources implements MigrationPreparer
 {
 
+    private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
+
+    private String configurationXML = "";
+
+
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+
+    /* w.i.p.
+    @Override
+    public void setStep(MigrationStep step)
+    {
+        this.configurationXML = step.getOption(YAML_KEY_CONFIGURATION_XML);
+    }
+    */
 
     @Override
     public void migrate(Path cartridgeDir)
@@ -41,7 +53,7 @@ public class MigrateConfigResources implements MigrationPreparer
             for (Path path : toBeMigrated)
             {
 
-                if (path.toFile().isDirectory() && path.toFile().isDirectory())
+                if (path.toFile().isDirectory())
                 {
                     LOGGER.debug("Processing  files {}.", path);
                 }
@@ -66,27 +78,12 @@ public class MigrateConfigResources implements MigrationPreparer
 
                                  targetFile.toFile().getParentFile().mkdirs();
 
-                                 // resource files must be cinverted @see CfgResourceConverter
                                  String targetType = "";
-                                 if (targetFileName.endsWith("transport.resource"))
+                                 // resource files must be cinverted @see CfgResourceConverter
+                                 if ((targetFileName.endsWith(".resource")) && (-1 < targetFileName.lastIndexOf('_')))
                                  {
-                                     targetType = "transport";
-                                 }
-                                 else if (targetFileName.endsWith("application.resource"))
-                                 {
-                                     targetType = "application";
-                                 }
-                                 else if (targetFileName.endsWith("usr.resource"))
-                                 {
-                                     targetType = "user";
-                                 }
-                                 else if (targetFileName.endsWith("mngdsrvc.resource"))
-                                 {
-                                     targetType = "service";
-                                 }
-                                 else if (targetFileName.endsWith("dmnprfrnc.resource"))
-                                 {
-                                     targetType = "domain";
+                                     targetType = targetFileName.substring(targetFileName.lastIndexOf('_') + 1,
+                                                     targetFileName.lastIndexOf(".resource"));
                                  }
                                  if (!targetType.isEmpty())
                                  {
@@ -123,9 +120,8 @@ public class MigrateConfigResources implements MigrationPreparer
         String fileName = source.getName(0).toString();
         Path targetPath = sourceMain.resolve("resources/resources").resolve(cartridgeName);
         if (targetPath.toString()
-            .contains("resources" + java.io.File.separator 
-            + "resources" + java.io.File.separator
-            + cartridgeName))
+                      .contains("resources" + java.io.File.separator + "resources" + java.io.File.separator
+                                      + cartridgeName))
         {
             switch(fileName)
             {
@@ -136,13 +132,13 @@ public class MigrateConfigResources implements MigrationPreparer
                     targetPath = targetPath.resolve(targetSubDomains);
                     break;
                 case "system":
-                    // staticfiles/share/system/config 
+                    // staticfiles/share/system/config
                     // -> src/main/resources/resources/{cartridgeName}/config
                     Path targetSubConfig = source.subpath(1, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubConfig);
                     break;
                 case "cartridge":
-                    // staticfiles/share/sites 
+                    // staticfiles/share/sites
                     // -> src/main/resources/resources/{cartridgeName}/sites
                     Path targetSubSites = source.subpath(2, source.getNameCount());
                     targetPath = targetPath.resolve(targetSubSites);
@@ -169,45 +165,6 @@ public class MigrateConfigResources implements MigrationPreparer
         CfgResourceConverter converter = new CfgResourceConverter(resurceCfgType, source, target);
         converter.convertResource();
 
-    }
-
-    private boolean isEmpty(Path p)
-    {
-        if (!p.toFile().isDirectory())
-        {
-            return false;
-        }
-        File[] children = p.toFile().listFiles();
-        assert children != null;
-        for (File child : children)
-        {
-            if (!isEmpty(child.toPath()))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void delete(Path p)
-    {
-        try
-        {
-            if (p.toFile().isDirectory())
-            {
-                File[] children = p.toFile().listFiles();
-                assert children != null;
-                for (File child : children)
-                {
-                    delete(child.toPath());
-                }
-            }
-            Files.deleteIfExists(p);
-        }
-        catch(IOException e)
-        {
-            throw new RuntimeException(e);
-        }
     }
 
 }
