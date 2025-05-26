@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is used to parse version files (except: 'intershopBuild.version', '.ivy*.version', '.pom*.version')
  * and integrate the version information containing information about the artifact group, name and version
- * into the `versions/build.gradle` file.
+ * into the `versions/build.gradle.kts` file.
  * <p>
  * Migration to Kotlin is out of scope for this step and performed later in a separate step.
  * <p>
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * <pre>
  * type: specs.intershop.com/v1beta/migrate
  * migrator: com.intershop.customization.migration.gradle.MigrateVersionFiles
- * message: "refactor: transfer data from '*.version' files into 'versions/build.gradle'"
+ * message: "refactor: transfer data from '*.version' files into 'versions/build.gradle.kts'"
  * </pre>
  */
 public class MigrateVersionFiles implements MigrationPreparer
@@ -46,6 +45,7 @@ public class MigrateVersionFiles implements MigrationPreparer
     private static final String LINE_SEP = System.lineSeparator();
     private static final String START_CONSTRAINTS = "constraints";
     public static final String EMPTY = "";
+    public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
 
     @Override
     public void migrateRoot(Path projectDir, MigrationContext context)
@@ -66,7 +66,7 @@ public class MigrateVersionFiles implements MigrationPreparer
             return;
         }
 
-        Path versionsBuild = projectDir.resolve("versions").resolve("build.gradle");
+        Path versionsBuild = projectDir.resolve("versions").resolve(BUILD_GRADLE_KTS);
         try
         {
             List<String> linesStream = FileUtils.readAllLines(versionsBuild);
@@ -85,7 +85,7 @@ public class MigrateVersionFiles implements MigrationPreparer
      * go step by step through migration steps to fix gradle build
      * @param lines lines to migrate
      * @param collectedVersionData map of version data comprised of filename (key) and migrated version information (value)
-     * @return new content of versions/build.gradle
+     * @return new content of versions/build.gradle.kts
      */
     String migrate(List<String> lines, Map<String, Collection<String>> collectedVersionData)
     {
@@ -104,9 +104,9 @@ public class MigrateVersionFiles implements MigrationPreparer
             // add migrated version information direct after the constraints block started
             if (first)
             {
-                migratedConstraintsLines.add(EMPTY); // empty line
                 collectedVersionData.entrySet().stream()
                                 .flatMap(entry -> {
+                                    migratedConstraintsLines.add(EMPTY); // empty line
                                     migratedConstraintsLines.add("        // migrated version information of '" + entry.getKey() + "'");
                                     return entry.getValue().stream();
                                 })
@@ -160,18 +160,16 @@ public class MigrateVersionFiles implements MigrationPreparer
     protected Map<String, Collection<String>> collectMigratedVersionData(List<Path> versionFiles)
     {
         Map<String, Collection<String>> versionData = new HashMap<>();
-        Collection<String> migratedVersions = new HashSet<>();
         for (Path versionFile : versionFiles)
         {
             LOGGER.info("Migrating version information for '{}'", versionFile);
             try
             {
                 List<String> versionFileLines = FileUtils.readAllLines(versionFile);
-                migratedVersions.addAll(
-                                versionFileLines.stream()
-                                     .map(this::migrateVersion)
-                                     .filter(Objects::nonNull)
-                                     .collect(Collectors.toSet()));
+                Collection<String> migratedVersions = versionFileLines.stream()
+                                                                      .map(this::migrateVersion)
+                                                                      .filter(Objects::nonNull)
+                                                                      .collect(Collectors.toSet());
 
                 versionData.put(versionFile.getFileName().toString(), migratedVersions);
                 deleteFile(versionFile);
