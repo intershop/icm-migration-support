@@ -171,7 +171,7 @@ public class Migrator
         {
             String commitMessage = step.getMessage();
             String sha = repository.commit(commitMessage);
-            LOGGER.debug("Commited changes of migration step to git repository at '{}' with message '{}'.", sha, commitMessage);
+            LOGGER.info("Commited changes of migration step to git repository at '{}' with message '{}'.", sha, commitMessage);
         }
     }
 }
