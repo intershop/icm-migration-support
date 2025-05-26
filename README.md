@@ -1,9 +1,9 @@
 How to Work with the ICM Migration Support
 ==========================================
 
-A tool to support the migration from one major ICM version to another. The goal is supporting
-the migration by reducing repetitive tasks by providing a set of migration steps that can be executed.
-It is not a complete migration tool, that migrates everything automatically. Some manual steps are still required.
+A tool to support the migration from one major ICM version to another. 
+Its goal is to support the migration process by reducing repetitive tasks and providing a set of executable migration steps.
+However, it is not a complete migration tool that migrates everything automatically. Some manual steps are still required.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
