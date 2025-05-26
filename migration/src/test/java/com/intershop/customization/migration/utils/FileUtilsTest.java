@@ -14,8 +14,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class FileUtilsTest {
-
+class FileUtilsTest
+{
     private Path tempDir;
 
     @BeforeEach
@@ -91,6 +91,37 @@ class FileUtilsTest {
         Comparator<Path> byName = Comparator.comparing(p -> p.getFileName().toString());
 
         List<Path> files = FileUtils.listFiles(tempDir, txtFilter, byName);
+        assertEquals(List.of(file1), files);
+    }
+
+    @Test
+    void testListTopLevelFiles() throws IOException
+    {
+        Path subDir = tempDir.resolve("sub");
+        Files.createDirectory(subDir);
+        Path file1 = tempDir.resolve("a.txt");
+        Path file2 = subDir.resolve("b.txt");
+        Files.createFile(file1);
+        Files.createFile(file2);
+
+        List<Path> files = FileUtils.listTopLevelFiles(tempDir, Files::isRegularFile, null);
+        assertTrue(files.contains(file1));
+        assertFalse(files.contains(file2));
+        assertEquals(1, files.size());
+    }
+
+    @Test
+    void testListTopLevelFilesWithFilterAndSort() throws IOException
+    {
+        Path file1 = tempDir.resolve("a.txt");
+        Path file2 = tempDir.resolve("b.log");
+        Files.createFile(file1);
+        Files.createFile(file2);
+
+        Predicate<Path> txtFilter = p -> p.toString().endsWith(".txt");
+        Comparator<Path> byName = Comparator.comparing(p -> p.getFileName().toString());
+
+        List<Path> files = FileUtils.listTopLevelFiles(tempDir, txtFilter, byName);
         assertEquals(List.of(file1), files);
     }
 }

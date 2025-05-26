@@ -1,5 +1,7 @@
 package com.intershop.customization.migration.gradle;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.function.BiFunction;
 
+import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.utils.OsCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,14 +23,18 @@ public class ConvertToKotlin implements MigrationPreparer
     public static final String GRADLE_KOTLIN_CONVERTER = "kotlin/gradlekotlinconverter.kts";
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    public void migrate(Path resource)
+    @Override
+    public void migrate(Path resource, MigrationContext context)
     {
-        LOGGER.debug("Starting Kotlin migration for project '{}'", getResourceName(resource));
+        String resourceName = getResourceName(resource);
+        LOGGER.debug("Starting Kotlin migration for project '{}'", resourceName);
 
         String kotlinVersion = getKotlinRuntimeVersion();
         if (kotlinVersion == null)
         {
             LOGGER.error("Kotlin runtime environment is not available. Aborting migration auf 'build.gradle' files to 'build.gradle.kts'.");
+            context.recordFailure(resourceName, MODIFY, resource, resource,
+                    "Kotlin runtime environment is not available. Aborting migration of 'build.gradle' files to 'build.gradle.kts'.");
             return;
         }
 
@@ -36,11 +43,14 @@ public class ConvertToKotlin implements MigrationPreparer
         try
         {
             String scriptOutput = executeKotlinScript(resource);
+            context.recordSuccess(resourceName, MODIFY, resource, resource);
             LOGGER.debug("Script output collected: {}", scriptOutput);
         }
         catch (IOException | InterruptedException e)
         {
             LOGGER.error("Error while executing Kotlin script: {}", e.getMessage(), e);
+            context.recordFailure(resourceName, MODIFY, resource, resource,
+                    "Error while executing Kotlin script: " + e.getMessage());
         }
     }
 
