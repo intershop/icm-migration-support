@@ -33,6 +33,8 @@ public class ConvertToKotlin implements MigrationPreparer
         if (kotlinVersion == null)
         {
             LOGGER.error("Kotlin runtime environment is not available. Aborting migration auf 'build.gradle' files to 'build.gradle.kts'.");
+            context.recordFailure(resourceName, MODIFY, resource, resource,
+                    "Kotlin runtime environment is not available. Aborting migration of 'build.gradle' files to 'build.gradle.kts'.");
             return;
         }
 

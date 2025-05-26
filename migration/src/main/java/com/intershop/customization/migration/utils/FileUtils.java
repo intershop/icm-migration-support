@@ -15,13 +15,12 @@ import java.util.stream.Stream;
  */
 public class FileUtils
 {
-
     public final static Charset BUILD_GRADLE_CHARSET = StandardCharsets.UTF_8;
 
     private FileUtils() { }
 
     /**
-     * Lists all files in the given directory and its subdirectories.
+     * Lists all files in the given directory and its subdirectories recursively.
      *
      * @param directory the directory to list files from
      * @param filter an optional filter to apply to the files
@@ -35,7 +34,26 @@ public class FileUtils
         try (Stream<Path> stream = Files.walk(directory))
         {
             Stream<Path> filtered = filter != null ? stream.filter(filter) : stream;
-            return  sorting != null ? filtered.sorted(sorting).toList() : filtered.toList();
+            return sorting != null ? filtered.sorted(sorting).toList() : filtered.toList();
+        }
+    }
+
+    /**
+     * Lists all top-level files in the given directory.
+     *
+     * @param directory the directory to list files from
+     * @param filter an optional filter to apply to the files
+     * @param sorting an optional comparator to sort the files
+     * @return a list of paths to the top-level files
+     * @throws IOException if an I/O error occurs
+     */
+    public static List<Path> listTopLevelFiles(Path directory, Predicate<Path> filter, Comparator<Path> sorting)
+                    throws IOException
+    {
+        try (Stream<Path> stream = Files.list(directory))
+        {
+            Stream<Path> filtered = filter != null ? stream.filter(filter) : stream;
+            return sorting != null ? filtered.sorted(sorting).toList() : filtered.toList();
         }
     }
 

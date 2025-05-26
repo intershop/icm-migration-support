@@ -15,6 +15,8 @@ public interface MigrationPreparer
      * Migrates a resource.
      *
      * @param resource Path to the resource that needs to be migrated
+     *
+     * @deprecated Use {@link #migrate(Path, MigrationContext)} instead.
      */
     @Deprecated(forRemoval = true)
     default void migrate(Path resource)
@@ -26,6 +28,8 @@ public interface MigrationPreparer
      * This is typically used for project-wide migrations that need to be applied once.
      *
      * @param resource Path to the root directory that needs to be processed
+     *
+     * @deprecated Use {@link #migrateRoot(Path, MigrationContext)} instead.
      */
     @Deprecated(forRemoval = true)
     default void migrateRoot(Path resource)
@@ -33,8 +37,8 @@ public interface MigrationPreparer
     }
 
     /**
-     * Migrates a resource with context tracking. This is the preferred method for implementations as it allows
-     * recording success, failures, and other metrics.
+     * Migrates a resource with context tracking.
+     * It allows recording success, failures, and other metrics.
      *
      * @param resource Path to the resource that needs to be migrated
      * @param context The migration context for tracking operations and their results
@@ -45,8 +49,8 @@ public interface MigrationPreparer
     }
 
     /**
-     * Migrates resources at the root level with context tracking. This is the preferred method for project-wide
-     * migrations as it allows recording success, failures, and other metrics.
+     * Migrates resources at the root level with context tracking.
+     * It allows recording success, failures, and other metrics.
      *
      * @param resource Path to the root directory that needs to be processed
      * @param context The migration context for tracking operations and their results

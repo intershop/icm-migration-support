@@ -6,6 +6,7 @@ import static com.intershop.customization.migration.file.MoveFilesConstants.PLAC
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.utils.FileUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +130,7 @@ public class MoveFolder implements MigrationPreparer
                 Path cartridgeStaticDir = staticFilesDir.resolve("cartridge");
                 if (Files.exists(cartridgeStaticDir))
                 {
-                    Files.list(cartridgeStaticDir).filter(Files::isDirectory).forEach(dir -> {
+                    FileUtils.listTopLevelFiles(cartridgeStaticDir, Files::isDirectory, null).forEach(dir -> {
                         Path relativePath = cartridgeDir.relativize(dir);
                         LOGGER.warn("Unmapped directory found in staticfiles/cartridge: {}", relativePath);
                         context.recordUnknown(cartridgeName, MOVE, dir, null,
@@ -138,8 +139,8 @@ public class MoveFolder implements MigrationPreparer
                 }
 
                 // Check other directories in staticfiles (not cartridge)
-                Files.list(staticFilesDir)
-                        .filter(path -> Files.isDirectory(path) && !"cartridge".equals(path.getFileName().toString()))
+                FileUtils.listTopLevelFiles(staticFilesDir, path -> Files.isDirectory(path)
+                                && !"cartridge".equals(path.getFileName().toString()), null)
                         .forEach(dir -> {
                             Path relativePath = cartridgeDir.relativize(dir);
                             LOGGER.warn("Unmapped directory found in staticfiles: {}", relativePath);
@@ -147,7 +148,7 @@ public class MoveFolder implements MigrationPreparer
                         });
 
                 // Check for files directly in staticfiles
-                Files.list(staticFilesDir).filter(path -> !Files.isDirectory(path)).forEach(file -> {
+                FileUtils.listTopLevelFiles(staticFilesDir, path -> !Files.isDirectory(path), null).forEach(file -> {
                     Path relativePath = cartridgeDir.relativize(file);
                     LOGGER.warn("Unmapped file found in staticfiles: {}", relativePath);
                     context.recordUnknown(cartridgeName, MOVE, file, null, "Unmapped file in staticfiles");
