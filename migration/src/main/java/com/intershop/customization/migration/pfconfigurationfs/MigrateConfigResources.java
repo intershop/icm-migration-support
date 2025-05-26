@@ -1,6 +1,6 @@
 package com.intershop.customization.migration.pfconfigurationfs;
 
-import java.io.File;
+// import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,14 +10,14 @@ import java.util.List;
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
+// import com.intershop.customization.migration.common.MigrationStep;
 
 public class MigrateConfigResources implements MigrationPreparer
 {
 
-    private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
-
-    private String configurationXML = "";
+//    private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
+//
+  //  private String configurationXML = "";
 
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
