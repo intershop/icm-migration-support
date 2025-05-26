@@ -1,7 +1,9 @@
 How to Work with the ICM Migration Support
 ==========================================
 
-A tool to support the migration from one major ICM version to another.
+A tool to support the migration from one major ICM version to another. The goal is supporting
+the migration by reducing repetitive tasks by providing a set of migration steps that can be executed.
+It is not a complete migration tool, that migrates everything automatically. Some manual steps are still required.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -38,7 +40,7 @@ gradlew migration:migrateAll -Ptarget=$ICM -Psteps=<path_to_migration_steps> [-P
 
 ### Migration step by step
 
-- run migration script (TODO build a gradle task)
+- run migration script
 
 ```
 gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
@@ -52,4 +54,6 @@ migrate from one major version to another, while keeping different start points 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
 
 ### Third Party Libraries
-This project uses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0.
+This project re-uses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0. The code from the 
+project was adapted to fit the needs of this project. All changes are marked in the "Gradle Kotlin DSL converter" code with a comment
+in the function `applyConversions()`.
