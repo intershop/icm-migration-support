@@ -7,6 +7,9 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
@@ -91,7 +94,25 @@ public class RenamedDependency implements MigrationPreparer
      */
     List<String> convertDependencyLines(List<String> lines)
     {
-        return lines.stream().map(this::convertDependencyLine).toList();
+        // Find all target dependencies that already exists
+        Set<String> existingTargetDependencies = lines.stream()
+                .map(this::extractDependency)
+                .filter(Objects::nonNull)
+                .filter(dep -> renamedDependencies.containsValue(dep))
+                .collect(Collectors.toSet());
+
+        // Process each line, removing duplicates and converting others
+        return lines.stream().map(line -> {
+            String dependency = extractDependency(line);
+            // Skip lines where the target already exists
+            if (dependency != null && renamedDependencies.containsKey(dependency)
+                    && existingTargetDependencies.contains(renamedDependencies.get(dependency)))
+            {
+                LOGGER.debug("Removing '{}' as '{}' already exists", dependency, renamedDependencies.get(dependency));
+                return null;
+            }
+            return convertDependencyLine(line);
+        }).filter(Objects::nonNull).toList();
     }
 
     /**
@@ -104,18 +125,31 @@ public class RenamedDependency implements MigrationPreparer
         {
             return depLine.trim();
         }
+
         // use cartridge in case we assume it's a cartridge
-        String[] parts = depLine.split("'");
-        if (parts.length < 2)
+        String dependency = extractDependency(depLine);
+        if (dependency == null)
         {
             return depLine;
         }
+
         // convert to standard gradle configurations
         String converted = depLine;
-        if (renamedDependencies.containsKey(parts[1]))
+        if (renamedDependencies.containsKey(dependency))
         {
-            converted = converted.replace(parts[1], renamedDependencies.get(parts[1]));
+            converted = converted.replace(dependency, renamedDependencies.get(dependency));
         }
+
         return converted;
+    }
+
+    private String extractDependency(String line)
+    {
+        String[] parts = line.split("'");
+        if (parts.length >= 2)
+        {
+            return parts[1];
+        }
+        return null;
     }
 }
