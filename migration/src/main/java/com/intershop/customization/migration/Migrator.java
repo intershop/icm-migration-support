@@ -38,7 +38,7 @@ public class Migrator
      * @param args the array of command line arguments
      * <li>"project" as task</li>
      * <li>directory to project app_sf_responsive</li>
-     * <li>directory to migration steps like src/main/resources/001_migration_7x10_to_11</li>
+     * <li>directory to migration steps like src/main/resources/icm11</li>
      * <li>optional flags like "noAutoCommit"</li>
      */
     public static void main(String[] args)
