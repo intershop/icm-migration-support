@@ -1,0 +1,179 @@
+# This file is just an example (DB, Solr and mail server installed on local/host machine instead of using Docker containers).
+# YOU HAVE TO ADAPT IT TO FIT YOUR ENVIRONMENT AND NEEDS!!!
+
+# Change default project prefix "<rootProject.name in settings.gradle.kts>" used for container names, volumes and network in Docker.
+# Underscores will be replaced with dashes, capital letters with lowercase.
+# Cannot be configured here! Needs to be done in settings.gradle.kts (and in your environment.bat, if you created one):
+# // define root project name
+# rootProject.name = "<rootProject.name in settings.gradle.kts>"
+#containerProjectPrefix = <rootProject.name in settings.gradle.kts>
+
+# database connection configuration, in case you use your own MS SQL server
+# In case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL), comment out below lines and see next section
+# For analysis of issues please check:
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_URL, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
+# SMC > Monitoring > Application Server > Configuration, scope "system", keys: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_
+# SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: intershop.databaseType, intershop.jdbc.url, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
+# In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
+intershop.databaseType = mssql
+intershop.jdbc.url = jdbc:sqlserver://host.docker.internal:1433;databaseName=ishdb1
+intershop.jdbc.user = intershop1
+intershop.jdbc.password = !InterShop00!
+
+# database container configuration in case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL)
+#intershop.db.mssql.dbname = icmtestdb
+# the host port to be used for the MS SQL server database in Docker container (default: 1433)
+#intershop.db.container.mssql.hostport = 1433
+# folder for DB data files (default: <project home>/build/data_folder)
+#data.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\data_folder
+# The following keys are required (no defaults!) for the app server to connect to the database.
+#intershop.databaseType = mssql
+#intershop.jdbc.url = jdbc:sqlserver://<rootProject.name in settings.gradle.kts>-mssql:1433;databaseName=icmtestdb
+#intershop.jdbc.user = intershop
+#intershop.jdbc.password = intershop
+
+# folder for sites (default: <project root>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
+# Since important configuration is stored here (e.g. in root/1/solrcloud/default/conf/), created during DBPrepare only,
+# deleting it can cause the app server to fail. Thus, storing it outside the project directory might be a good idea.
+# Attention: "gradlew clean" deletes (in addition to the cartridge build folders) the sites_folder, regardless of its location!
+#sites.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\sites_folder
+
+# webserver configuration of the appserver
+# In ICM11, set intershop.WebServerURL to same value as intershop.WebServerSecureURL: https (port 443)
+# See ISH=978-517: In environment YAML files for ICM, INTERSHOP_WEBSERVERSECUREURL and INTERSHOP_WEBSERVERURL are both configured to same value (https, port 443)
+intershop.WebServerURL=https://mycomputer.ad.intershop.net:443
+intershop.WebServerSecureURL=https://mycomputer.ad.intershop.net:443
+
+# webserver configuration
+webserver.http.port = 80
+webserver.https.port = 443
+
+# server configuration
+
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.servletEngine.connector.port; the container port to be used for the appserver service connector http port (normally no need to change)
+# This is a host port (Docker container external port), default: 7743, change it in case of port collisions
+#intershop.servletEngine.connector.port = 10050
+
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.connector.port; the host port to be used for the appserver service connector http port
+# This is a container port (Docker container internal port), do not change!
+#intershop.as.connector.port = 7743
+
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.managementConnector.port; the host port to be used for the appserver management connector http port
+# This is a container port (Docker container internal port), do not change!
+#intershop.as.managementConnector.port = 7744
+
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.servletEngine.managementConnector.port; the container port to be used for the appserver management connector http port (normally no need to change)
+# This is a host port (Docker container external port), default: 7744, change it in case of port collisions
+#intershop.servletEngine.managementConnector.port = 7744
+
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.jmx.connector.port; the host port to be used for the appserver JMX port
+# This is a host port (Docker container external port), default: 7747, change it in case of port collisions
+#intershop.as.jmx.connector.port = 7747
+
+# local host configuration
+# this is not always 'localhost'.
+intershop.local.hostname = mycomputer.ad.intershop.net
+
+# External/host solr configuration (optional), in case you use your own Solr
+# In case you use the Solr in Docker container <rootProject.name in settings.gradle.kts>-solr (gradlew startSolrCloud), comment out below lines
+# For analysis of issues please check:
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: SOLR_ZOOKEEPERHOSTLIST, SOLR_CLUSTERINDEXPREFIX
+# SMC > Monitoring > Application Server > Configuration, scope "system", keys: SOLR_
+# SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: solr.
+# In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
+solr.zooKeeperHostList = host.docker.internal:9983
+solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>
+# Local/host path for Solr data in Docker container <rootProject.name in settings.gradle.kts>-solr
+#solr.data.folder.path = 
+
+intershop.smc.admin.user.name = admin
+intershop.smc.admin.user.password = !InterShop00!
+
+# disable the ssl verification of the webserver
+disable.ssl.verification = true
+
+# geb.local.environment = chromePC
+# geb.local.driver = chromeDriver
+
+# Readiness probe during startAS-task
+# number of seconds between requests to http://<hostname>:<port>/status/ReadinessProbe (optional, default=30)
+#intershop.as.readinessProbe.interval = 30
+# max. number of seconds between start of probing and finally given up assuming that the start failed
+# (optional, default=6000)
+#intershop.as.readinessProbe.timeout = 30
+
+# To enable Remote Java Application debugging in IStudio:
+# 1. Set Java debug port here
+# 2. gradlew createAS --debug-icm=true startAS
+# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.debug.port; the host port to be used for the appserver debug port
+# This is a host port (Docker container external port), default: 7746, change it in case of port collisions
+#intershop.as.debug.port = 5005
+
+# External/host SMTP Mail server configuration (optional), in case you use your own MailHog or Fake SMTP
+# In case you use the MailHog in Docker container <rootProject.name in settings.gradle.kts>-mailsrv (gradlew startMailSrv), comment out below lines
+# For analysis of issues please check:
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: ISH_ENV_MAIL
+# SMC > Monitoring > Application Server > Configuration, scope "system", keys: ISH_ENV_MAIL
+# SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: mail.smtp.
+# In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
+mail.smtp.host=host.docker.internal
+mail.smtp.port=25
+
+
+# Avoid error in IStudio on "build Gradle model": Could not create task ':startNGINX' / Missing or empty property 'nginx.cert.path' in your icm.properties
+#nginx.cert.path=C:/
+
+
+#################################################################################
+# environment=development                                                       #
+# development properties                                                        #
+# Attention:                                                                    #
+#  * intershop.template.CheckSource is very slow in Docker on Windows (WSL 2)!  #
+#################################################################################
+
+environment=development
+
+# switch auto reload on for all Intershop artifacts
+intershop.extensions.CheckSource=true
+intershop.queries.CheckSource=true
+intershop.pipelines.CheckSource=true
+intershop.pagelets.CheckSource=true
+intershop.webforms.CheckSource=true
+#intershop.template.CheckSource=true
+##intershop.template.CheckSourceModified=true (does not exist anymore in ICM11!)
+intershop.template.isfilebundle.CheckSource=true
+intershop.urlrewrite.CheckSource=true
+# enables the reloading of localization property files
+##intershop.localization.CheckContent=true (does not exist anymore in ICM11!)
+
+# switch all preload functionality off
+# Attention: Empty properties are not copied to Server environment!
+intershop.pipelines.PreloadFromCartridges=none
+# Attention: Empty properties are not copied to Server environment!
+intershop.pipelines.PreloadFromSites=none
+# Attention: Empty properties are not copied to Server environment!
+intershop.pipelets.PreloadFromCartridges=none
+##intershop.template.CompileOnStartup=false (does not exist anymore in ICM11!)
+intershop.webforms.Preload=false
+intershop.queries.Preload=false
+
+# use strict modes in pipeline engine
+intershop.pipelines.strict.CheckParameterTypes=true
+##intershop.pipelets.OnLoadError=Exception (does not exist anymore in ICM11!)
+
+# switch all runtime sensors on
+intershop.monitoring.requests=true
+intershop.monitoring.pipelines=true
+intershop.monitoring.pipelets=true
+intershop.monitoring.pipelinenodes=true
+intershop.monitoring.templates=true
+intershop.monitoring.queries=true
+intershop.monitoring.sql=true
+intershop.monitoring.class=true
+intershop.monitoring.maxSensors=100000
+
+# developer's helpers
+##intershop.template.PrintTemplateName=true (does not exist anymore in ICM11!)
+intershop.template.PrintTemplateMarker=true
+intershop.session.TimeOut=300
+##intershop.CSRFGuard.allowRecovery=true (does not exist anymore in ICM11!)
