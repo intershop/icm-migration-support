@@ -1,0 +1,107 @@
+@echo off
+
+REM Sample of a development environment. This file can be used to initialize your build shell, formerly known as Developer Console. You have to adapt it to fit your environment/needs!
+
+::
+:: Make sure GRADLE_USER_HOME is defined: dir %GRADLE_USER_HOME%
+::
+"ADJUST YOUR gradle.properties (and then comment out this line here)"
+REM Add the following line to your %GRADLE_USER_HOME%\gradle.properties file: localVersion=true
+REM This is to avoid old code versions to be used by the AppServer
+REM and to avoid the messages during startAS like: "WARN: Found multiple jar files in: <cartridge>..."
+
+:: - IStudio  version recommended for ICM11/12: IntershopStudio_4.30.2 (see https://intranet.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29)
+
+::
+:: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13: AdoptOpenJDK 21)
+::
+"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot
+
+::
+:: Configure the directory containing the license.xml (LICENSEDIR)
+::
+REM LICENSEDIR=%GRADLE_USER_HOME%\icm-default\lic is the default path to license.xml,
+REM but license.xml is not used anymore in ICM11+
+REM SET LICENSEDIR=%GRADLE_USER_HOME%\icm-default\lic
+
+::
+:: Configure the directory containing the icm.properties (CONFIGDIR)
+::
+REM The default path to icm.properties is: CONFIGDIR=%GRADLE_USER_HOME%\icm-default\conf
+REM But since you can have more than one ICM 11 project on your computer and more than one app server per project,
+REM it is recommended to use project / Docker container specific icm.properties file locations!
+REM You should use the rootProject.name defined in settings.gradle.kts (also used as containerProjectPrefix for the Docker containers).
+"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+SET CONFIGDIR=%GRADLE_USER_HOME%\<rootProject.name in settings.gradle.kts>\conf
+
+::
+:: IStudio WORKSPACE and aliases/doskeys
+::
+"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+SET WORKSPACE=D:\IntershopStudio\workspace
+REM IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
+REM Set aliases oS/openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
+"ADJUST TO YOUR PATH AND WORKSPACE NAME IN THE LINES BELOW (and then comment out this line here)"
+doskey oS             = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2
+doskey openStudio4350 = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0
+doskey openStudio4302 = D:\IntershopStudio\IntershopStudio_4.30.2\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2
+
+::
+:: dozzle - Docker log viewer - configured to host port 8888 by default. Check container "dozzle" is running in Docker Desktop, open http://localhost:8888 in browser.
+::
+doskey dozzle=docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest
+
+::
+:: Add date&time and installation id to the prompt
+:: (Default in IS7.10 server/local/bin/environment.bat was: PROMPT %IS_INSTALLATION%$B$P$G)
+::
+PROMPT $D$H$H$H$H $T$H$H$H %IS_INSTALLATION%$B$P$G
+
+::
+:: See https://intershop.atlassian.net/wiki/spaces/ENFDEVDOC/pages/48254976693/Guide+-+Access+to+Intershop+Docker+Images
+::
+"ADJUST TO YOUR Intershop Docker registry Username AND CLI secret IN THE LINE BELOW (and then comment out this line here)"
+ECHO docker login docker.tools.intershop.com -u <your Intershop Docker registry Username, e.g. T.Koerbs@intershop.de> -p ********************************
+docker login docker.tools.intershop.com -u <your Intershop Docker registry Username, e.g. T.Koerbs@intershop.de> -p <your CLI secret>
+
+::
+:: Set repoUser/repoPassword in your gradle.properties
+::
+"ADJUST YOUR gradle.properties (and then comment out this line here)"
+REM %GRADLE_USER_HOME%\gradle.properties: repoUser=<Azure DevOps user name> (e.g. TKoerbs@intershop.com)
+REM %GRADLE_USER_HOME%\gradle.properties: repoPassword=<Azure Personal Access Token (PAT)> (e.g. ekp..............................................rnq)
+REM Hint: You can create one Azure Personal Access Token (PAT) for all your Azure DevOps projects (Access scope: Global access / All accessible organizations)
+
+::
+:: Use Azure Command-Line Client to login into Azure and into Azure Container Registry
+::
+REM "az login"/"az acr login" might jump to a browser and this batch file is NOT continued! (Not even when using CALL az ...)
+REM "az login" might always open a "Sign in" window.
+REM "az login" might always force you to "Select a subscription and tenant" - just press <Enter>.
+REM In any of the above cases, you can simply comment out the below lines that cause this behavior.
+REM "az login" and "az acr login" need to be executed only once. Then only when your az environment changed (usually never) or when the login is not persistent (rarely the case in Windows).
+ECHO ^> az login ("az" is the Azure Command-Line Interface (CLI / Azure Client))
+CALL az login
+ECHO ^> az acr login --name <ishprjxxacr> ("acr" is the Azure Container Registry)
+CALL az acr login --name <ishprjxxacr>
+
+echo(
+echo --------------------------------------------------------------------------
+echo gradlew startWebServer           (= startWA + startWAA, see https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#DockerPluginTasks)
+echo gradlew startSolrCloud
+echo gradlew startMailSrv
+echo gradlew startWebServer startMailSrv startSolrCloud ^&^& docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest
+echo                                  (execute Windows commands in a row, Windows only and does not work with doskeys!)
+echo gradlew startAS                  (builds, publishes, deploys and starts the AppServer in Docker and runs dbPrepare)
+echo gradlew stopAS createAS --debug-icm=true startAS
+echo                                  (execute multiple Gradle tasks, restart AS and enable Java debugging - debug port see intershop.as.debug.port in icm.properties)
+echo gradlew startContainer           (for debugging in case of AS failure: starts the docker AS container, but does not run AS)
+echo gradlew stop*                    (* stands for WebServer, AS, Container, WA, WAA, ...)
+echo --------------------------------------------------------------------------
+echo dozzle                           (docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest)
+echo --------------------------------------------------------------------------
+echo oS                               (open Intershop Studio:)
+echo openStudio4350                   (D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0)
+echo openStudio4302                   (D:\IntershopStudio\IntershopStudio_4.30.2\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2)
+echo --------------------------------------------------------------------------
