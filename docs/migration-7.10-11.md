@@ -113,7 +113,7 @@ Moves all staticfiles to their new locations in the ICM 11 structure:
 - `staticfiles/cartridge/webforms` -> `src/main/resources/resources/{cartridgeName}/webforms`
 - `staticfiles/share/sites` -> `src/main/resources/resources/{cartridgeName}/sites`
 
-The following directories remain unchanged:
+The following directories remain intentionally unchanged:
 - `staticfiles/cartridge/static`
 - `staticfiles/cartridge/urlrewrite`
 
