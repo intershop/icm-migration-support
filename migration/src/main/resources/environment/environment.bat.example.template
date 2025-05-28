@@ -43,7 +43,7 @@ SET WORKSPACE=D:\IntershopStudio\workspace
 REM IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
 REM Set aliases oS/openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
 "ADJUST TO YOUR PATH AND WORKSPACE NAME IN THE LINES BELOW (and then comment out this line here)"
-doskey oS             = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2
+doskey oS             = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0
 doskey openStudio4350 = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0
 doskey openStudio4302 = D:\IntershopStudio\IntershopStudio_4.30.2\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2
 
