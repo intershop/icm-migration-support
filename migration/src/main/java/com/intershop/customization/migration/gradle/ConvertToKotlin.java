@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.intershop.customization.migration.common.MigrationPreparer;
 
 /**
- * This migration step is calls a customized version of the "GradleKotlinConverter"
+ * This migration step calls a customized version of the "GradleKotlinConverter"
  * to convert build.gradle files to build.gradle.kts files.
  * <p>
  * Migrated source files are deleted.
