@@ -93,10 +93,29 @@ Migrator: `MoveFolder`
 
 Moves all staticfiles to their new locations in the ICM 11 structure:
 
+- `edl` -> `src/main/resources/resources/{cartridgeName}/edl`
+- `staticfiles/cartridge/components` -> `src/main/resources/resources/{cartridgeName}/components`
+- `staticfiles/cartridge/config` -> `src/main/resources/resources/{cartridgeName}/config`
+- `staticfiles/cartridge/extensions` -> `src/main/resources/resources/{cartridgeName}/extensions`
+- `staticfiles/cartridge/impex` -> `src/main/resources/resources/{cartridgeName}/impex`
+- `staticfiles/cartridge/lib/resources/com` -> `src/main/resources/com`
+- `staticfiles/cartridge/lib/resources/tests` -> `src/test/resources/tests`
+- `staticfiles/cartridge/lib/resources/{cartridgeName}/dbinit` -> `src/main/resources/resources/{cartridgeName}/dbinit`
+- `staticfiles/cartridge/lib/resources/{cartridgeName}/dbmigrate`-> `src/main/resources/resources/{cartridgeName}/dbmigrate`
+- `staticfiles/cartridge/localizations` -> `src/main/resources/resources/{cartridgeName}/localizations`
+- `staticfiles/cartridge/logback` -> `src/main/resources/resources/{cartridgeName}/logback`
+- `staticfiles/cartridge/naming` -> `src/main/resources/resources/{cartridgeName}/naming`
+- `staticfiles/cartridge/objectgraph` -> `src/main/resources/resources/{cartridgeName}/objectgraph`
+- `staticfiles/cartridge/pagelets` -> `src/main/resources/resources/{cartridgeName}/pagelets`
 - `staticfiles/cartridge/pipelines` -> `src/main/resources/resources/{cartridgeName}/pipelines`
 - `staticfiles/cartridge/queries` -> `src/main/resources/resources/{cartridgeName}/queries`
 - `staticfiles/cartridge/templates` -> `src/main/isml/{cartridgeName}`
-- Various other resource directories moved to their new locations
+- `staticfiles/cartridge/webforms` -> `src/main/resources/resources/{cartridgeName}/webforms`
+- `staticfiles/share/sites` -> `src/main/resources/resources/{cartridgeName}/sites`
+
+The following directories remain intentionally unchanged:
+- `staticfiles/cartridge/static`
+- `staticfiles/cartridge/urlrewrite`
 
 ### Convert build.gradle Files
 

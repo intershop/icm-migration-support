@@ -21,6 +21,7 @@ options:
     "comresource" : "staticfiles/cartridge/lib/resources/com"
     "testsResource" : "staticfiles/cartridge/lib/resources/tests"
     "logback" : "staticfiles/cartridge/logback"
+    "sites" : "staticfiles/share/sites"
   target-map:
     "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
     "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
@@ -40,3 +41,4 @@ options:
     "comresource" : "src/main/resources/com"
     "testsResource" : "src/test/resources/tests"
     "logback" : "src/main/resources/resources/{cartridgeName}/logback"
+    "sites" : "src/main/resources/resources/{cartridgeName}/sites"
