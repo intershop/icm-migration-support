@@ -1,46 +1,28 @@
 package com.intershop.customization.migration.environment;
 
-import static com.intershop.customization.migration.common.MigrationContext.OperationType.CREATE;
-
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
-import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * This class is used to parse version files (except: 'intershopBuild.version', '.ivy*.version', '.pom*.version')
- * and integrate the version information containing information about the artifact group, name and version
- * into the `versions/build.gradle.kts` file.
- * <p>
- * Migration to Kotlin is out of scope for this step and performed later in a separate step.
- * <p>
- * Example YAML configuration:
- * <pre>
- * type: specs.intershop.com/v1beta/migrate
- * migrator: com.intershop.customization.migration.gradle.MigrateVersionFiles
- * message: "refactor: transfer data from '*.version' files into 'versions/build.gradle.kts'"
- * </pre>
+ * This class creates example files in the project root with content specific for this environment.
+ * <ul>
+ *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts
+ *   <li>icm.properties.example created in project root from icm.properties.example.template, using rootProject.name in settings.gradle.kts
+ *   <li>clean.bat created in project root from clean.bat.template, using all cartridges existing in project root
+ * </ul>
  */
 public class CreateEnvironmentExampleFiles implements MigrationPreparer
 {
@@ -48,17 +30,21 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
 
     protected Path fileTemplatesDir;
 
-    public static final String SETTINGS_GRADLE_KTS = "settings.gradle.kts";
-    public static final String ROOT_PROJECT_NAME   = "rootProject.name";
-    protected String rootProjectName = null;
-
     public static final String LINE_SEP = System.lineSeparator();
+
+    public static final String SETTINGS_GRADLE_KTS = "settings.gradle.kts";  // settings.gradle.kts file in project root
+    public static final String ROOT_PROJECT_NAME   = "rootProject.name";     // rootProject.name key in settings.gradle.kts, with value e.g. "edezz-icm"
+    protected String rootProjectName = null;
+    public static final String GRADLE_PROPERTIES = "gradle.properties";  // gradle.properties file in project root
+    public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishedezzacr.azurecr.io"
+    protected String dockerRegistry = null;
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
     public static final String ENVIRONMENT_BAT_EXAMPLE          = "environment.bat.example";
     public static final String ICM_PROPERTIES_EXAMPLE_TEMPLATE  = "icm.properties.example.template";
     public static final String ICM_PROPERTIES_EXAMPLE           = "icm.properties.example";
     public static final String TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME = "<rootProject.name in settings.gradle.kts>";
+    public static final String TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY   = "<ishprjxxacr>";
 
     public static final String CLEAN_BAT_TEMPLATE               = "clean.bat.template";
     public static final String CLEAN_BAT                        = "clean.bat";
@@ -69,23 +55,19 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     @Override
     public void setStep(MigrationStep step)
     {
-        LOGGER.info("CreateEnvironmentExampleFiles.setStep START.");
+        LOGGER.debug("START executing method  setStep");
 
-        Path fileTemplatesDir = getFileTemplatesDir();
-        this.fileTemplatesDir = fileTemplatesDir;
+        this.fileTemplatesDir = getFileTemplatesDir();
 
-        LOGGER.info("CreateEnvironmentExampleFiles.setStep END.");
+        LOGGER.debug("END   executing method  setStep");
     }
 
     @Override
     public void migrateRoot(Path projectDir, MigrationContext context)
     {
-        LOGGER.info("CreateEnvironmentExampleFiles.migrateRoot START.");
+        LOGGER.debug("START executing method  migrateRoot");
 
-        List<String> cartridgeNames = new LinkedList<>();
-        boolean existsEnvironmentBatExample = false;
-        boolean existsIcmPropertiesExample  = false;
-        boolean existsCleanBat              = false;
+        List<String> cartridgeNames = new ArrayList<>(100);
 
         File icmProjectRoot = projectDir.toFile();
         File[] files = icmProjectRoot.listFiles();
@@ -110,26 +92,31 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
 
                 if (name.equals(SETTINGS_GRADLE_KTS))
                 {
-                    LOGGER.debug("Found settings.gradle.kts");
-                    rootProjectName = getRootProjectName(dirOrFileInICMProjectRoot);
+                    LOGGER.debug("Found {}", name);
+                    rootProjectName = getValueFromPropertyOrKTSFile(dirOrFileInICMProjectRoot, ROOT_PROJECT_NAME);
+                    LOGGER.info("{} read from {}: '{}'", ROOT_PROJECT_NAME, name, rootProjectName);
+                }
+
+                if (name.equals(GRADLE_PROPERTIES))
+                {
+                    LOGGER.debug("Found {}", name);
+                    dockerRegistry = getValueFromPropertyOrKTSFile(dirOrFileInICMProjectRoot, DOCKER_REGISTRY);
+                    LOGGER.info("{} read from {}: '{}'", DOCKER_REGISTRY, name, dockerRegistry);
                 }
 
                 if (name.equalsIgnoreCase(ENVIRONMENT_BAT_EXAMPLE))
                 {
-                    existsEnvironmentBatExample = true;
-                    LOGGER.debug("File '{}' already exists, content will be replaced.", name);
+                    LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
 
                 if (name.equalsIgnoreCase(ICM_PROPERTIES_EXAMPLE))
                 {
-                    existsIcmPropertiesExample = true;
-                    LOGGER.debug("File '{}' already exists, content will be replaced.", name);
+                    LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
 
                 if (name.equalsIgnoreCase(CLEAN_BAT))
                 {
-                    existsCleanBat = true;
-                    LOGGER.debug("File '{}' already exists, content will be replaced.", name);
+                    LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
             }
         }
@@ -142,7 +129,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         if (environmentBatExampleTemplate.exists() && environmentBatExampleTemplate.isFile())
         {
             Path environmentBatExample = icmProjectRoot.toPath().resolve(ENVIRONMENT_BAT_EXAMPLE);
-            createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, existsEnvironmentBatExample, rootProjectName);
+            createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, rootProjectName, dockerRegistry);
         }
         else
         {
@@ -157,7 +144,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         if (icmPropertiesExampleTemplate.exists() && icmPropertiesExampleTemplate.isFile())
         {
             Path icmPropertiesExample = icmProjectRoot.toPath().resolve(ICM_PROPERTIES_EXAMPLE);
-            createOrReplaceIcmPropertiesExample(icmPropertiesExampleTemplate, icmPropertiesExample, existsIcmPropertiesExample, rootProjectName);
+            createOrReplaceIcmPropertiesExample(icmPropertiesExampleTemplate, icmPropertiesExample, rootProjectName);
         }
         else
         {
@@ -172,14 +159,14 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         if (cleanBatTemplate.exists() && cleanBatTemplate.isFile())
         {
             Path cleanBat = icmProjectRoot.toPath().resolve(CLEAN_BAT);
-            createOrReplaceCleanBAT(cleanBatTemplate, cleanBat, existsCleanBat, cartridgeNames);
+            createOrReplaceCleanBAT(cleanBatTemplate, cleanBat, cartridgeNames);
         }
         else
         {
             LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, fileTemplatesDir);
         }
 
-        LOGGER.info("CreateEnvironmentExampleFiles.migrateRoot END.");
+        LOGGER.debug("END   executing method  migrateRoot");
     }
 
     /**
@@ -198,184 +185,215 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         return fileTemplatesDir;
     }
 
-    protected String getRootProjectName(File settingsGradleKts)
+    protected String getValueFromPropertyOrKTSFile(File propertyOrKTSFile, String key)
     {
-        String rootProjectName = null;
+        String value = null;
 
         try {
-            List<String> linesStream = FileUtils.readAllLines(settingsGradleKts.toPath());
+            List<String> linesStream = FileUtils.readAllLines(propertyOrKTSFile.toPath());
             for (String line : linesStream)
             {
-                // line is in the format:  rootProject.name = "projectName"...
                 String[] parts = line.split("=");
                 if (parts.length >= 2
-                    && parts[0].trim().equals(ROOT_PROJECT_NAME))
+                    && parts[0].trim().equals(key))
                 {
+                    // line is in the format:  key = value
+                    //      or in the format:  key = "value" ...
                     String partAfterEquals = parts[1].trim();
                     if (partAfterEquals.length() > 1
                         && partAfterEquals.startsWith("\""))
                     {
+                        // line is in the format:  key = "value" ...
                         int i = partAfterEquals.indexOf("\"", 1);
                         if (i == -1)
                         {
-                            LOGGER.error("Unable to retrieve rootProject.name from line: '{}', syntax too complex, could not find ending \" of value.", line);
-                            rootProjectName = null;
+                            LOGGER.error("Unable to retrieve value for {}, syntax too complex, could not find ending quote \" of value starting with quote \", (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
+                            value = null;
                         }
                         else
                         {
                             if (i == 1)
                             {
-                                LOGGER.error("Unable to retrieve rootProject.name from line: '{}', value is an empty string.", line);
+                                LOGGER.info("Value for {} is empty (\"\"), (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
                             }
 
-                            rootProjectName = partAfterEquals.substring(1, i);
-                            LOGGER.info("Found root project name: '{}'", rootProjectName);
+                            value = partAfterEquals.substring(1, i);
+                            LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertyOrKTSFile.getName());
                         }
                     }
                     else
                     {
-                        LOGGER.error("Unable to retrieve rootProject.name from line: '{}', syntax too complex, found 'rootProject.name' and '=', but no value surrounded by \".", line);
-                        rootProjectName = null;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Exception reading settings.gradle.kts", e);
-        }
-
-        return rootProjectName;
-    }
-
-    protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, boolean existsEnvironmentBatExample, String rootProjectName)
-    {
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceEnvironmentBatExample START.");
-
-        try {
-            List<String> linesStream = FileUtils.readAllLines(environmentBatExampleTemplate.toPath());
-
-            FileUtils.writeString(environmentBatExample, migrateLinesRootProjectName(linesStream, rootProjectName));
-        } catch (IOException e) {
-            LOGGER.error("Exception reading or writing environment.bat.example / environment.bat.example.template", e);
-        }
-
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceEnvironmentBatExample END.");
-    }
-
-    protected void createOrReplaceIcmPropertiesExample(File icmPropertiesExampleTemplate, Path icmPropertiesExample, boolean existsIcmPropertiesExample, String rootProjectName)
-    {
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceIcmPropertiesExample START.");
-
-        try {
-            List<String> linesStream = FileUtils.readAllLines(icmPropertiesExampleTemplate.toPath());
-
-            FileUtils.writeString(icmPropertiesExample, migrateLinesRootProjectName(linesStream, rootProjectName));
-        } catch (IOException e) {
-            LOGGER.error("Exception reading or writing icm.properties.example / icm.properties.example.template", e);
-        }
-
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceIcmPropertiesExample END.");
-    }
-
-    protected void createOrReplaceCleanBAT(File cleanBatTemplate, Path cleanBat, boolean existsCleanBat, List<String> cartridgeNames)
-    {
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceCleanBAT START.");
-
-        try {
-            List<String> linesStream = FileUtils.readAllLines(cleanBatTemplate.toPath());
-
-            FileUtils.writeString(cleanBat, migrateLinesCleanBAT(linesStream, cartridgeNames));
-        } catch (IOException e) {
-            LOGGER.error("Exception reading or writing clean.bat / clean.bat.template", e);
-        }
-
-        LOGGER.info("CreateEnvironmentExampleFiles.createOrReplaceCleanBAT END.");
-    }
-
-    protected String migrateLinesRootProjectName(List<String> lines, String rootProjectName)
-    {
-        String result;
-
-        if (rootProjectName == null)
-        {
-            LOGGER.warn("No rootProject.name found. Copying template without replacing lines containing <rootProject.name in settings.gradle.kts>.");
-            result = String.join(LINE_SEP, lines) + LINE_SEP;
-        }
-        else
-        {
-            result = "";
-
-            for (String line : lines)
-            {
-                if (line.contains(TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME))
-                {
-                    // line contains one or more occurrences of "<rootProject.name in settings.gradle.kts>",
-                    String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME, rootProjectName);
-                    result += replacedLine + LINE_SEP;
-                }
-                else
-                {
-                    result += line + LINE_SEP;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    protected String migrateLinesCleanBAT(List<String> lines, List<String> cartridgeNames)
-    {
-        String result;
-
-        if (cartridgeNames.isEmpty())
-        {
-            LOGGER.warn("No cartridges found in the project. Copying template without replacing lines containing {cartridgeName}.");
-            result = String.join(LINE_SEP, lines) + LINE_SEP;
-        }
-        else
-        {
-            result = "";
-
-            for (String line : lines)
-            {
-                if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME))
-                {
-                    // line contains one or more occurrences of "{cartridgeName}",
-                    // create one line per cartridge
-                    for (String cartridgeName : cartridgeNames)
-                    {
-                        String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME, cartridgeName);
-                        result += replacedLine + LINE_SEP;
-                    }
-                }
-                else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST))
-                {
-                    // line contains one or more occurrences of "{cartridgeName.last}",
-                    // create one line for the last cartridge
-                    String cartridgeName = cartridgeNames.getLast();
-                    String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST, cartridgeName);
-                    result += replacedLine + LINE_SEP;
-                }
-                else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST))
-                {
-                    // line contains one or more occurrences of "{cartridgeName.!last}",
-                    // create one line per cartridge, except for the last cartridge
-                    int size = cartridgeNames.size();
-                    int number = 0;  // first cartridge has number=1, last cartridge has number=size
-                    for (String cartridgeName : cartridgeNames)
-                    {
-                        number++;
-                        if (number < size)
+                        // line is in the format:  key = value
+                        value = partAfterEquals.trim();
+                        if (value.length() == 0)
                         {
-                            String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST, cartridgeName);
-                            result += replacedLine + LINE_SEP;
+                            LOGGER.info("Value for {} is empty, (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
                         }
+
+                        LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertyOrKTSFile.getName());
                     }
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error("Exception reading propertyOrKTSFile " + propertyOrKTSFile.getName(), e);
+        }
+
+        return value;
+    }
+
+    protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, String rootProjectName, String dockerRegistry)
+    {
+        LOGGER.debug("START executing method  createOrReplaceEnvironmentBatExample");
+
+        try {
+            if (rootProjectName == null)
+            {
+                LOGGER.warn("No {} found. {} will contain placeholders {}.", ROOT_PROJECT_NAME, environmentBatExample.getFileName(), TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME);
+            }
+
+            if (dockerRegistry == null)
+            {
+                LOGGER.warn("No {} found. {} will contain placeholders {}.", DOCKER_REGISTRY, environmentBatExample.getFileName(), TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY);
+            }
+
+            String resultingFileContent = "";
+
+            List<String> lines = FileUtils.readAllLines(environmentBatExampleTemplate.toPath());
+            for (String line : lines)
+            {
+                if (rootProjectName != null)
+                {
+                    // replace all occurrences in line
+                    line = line.replace(TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME, rootProjectName);
+                }
+
+                if (dockerRegistry != null)
+                {
+                    // replace all occurrences in line
+                    line = line.replace(TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY, dockerRegistry);
+                }
+
+                resultingFileContent += line + LINE_SEP;
+            }
+    
+            FileUtils.writeString(environmentBatExample, resultingFileContent);
+            LOGGER.info("Content of file {} successfully written.", environmentBatExample.getFileName());
+        } catch (IOException e) {
+            LOGGER.error("Exception reading or writing " + environmentBatExample.getFileName() + " / " + environmentBatExampleTemplate.getName(), e);
+        }
+
+        LOGGER.debug("END   executing method  createOrReplaceEnvironmentBatExample");
+    }
+
+    protected void createOrReplaceIcmPropertiesExample(File icmPropertiesExampleTemplate, Path icmPropertiesExample, String rootProjectName)
+    {
+        LOGGER.debug("START executing method  createOrReplaceIcmPropertiesExample");
+
+        try {
+            if (rootProjectName == null)
+            {
+                LOGGER.warn("No {} found. {} will contain placeholders {}.", ROOT_PROJECT_NAME, icmPropertiesExample.getFileName(), TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME);
+            }
+
+            String resultingFileContent = "";
+
+            List<String> lines = FileUtils.readAllLines(icmPropertiesExampleTemplate.toPath());
+            for (String line : lines)
+            {
+                if (rootProjectName != null)
+                {
+                    // replace all occurrences in line
+                    line = line.replace(TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME, rootProjectName);
+                }
+
+                resultingFileContent += line + LINE_SEP;
+            }
+    
+            FileUtils.writeString(icmPropertiesExample, resultingFileContent);
+            LOGGER.info("Content of file {} successfully written.", icmPropertiesExample.getFileName());
+        } catch (IOException e) {
+            LOGGER.error("Exception reading or writing " + icmPropertiesExample.getFileName() + " / " + icmPropertiesExampleTemplate.getName(), e);
+        }
+
+        LOGGER.debug("END   executing method  createOrReplaceIcmPropertiesExample");
+    }
+
+    protected void createOrReplaceCleanBAT(File cleanBatTemplate, Path cleanBat, List<String> cartridgeNames)
+    {
+        LOGGER.debug("START executing method  createOrReplaceCleanBAT");
+
+        try {
+            if (cartridgeNames.isEmpty())
+            {
+                LOGGER.warn("No cartridges found in the project. {} will contain placeholders like {}.", cleanBat.getFileName(), CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME);
+            }
+
+            String resultingFileContent = "";
+
+            List<String> lines = FileUtils.readAllLines(cleanBatTemplate.toPath());
+            for (String line : lines)
+            {
+                if (!cartridgeNames.isEmpty())
+                {
+                    String resultingLines = replacePlaceholderWithOneLinePerCartridge(line, cartridgeNames);
+                    resultingFileContent += resultingLines;
                 }
                 else
                 {
-                    result += line + LINE_SEP;
+                    resultingFileContent += line + LINE_SEP;
                 }
             }
+    
+            FileUtils.writeString(cleanBat, resultingFileContent);
+            LOGGER.info("Content of file {} successfully written.", cleanBat.getFileName());
+        } catch (IOException e) {
+            LOGGER.error("Exception reading or writing " + cleanBat.getFileName() + " / " + cleanBatTemplate.getName(), e);
+        }
+
+        LOGGER.debug("END   executing method  createOrReplaceCleanBAT");
+    }
+
+    protected String replacePlaceholderWithOneLinePerCartridge(String line, List<String> cartridgeNames)
+    {
+        String result = "";
+
+        if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME))
+        {
+            // line contains one or more occurrences of "{cartridgeName}",
+            // create one line per cartridge
+            for (String cartridgeName : cartridgeNames)
+            {
+                String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME, cartridgeName);
+                result += replacedLine + LINE_SEP;
+            }
+        }
+        else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST))
+        {
+            // line contains one or more occurrences of "{cartridgeName.last}",
+            // create one line for the last cartridge
+            String cartridgeName = cartridgeNames.getLast();
+            String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST, cartridgeName);
+            result += replacedLine + LINE_SEP;
+        }
+        else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST))
+        {
+            // line contains one or more occurrences of "{cartridgeName.!last}",
+            // create one line per cartridge, except for the last cartridge
+            int size = cartridgeNames.size();
+            int number = 0;  // first cartridge has number=1, last cartridge has number=size
+            for (String cartridgeName : cartridgeNames)
+            {
+                number++;
+                if (number < size)
+                {
+                    String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST, cartridgeName);
+                    result += replacedLine + LINE_SEP;
+                }
+            }
+        }
+        else
+        {
+            result += line + LINE_SEP;
         }
 
         return result;
