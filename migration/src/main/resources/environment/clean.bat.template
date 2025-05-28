@@ -1,0 +1,15 @@
+@REM  Because "gradlew clean" would also remove the "build" directory (possibly including the sites_folder and database files),
+@REM  clean.bat only cleans the cartridges itself (all the cartridges explicitly listed below)
+@REM  In addition to "gradlew :<cartridge>:clean" it removes the "bin" directories using "rmdir /S /Q bin" in each cartridge
+
+@ECHO Removing "bin" directories using "rmdir" in each cartridge...
+@ECHO OFF
+rmdir /S /Q {cartridgeName}\bin 2> NUL
+@ECHO Removing "bin" directories finished.
+@ECHO ON
+
+@ECHO Calling "gradlew :<cartridge>:clean" for each cartridge...
+CALL gradlew^
+ :{cartridgeName.!last}:clean^
+ :{cartridgeName.last}:clean
+@ECHO "gradlew" finished, ending clean.bat script...
