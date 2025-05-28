@@ -93,14 +93,14 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 if (name.equals(SETTINGS_GRADLE_KTS))
                 {
                     LOGGER.debug("Found {}", name);
-                    rootProjectName = getValueFromPropertyOrKTSFile(dirOrFileInICMProjectRoot, ROOT_PROJECT_NAME);
+                    rootProjectName = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, ROOT_PROJECT_NAME);
                     LOGGER.info("{} read from {}: '{}'", ROOT_PROJECT_NAME, name, rootProjectName);
                 }
 
                 if (name.equals(GRADLE_PROPERTIES))
                 {
                     LOGGER.debug("Found {}", name);
-                    dockerRegistry = getValueFromPropertyOrKTSFile(dirOrFileInICMProjectRoot, DOCKER_REGISTRY);
+                    dockerRegistry = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, DOCKER_REGISTRY);
                     LOGGER.info("{} read from {}: '{}'", DOCKER_REGISTRY, name, dockerRegistry);
                 }
 
@@ -170,27 +170,42 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     }
 
     /**
-     * Location of environment.bat.example.template, icm.properties.example.template and clean.bat.template files.
+     * Directory containing environment.bat.example.template, icm.properties.example.template, clean.bat.template files.
      * @return directory containing the example file templates
      */
     protected Path getFileTemplatesDir()
     {
-        //Path fileTemplatesDir = new Path(projectDir, "versions");
         final Path fileTemplatesDir = Paths.get("src/main/resources/environment");
         if (!Files.exists(fileTemplatesDir) || !Files.isDirectory(fileTemplatesDir))
         {
-            LOGGER.error("Directory \"src/main/resources/environment\" containing the example file templates not found at '{}'.", fileTemplatesDir);
+            LOGGER.error("Directory src/main/resources/environment, containing the example file templates, not found. Absolute path: '{}'.", fileTemplatesDir.toAbsolutePath().toString());
         }
 
         return fileTemplatesDir;
     }
 
-    protected String getValueFromPropertyOrKTSFile(File propertyOrKTSFile, String key)
+    /**
+     * Retrieves the value associated with a given key from a properties or KTS file.
+     * The method supports two formats:
+     * <ul>
+     *   <li><code>key = value</code></li>
+     *   <li><code>key = "value"...</code></li>
+     * </ul>
+     * If the value is enclosed in quotes, the quotes are stripped.
+     * If the value is empty, an INFO log is written.
+     * 
+     * @TODO: Rework method to support more formats.
+     *
+     * @param propertiesOrKTSFile The file containing the key-value pairs, usually a properties, KTS or Groovy/Gradle file.
+     * @param key The key whose associated value is to be retrieved.
+     * @return The value associated with the key, or <code>null</code> if the key was not found or could not be parsed.
+     */
+    protected String getValueFromPropertiesOrKTSFile(File propertiesOrKTSFile, String key)
     {
         String value = null;
 
         try {
-            List<String> linesStream = FileUtils.readAllLines(propertyOrKTSFile.toPath());
+            List<String> linesStream = FileUtils.readAllLines(propertiesOrKTSFile.toPath());
             for (String line : linesStream)
             {
                 String[] parts = line.split("=");
@@ -207,18 +222,18 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                         int i = partAfterEquals.indexOf("\"", 1);
                         if (i == -1)
                         {
-                            LOGGER.error("Unable to retrieve value for {}, syntax too complex, could not find ending quote \" of value starting with quote \", (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
+                            LOGGER.error("Unable to retrieve value for {}, syntax too complex, could not find ending quote \" of value starting with quote \", (line: '{}', file: {}).", key, line, propertiesOrKTSFile.getName());
                             value = null;
                         }
                         else
                         {
                             if (i == 1)
                             {
-                                LOGGER.info("Value for {} is empty (\"\"), (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
+                                LOGGER.info("Value for {} is empty (\"\"), (line: '{}', file: {}).", key, line, propertiesOrKTSFile.getName());
                             }
 
                             value = partAfterEquals.substring(1, i);
-                            LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertyOrKTSFile.getName());
+                            LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertiesOrKTSFile.getName());
                         }
                     }
                     else
@@ -227,20 +242,32 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                         value = partAfterEquals.trim();
                         if (value.length() == 0)
                         {
-                            LOGGER.info("Value for {} is empty, (line: '{}', file: {}).", key, line, propertyOrKTSFile.getName());
+                            LOGGER.info("Value for {} is empty, (line: '{}', file: {}).", key, line, propertiesOrKTSFile.getName());
                         }
 
-                        LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertyOrKTSFile.getName());
+                        LOGGER.debug("Value for {} is '{}', (line: '{}', file: {}).", key, value, line, propertiesOrKTSFile.getName());
                     }
                 }
             }
         } catch (IOException e) {
-            LOGGER.error("Exception reading propertyOrKTSFile " + propertyOrKTSFile.getName(), e);
+            LOGGER.error("Exception reading propertiesOrKTSFile " + propertiesOrKTSFile.getName(), e);
         }
 
         return value;
     }
 
+    /**
+     * Creates or replaces the environment.bat.example file in project root,
+     * based on a template file.
+     *
+     * @param environmentBatExampleTemplate The template file containing placeholders.
+     * @param environmentBatExample         The path to the output file where the processed content will be written.
+     *                                      If the file already exists, its content will be replaced.
+     * @param rootProjectName               rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
+     *                                      If null, the placeholder will remain in the output file.
+     * @param dockerRegistry                dockerRegistry configured in gradle.properties, used to replace placeholders <ishprjxxacr>.
+     *                                      If null, the placeholder will remain in the output file.
+     */
     protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, String rootProjectName, String dockerRegistry)
     {
         LOGGER.debug("START executing method  createOrReplaceEnvironmentBatExample");
@@ -277,7 +304,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
     
             FileUtils.writeString(environmentBatExample, resultingFileContent);
-            LOGGER.info("Content of file {} successfully written.", environmentBatExample.getFileName());
+            LOGGER.info("Content of file '{}' successfully written.", environmentBatExample.toAbsolutePath().toString());
         } catch (IOException e) {
             LOGGER.error("Exception reading or writing " + environmentBatExample.getFileName() + " / " + environmentBatExampleTemplate.getName(), e);
         }
@@ -285,6 +312,16 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         LOGGER.debug("END   executing method  createOrReplaceEnvironmentBatExample");
     }
 
+    /**
+     * Creates or replaces the icm.properties.example file in project root,
+     * based on a template file.
+     *
+     * @param icmPropertiesExampleTemplate The template file containing placeholders.
+     * @param icmPropertiesExample         The path to the output file where the processed content will be written.
+     *                                     If the file already exists, its content will be replaced.
+     * @param rootProjectName              rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
+     *                                     If null, the placeholder will remain in the output file.
+     */
     protected void createOrReplaceIcmPropertiesExample(File icmPropertiesExampleTemplate, Path icmPropertiesExample, String rootProjectName)
     {
         LOGGER.debug("START executing method  createOrReplaceIcmPropertiesExample");
@@ -310,7 +347,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
     
             FileUtils.writeString(icmPropertiesExample, resultingFileContent);
-            LOGGER.info("Content of file {} successfully written.", icmPropertiesExample.getFileName());
+            LOGGER.info("Content of file '{}' successfully written.", icmPropertiesExample.toAbsolutePath().toString());
         } catch (IOException e) {
             LOGGER.error("Exception reading or writing " + icmPropertiesExample.getFileName() + " / " + icmPropertiesExampleTemplate.getName(), e);
         }
@@ -318,6 +355,15 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         LOGGER.debug("END   executing method  createOrReplaceIcmPropertiesExample");
     }
 
+    /**
+     * Creates or replaces the clean.bat file in project root,
+     * based on a template file.
+     *
+     * @param cleanBatTemplate The template file containing placeholders.
+     * @param cleanBat         The path to the output file where the processed content will be written.
+     *                         the file already exists, its content will be replaced.
+     * @param cartridgeNames   List of all cartridge directory names that should be cleaned by clean.bat.
+     */
     protected void createOrReplaceCleanBAT(File cleanBatTemplate, Path cleanBat, List<String> cartridgeNames)
     {
         LOGGER.debug("START executing method  createOrReplaceCleanBAT");
@@ -345,7 +391,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
     
             FileUtils.writeString(cleanBat, resultingFileContent);
-            LOGGER.info("Content of file {} successfully written.", cleanBat.getFileName());
+            LOGGER.info("Content of file '{}' successfully written.", cleanBat.toAbsolutePath().toString());
         } catch (IOException e) {
             LOGGER.error("Exception reading or writing " + cleanBat.getFileName() + " / " + cleanBatTemplate.getName(), e);
         }
@@ -353,6 +399,19 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         LOGGER.debug("END   executing method  createOrReplaceCleanBAT");
     }
 
+    /**
+     * Replaces placeholders in the given line with cartridge names, possibly creating multiple lines, one per cartridge.
+     * Supported placeholders:
+     * <ul>
+     *   <li><code>{cartridgeName}</code>: Replaces the placeholder with one line per cartridge.
+     *   <li><code>{cartridgeName.last}</code>: Replaces the placeholder with a single line for the last cartridge in the list.
+     *   <li><code>{cartridgeName.!last}</code>: Replaces the placeholder with one line per cartridge, excluding the last one in the list.
+     * </ul>
+     *
+     * @param line           The input line containing placeholders to be replaced.
+     * @param cartridgeNames List of all cartridge directory names that should be cleaned by clean.bat.
+     * @return A string with placeholders replaced according to the rules described above.
+     */
     protected String replacePlaceholderWithOneLinePerCartridge(String line, List<String> cartridgeNames)
     {
         String result = "";
