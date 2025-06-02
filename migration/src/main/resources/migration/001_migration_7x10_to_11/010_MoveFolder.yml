@@ -22,6 +22,10 @@ options:
     "testsResource" : "staticfiles/cartridge/lib/resources/tests"
     "logback" : "staticfiles/cartridge/logback"
     "sites" : "staticfiles/share/sites"
+    "cartridges" : "staticfiles/share/system/config/cartridges"
+    "cluster" : "staticfiles/share/system/config/cluster"
+    "domains" : "staticfiles/share/system/config/domains"
+    "apps": "staticfiles/share/system/config/apps"
   target-map:
     "pipelines" : "src/main/resources/resources/{cartridgeName}/pipelines"
     "webforms" : "src/main/resources/resources/{cartridgeName}/webforms"
@@ -42,3 +46,7 @@ options:
     "testsResource" : "src/test/resources/tests"
     "logback" : "src/main/resources/resources/{cartridgeName}/logback"
     "sites" : "src/main/resources/resources/{cartridgeName}/sites"
+    "cartridges" : "src/main/resources/cartridges"
+    "cluster" : "src/main/resources/resources/{cartridgeName}/config/cluster"
+    "domains" : "src/main/resources/resources/{cartridgeName}/config/domains"
+    "apps": "src/main/resources/resources/{cartridgeName}/config/apps"
