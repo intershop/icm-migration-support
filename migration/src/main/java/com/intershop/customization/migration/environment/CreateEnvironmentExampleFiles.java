@@ -19,9 +19,21 @@ import com.intershop.customization.migration.utils.FileUtils;
 /**
  * This class creates example files in the project root with content specific for this environment.
  * <ul>
- *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts
+ *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry in gradle.properties
+ *   <ul>
+ *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
+ *     <li>Placeholder <ishprjxxacr> will be replaced by e.g. "ishprjzzacr.azurecr.io"
+ *   </ul>
  *   <li>icm.properties.example created in project root from icm.properties.example.template, using rootProject.name in settings.gradle.kts
+ *   <ul>
+ *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
+ *   </ul>
  *   <li>clean.bat created in project root from clean.bat.template, using all cartridges existing in project root
+ *   <ul>
+ *     <li>{cartridgeName} will be replaced by one line per cartridge
+ *     <li>{cartridgeName.last} will be replaced by the last cartridge in the list
+ *     <li>{cartridgeName} will be replaced by one line per cartridge, except for the last cartridge in the list
+ *   </ul>
  * </ul>
  */
 public class CreateEnvironmentExampleFiles implements MigrationPreparer
@@ -33,10 +45,10 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     public static final String LINE_SEP = System.lineSeparator();
 
     public static final String SETTINGS_GRADLE_KTS = "settings.gradle.kts";  // settings.gradle.kts file in project root
-    public static final String ROOT_PROJECT_NAME   = "rootProject.name";     // rootProject.name key in settings.gradle.kts, with value e.g. "edezz-icm"
+    public static final String ROOT_PROJECT_NAME   = "rootProject.name";     // rootProject.name key in settings.gradle.kts, with value e.g. "prjzz-icm"
     protected String rootProjectName = null;
     public static final String GRADLE_PROPERTIES = "gradle.properties";  // gradle.properties file in project root
-    public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishedezzacr.azurecr.io"
+    public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishprjzzacr.azurecr.io"
     protected String dockerRegistry = null;
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
@@ -67,14 +79,21 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     {
         LOGGER.debug("START executing method  migrateRoot");
 
-        List<String> cartridgeNames = new ArrayList<>(100);
+        String projectName = getResourceName(projectDir);
 
-        File icmProjectRoot = projectDir.toFile();
-        File[] files = icmProjectRoot.listFiles();
-        if (files != null)
+        try
         {
-            for (File dirOrFileInICMProjectRoot: files)
+            List<String> cartridgeNames = new ArrayList<>(100);
+
+            Path environmentBatExample = null;
+            Path icmPropertiesExample  = null;
+            Path cleanBat              = null;
+
+            List<Path> files = FileUtils.listTopLevelFiles(projectDir, null, null);
+            for (Path path : files)
             {
+                File dirOrFileInICMProjectRoot = path.toFile();
+                
                 String name = dirOrFileInICMProjectRoot.getName();
 
                 // dirOrFileInICMProjectRoot is a cartridge if:
@@ -106,64 +125,91 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
 
                 if (name.equalsIgnoreCase(ENVIRONMENT_BAT_EXAMPLE))
                 {
+                    environmentBatExample = dirOrFileInICMProjectRoot.toPath();
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
 
                 if (name.equalsIgnoreCase(ICM_PROPERTIES_EXAMPLE))
                 {
+                    icmPropertiesExample = dirOrFileInICMProjectRoot.toPath();
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
 
                 if (name.equalsIgnoreCase(CLEAN_BAT))
                 {
+                    cleanBat = dirOrFileInICMProjectRoot.toPath();
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
             }
-        }
 
-        //
-        // environment.bat.example
-        //
+            //
+            // environment.bat.example
+            //
 
-        File environmentBatExampleTemplate = new File(fileTemplatesDir.toFile(), ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
-        if (environmentBatExampleTemplate.exists() && environmentBatExampleTemplate.isFile())
-        {
-            Path environmentBatExample = icmProjectRoot.toPath().resolve(ENVIRONMENT_BAT_EXAMPLE);
-            createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, rootProjectName, dockerRegistry);
-        }
-        else
-        {
-            LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, fileTemplatesDir);
-        }
+            File environmentBatExampleTemplate = new File(fileTemplatesDir.toFile(), ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
+            if (environmentBatExampleTemplate.exists() && environmentBatExampleTemplate.isFile())
+            {
+                if (environmentBatExample == null)
+                {
+                    // In this case the file does not exist yet.
+                    environmentBatExample = projectDir.resolve(ENVIRONMENT_BAT_EXAMPLE);
+                }
 
-        //
-        // icm.properties.example
-        //
+                createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, rootProjectName, dockerRegistry);
+                context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, environmentBatExampleTemplate.toPath(), environmentBatExample);
+            }
+            else
+            {
+                LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
+            }
 
-        File icmPropertiesExampleTemplate = new File(fileTemplatesDir.toFile(), ICM_PROPERTIES_EXAMPLE_TEMPLATE);
-        if (icmPropertiesExampleTemplate.exists() && icmPropertiesExampleTemplate.isFile())
-        {
-            Path icmPropertiesExample = icmProjectRoot.toPath().resolve(ICM_PROPERTIES_EXAMPLE);
-            createOrReplaceIcmPropertiesExample(icmPropertiesExampleTemplate, icmPropertiesExample, rootProjectName);
-        }
-        else
-        {
-            LOGGER.error("File '{}' not found in '{}'.", ICM_PROPERTIES_EXAMPLE_TEMPLATE, fileTemplatesDir);
-        }
+            //
+            // icm.properties.example
+            //
 
-        //
-        // clean.bat
-        //
+            File icmPropertiesExampleTemplate = new File(fileTemplatesDir.toFile(), ICM_PROPERTIES_EXAMPLE_TEMPLATE);
+            if (icmPropertiesExampleTemplate.exists() && icmPropertiesExampleTemplate.isFile())
+            {
+                if (icmPropertiesExample == null)
+                {
+                    // In this case the file does not exist yet.
+                    icmPropertiesExample = projectDir.resolve(ICM_PROPERTIES_EXAMPLE);
+                }
 
-        File cleanBatTemplate = new File(fileTemplatesDir.toFile(), CLEAN_BAT_TEMPLATE);
-        if (cleanBatTemplate.exists() && cleanBatTemplate.isFile())
-        {
-            Path cleanBat = icmProjectRoot.toPath().resolve(CLEAN_BAT);
-            createOrReplaceCleanBAT(cleanBatTemplate, cleanBat, cartridgeNames);
-        }
-        else
-        {
-            LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, fileTemplatesDir);
+                createOrReplaceIcmPropertiesExample(icmPropertiesExampleTemplate, icmPropertiesExample, rootProjectName);
+                context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, icmPropertiesExampleTemplate.toPath(), icmPropertiesExample);
+            }
+            else
+            {
+                LOGGER.error("File '{}' not found in '{}'.", ICM_PROPERTIES_EXAMPLE_TEMPLATE, fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + ICM_PROPERTIES_EXAMPLE_TEMPLATE);
+            }
+
+            //
+            // clean.bat
+            //
+
+            File cleanBatTemplate = new File(fileTemplatesDir.toFile(), CLEAN_BAT_TEMPLATE);
+            if (cleanBatTemplate.exists() && cleanBatTemplate.isFile())
+            {
+                if (cleanBat == null)
+                {
+                    // In this case the file does not exist yet.
+                    cleanBat = projectDir.resolve(CLEAN_BAT);
+                }
+
+                createOrReplaceCleanBAT(cleanBatTemplate, cleanBat, cartridgeNames);
+                context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, cleanBatTemplate.toPath(), cleanBat);
+            }
+            else
+            {
+                LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + CLEAN_BAT_TEMPLATE);
+            }
+        } catch (IOException e) {
+            LOGGER.error("Exception reading project root " + projectDir.toString(), e);
+            context.recordFailure(projectName, MigrationContext.OperationType.MOVE, projectDir, null, "Exception reading project root " + projectDir.toString() + ": " + e.toString());
         }
 
         LOGGER.debug("END   executing method  migrateRoot");

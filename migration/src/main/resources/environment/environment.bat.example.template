@@ -10,8 +10,6 @@ REM Add the following line to your %GRADLE_USER_HOME%\gradle.properties file: lo
 REM This is to avoid old code versions to be used by the AppServer
 REM and to avoid the messages during startAS like: "WARN: Found multiple jar files in: <cartridge>..."
 
-:: - IStudio  version recommended for ICM11/12: IntershopStudio_4.30.2 (see https://intranet.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29)
-
 ::
 :: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13: AdoptOpenJDK 21)
 ::
@@ -40,7 +38,9 @@ SET CONFIGDIR=%GRADLE_USER_HOME%\<rootProject.name in settings.gradle.kts>\conf
 ::
 "ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
 SET WORKSPACE=D:\IntershopStudio\workspace
+
 REM IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
+REM IStudio versions recommended for ICM11/12: Intershop Studio 4.30.2, Intershop Studio 4.35.0 (already with AI support by GitHub Copilot)
 REM Set aliases oS/openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
 "ADJUST TO YOUR PATH AND WORKSPACE NAME IN THE LINES BELOW (and then comment out this line here)"
 doskey oS             = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0
@@ -59,7 +59,7 @@ doskey dozzle=docker run --name dozzle --detach --volume=/var/run/docker.sock:/v
 PROMPT $D$H$H$H$H $T$H$H$H %IS_INSTALLATION%$B$P$G
 
 ::
-:: See https://intershop.atlassian.net/wiki/spaces/ENFDEVDOC/pages/48254976693/Guide+-+Access+to+Intershop+Docker+Images
+:: See https://knowledge.intershop.com/kb/index.php/Display/30669A "Guide - Access to Intershop Docker Images"
 ::
 "ADJUST TO YOUR Intershop Docker registry Username AND CLI secret IN THE LINE BELOW (and then comment out this line here)"
 ECHO docker login docker.tools.intershop.com -u <your Intershop Docker registry Username, e.g. T.Koerbs@intershop.de> -p ********************************
