@@ -12,6 +12,7 @@ import java.util.Optional;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.parser.DBInitPropertiesParser;
+import com.intershop.customization.migration.parser.GroupType;
 import com.intershop.customization.migration.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +61,8 @@ public class AddSiteContentPreparer implements MigrationPreparer
                     List<String> lines = FileUtils.readAllLines(dbinitProperties);
                     DBInitPropertiesParser parser = new DBInitPropertiesParser(lines);
                     List<DBInitPropertiesParser.LineEntry> parsedLines = parser.getParsedLines();
-                    DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(DBInitPropertiesParser.GroupType.PRE);
-                    DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(DBInitPropertiesParser.GroupType.MAIN);
+                    DBInitPropertiesParser.PropertyEntry highestPreEntry = parser.getHighestIdEntry(GroupType.PRE);
+                    DBInitPropertiesParser.PropertyEntry firstMainEntry = parser.getFirstEntry(GroupType.MAIN);
 
                     FileUtils.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry));
 
