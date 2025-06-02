@@ -183,6 +183,12 @@ public class AddSiteContentPreparer implements MigrationPreparer
         StringBuilder result = new StringBuilder();
         boolean added = false;
 
+        if (parsedLines.isEmpty())
+        {
+            appendSiteContentPreparerEntry(result, 0);
+            return result.toString();
+        }
+
         for (DBInitPropertiesParser.LineEntry line : parsedLines)
         {
             if (line instanceof DBInitPropertiesParser.PropertyEntry propertyEntry)
