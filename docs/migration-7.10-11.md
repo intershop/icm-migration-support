@@ -22,6 +22,7 @@ migration tool and manual steps required afterward.
     - [Add Site Content Preparer](#add-site-content-preparer)
     - [Rename Packages](#rename-packages)
     - [Delete Obsolete Files](#delete-obsolete-files)
+    - [Create Environment Example Files](#create-environment-example-files)
 - [Manual Migration Steps](#manual-migration-steps)
     - [Global defined dependencies](#global-defined-dependencies)
     - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
@@ -208,6 +209,25 @@ Removes files that are no longer needed in ICM 11:
 
 - `*.version` files (version information now in central location)
 - Root `build.gradle` and `settings.gradle` files (replaced by customization template)
+
+### Create Environment Example Files
+
+Migrator: `CreateEnvironmentExampleFiles`
+
+Creates or replaces the following example files in the project root, with content specific for this environment:
+
+- `environment.bat.example`:
+    - Created from `migration/src/main/resources/environment/environment.bat.example.template`
+    - Placeholder `<rootProject.name in settings.gradle.kts>` will be replaced by value of `rootProject.name` in `settings.gradle.kts`, e.g. "prjzz-icm"
+    - Placeholder `<ishprjxxacr>` will be replaced by value of `dockerRegistry` in `gradle.properties`, e.g. "ishprjzzacr.azurecr.io"
+- `icm.properties.example`:
+    - Created from `migration/src/main/resources/environment/icm.properties.example.template`
+    - Placeholder `<rootProject.name in settings.gradle.kts>` will be replaced by value of `rootProject.name` in `settings.gradle.kts`, e.g. "prjzz-icm"
+ - `clean.bat`:
+    - Created from `migration/src/main/resources/environment/clean.bat.template`
+    - `{cartridgeName}` will be replaced by one line per cartridge
+    - `{cartridgeName.last}` will be replaced by the last cartridge in the list
+    - `{cartridgeName}` will be replaced by one line per cartridge, except for the last cartridge in the list
 
 ## Manual Migration Steps
 
