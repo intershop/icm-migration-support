@@ -33,9 +33,9 @@ To disable the auto commit, the `-PnoAutoCommit` parameter must be set.
 
 ### Migration all at once
 
-This command will execute all migration steps on all subprojects of the $ICM directory
+This command will execute all migration steps on all subprojects of a directory
 ```
-gradlew migration:migrateAll -Ptarget=$ICM -Psteps=<path_to_migration_steps> [-PnoAutoCommit]
+gradlew migration:migrateAll -Ptarget=<path_to_7_10_project> -Psteps=<path_to_migration_steps> [-PnoAutoCommit]
 ```
 
 ### Migration step by step
@@ -43,8 +43,8 @@ gradlew migration:migrateAll -Ptarget=$ICM -Psteps=<path_to_migration_steps> [-P
 - run migration script
 
 ```
-gradlew migration:migrateOne -Ptask=project -Ptarget=$ICM/your_cartridge -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
-gradlew migration:migrateOne -Ptask=projects -Ptarget=$ICM -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
+gradlew migration:migrateOne -Ptask=project -Ptarget=<path_to_7_10_project>/your_cartridge -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
+gradlew migration:migrateOne -Ptask=projects -Ptarget=<path_to_7_10_project> -Psteps=<path_to_single_migration_step> [-PnoAutoCommit]
 ```
 
 ### Available Migration Steps
