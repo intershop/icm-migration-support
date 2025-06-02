@@ -12,6 +12,8 @@ migration tool and manual steps required afterward.
 - [Automated Migration Steps](#automated-migration-steps)
     - [Remove Assembly Projects](#remove-assembly-projects)
     - [Move Folder Structure](#move-folder-structure)
+    - [Move Additional Files](#move-additional-files)
+    - [Move Java Source Code](#move-java-source-code)
     - [Convert build.gradle Files](#convert-buildgradle-files)
     - [Convert to Cartridge Dependency](#convert-to-cartridge-dependency)
     - [Rename Dependencies](#rename-dependencies)
@@ -124,14 +126,40 @@ Moves all staticfiles to their new locations in the ICM 11 structure:
 - `staticfiles/cartridge/templates` -> `src/main/isml/{cartridgeName}`
 - `staticfiles/cartridge/webforms` -> `src/main/resources/resources/{cartridgeName}/webforms`
 - `staticfiles/share/sites` -> `src/main/resources/resources/{cartridgeName}/sites`
+- `staticfiles/share/system/config/cartridges` -> `src/main/resources/cartridges`
+- `staticfiles/share/system/config/cluster` -> `src/main/resources/resources/{cartridgeName}/config/cluster`
+- `staticfiles/share/system/config/domains` -> `src/main/resources/resources/{cartridgeName}/config/domains`
+- `staticfiles/share/system/config/apps` -> `src/main/resources/resources/{cartridgeName}/config/apps`
 
 The following directories remain intentionally unchanged:
 - `staticfiles/cartridge/static`
 - `staticfiles/cartridge/urlrewrite`
 
+### Move Additional Files
+
+Migrator: `MoveFiles`
+
+Moves specific files to their new locations in the ICM 11 structure:
+
+- `staticfiles/cartridge/directCustomAttributes.xml` -> `src/main/resources/resources/{cartridgeName}/directCustomAttributes.xml`
+
+### Move Java Source Code
+
+Migrator: `MoveFolder`
+
+Moves Java source code and pipelet XML files to their appropriate locations in the ICM 11 structure:
+
+- `javasource` -> `src/main/java` (Java source files)
+- `javasource` -> `src/main/resources` (only XML files matching pattern `^.*/pipelet/.*\.xml$`)
+
+This step ensures that:
+
+- All Java source files are properly located in the standard Gradle Java source directory
+- Pipelet XML files are moved to the resources directory while maintaining their relative path structure
+
 ### Convert build.gradle Files
 
-Migrator: `UpdateGradleBuild7to10`
+Migrator: `ConvertBuildGradle`
 
 - Adapts plugins in build.gradle files to match ICM 11 requirements
 - Updates build system configurations to new structure
