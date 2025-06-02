@@ -78,16 +78,14 @@ rsync -av --exclude='.git' "$ICM_11/" "$ICM/"
 
 ## Automated Migration Steps
 
-The automated steps are defined in the path `src/main/resources/migration/001_migration_7x10_to_11`.
+The automated steps for migrating from 7.10 to 11 are defined in the path: `src/main/resources/migration/001_migration_7x10_to_11`. 
+Given this, the following parameters result for the Gradle task:
 
-### Used variables for Gradle task
-| Parameter | Value                                                   | Description                                           |
-|-----------|---------------------------------------------------------|-------------------------------------------------------|
-| task      | `project` or `projects`                                 | type switch for single project migration              |
-| target    | `$ICM`                                                  | root directory of your ICM 7.10 project               |
-| steps     | `src/main/resources/migration/001_migration_7x10_to_11` | path of the definitions for automated migration steps |
+- **task**: Specifies the type of migration (`project` for a single project or `projects` for all projects). This parameter is only required for the `migrateOne` task.
+- **target**: The root directory of your ICM 7.10 project (`$ICM`, if defined as above).
+- **steps**: The path to the definitions for the automated migration steps (here: `src/main/resources/migration/001_migration_7x10_to_11`).
 
-Complete example:
+Example command:
 ```
 gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7x10_to_11
 ```
