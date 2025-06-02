@@ -3,8 +3,6 @@
 This document outlines the migration process from ICM 7.10 to ICM 11, including automated steps performed by the
 migration tool and manual steps required afterward.
 
-> **Note:** `{cartridgeName}` is a placeholder and will be replaced by the name of the cartridge being migrated.
-
 ## Table of Contents
 
 - [Preparation Steps](#preparation-steps)
@@ -33,7 +31,7 @@ migration tool and manual steps required afterward.
 
 > **Note:** The following marker are used in the commands below:
 > - `$ICM` is a symbolic marker for the root directory of your ICM 7.10 project
-> - `$ICM_11` is a symbolic marker for the root directory of your ICM 11+ project (template)
+> - `$ICM_11` is a symbolic marker for the root directory of the ICM 11+ project template
 
 ### Prepare ICM11 template
 Retrieve customization template for ICM 11 and follow the prerequisites steps.
@@ -79,6 +77,22 @@ rsync -av --exclude='.git' "$ICM_11/" "$ICM/"
 > file copy command. Just make sure to **exclude** the `.git` folder.
 
 ## Automated Migration Steps
+
+The automated steps are defined in the path `src/main/resources/migration/001_migration_7x10_to_11`.
+
+### Used variables for Gradle task
+| Parameter | Value                                                   | Description                                           |
+|-----------|---------------------------------------------------------|-------------------------------------------------------|
+| task      | `project` or `projects`                                 | type switch for single project migration              |
+| target    | `$ICM`                                                  | root directory of your ICM 7.10 project               |
+| steps     | `src/main/resources/migration/001_migration_7x10_to_11` | path of the definitions for automated migration steps |
+
+Complete example:
+```
+gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/001_migration_7x10_to_11
+```
+
+> **Note:** `{cartridgeName}` is a placeholder and will be replaced by the name of the cartridge being migrated.
 
 ### Remove Assembly Projects
 
