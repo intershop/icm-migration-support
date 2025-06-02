@@ -1,17 +1,12 @@
 package com.intershop.customization.migration.parser;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +20,12 @@ public class DBInitPropertiesParser
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-    private List<LineEntry> parsedLines;
-    Map<GroupType, PropertyEntry> firstEntries;
-    private Map<GroupType, PropertyEntry> highestIdEntries;
+    private final List<LineEntry> parsedLines;
+    private final Map<GroupType, PropertyEntry> firstEntries;
+    private final Map<GroupType, PropertyEntry> highestIdEntries;
+
+    private final static Pattern PROPERTY_PATTERN = Pattern.compile("^\\s*([^#\\s][^=]*)=(.*)$");
+    private final static Pattern ID_PATTERN = Pattern.compile("(\\d+)(?:\\..*)?$");
 
     /**
      * Constructor that accepts the path to the `dbinit.properties` file.
@@ -44,17 +42,6 @@ public class DBInitPropertiesParser
     public List<LineEntry> getParsedLines()
     {
         return parsedLines;
-    }
-
-    /**
-     * GroupType is used to identify the type of instruction in the dbinit.properties file.
-     */
-    public enum GroupType
-    {
-        PRE,    // 'pre.Class' entries
-        MAIN,   // 'Class' entries
-        POST,   // 'post.Class' entries
-        UNKNOWN // lines that do not match any of the above
     }
 
     /**
@@ -114,6 +101,17 @@ public class DBInitPropertiesParser
     }
 
     /**
+     * Represents a parsed property from the dbinit.properties file.
+     * This record holds the group type, numeric ID, key, and value of a property line.
+     *
+     * @param group The group type of the property (PRE, MAIN, POST, UNKNOWN)
+     * @param id    The numeric ID extracted from the property key
+     * @param key   The full property key as found in the file
+     * @param value The property value
+     */
+    public record ParsedProperty(GroupType group, int id, String key, String value) {}
+
+    /**
      * Helper function to detect the group type of given key based on its prefix.
      *
      * @param key the key to check
@@ -121,10 +119,7 @@ public class DBInitPropertiesParser
      */
     private static GroupType detectGroup(String key)
     {
-        if (key.startsWith("pre.Class")) return GroupType.PRE;
-        if (key.startsWith("post.Class")) return GroupType.POST;
-        if (key.startsWith("Class")) return GroupType.MAIN;
-        return GroupType.UNKNOWN;
+        return GroupType.valueByPrefix(key);
     }
 
     /**
@@ -137,9 +132,6 @@ public class DBInitPropertiesParser
         List<LineEntry> result = new ArrayList<>();
         List<String> commentBuffer = new ArrayList<>();
         int lineNumber = 0;
-
-        Pattern propertyPattern = Pattern.compile("^\\s*([^#\\s][^=]*)=(.*)$");
-        Pattern idPattern = Pattern.compile("(\\d+)(?:\\..*)?$");
 
         for (String line : lines)
         {
@@ -163,16 +155,15 @@ public class DBInitPropertiesParser
             }
             else
             {
-                // Property line
-                Matcher m = propertyPattern.matcher(line);
-                if (m.find())
-                {
-                    String key = m.group(1).trim();
-                    String value = m.group(2).trim();
-                    GroupType group = detectGroup(key);
 
-                    Matcher idMatcher = idPattern.matcher(key);
-                    int id = idMatcher.find() ? Integer.parseInt(idMatcher.group(1)) : 0;
+                Optional<ParsedProperty> parsedPropertyOpt = extractParsedLine(line);
+                if (parsedPropertyOpt.isPresent())
+                {
+                    ParsedProperty parsedLine = parsedPropertyOpt.get();
+                    GroupType group = parsedLine.group();
+                    int id = parsedLine.id();
+                    String key = parsedLine.key();
+                    String value = parsedLine.value();
 
                     PropertyEntry entry = new PropertyEntry(lineNumber, group, id, key, value, new ArrayList<>(commentBuffer));
                     result.add(entry);
@@ -183,7 +174,7 @@ public class DBInitPropertiesParser
 
                     // Update highestIdEntries
                     highestIdEntries.merge(group, entry, (existing, newEntry) -> {
-                        Matcher existingMatcher = idPattern.matcher(existing.key());
+                        Matcher existingMatcher = ID_PATTERN.matcher(existing.key());
                         int existingId = existingMatcher.find() ? Integer.parseInt(existingMatcher.group(1)) : -1;
                         return id > existingId ? newEntry : existing;
                     });
@@ -201,6 +192,27 @@ public class DBInitPropertiesParser
             result.add(new CommentLine(lineNumber, c));
         }
         return result;
+    }
+
+    protected Optional<ParsedProperty> extractParsedLine(String line)
+    {
+        Matcher m = PROPERTY_PATTERN.matcher(line);
+        if (m.find())
+        {
+            String key = m.group(1).trim();
+            String value = m.group(2).trim();
+            GroupType group = detectGroup(key);
+
+            if (!GroupType.UNKNOWN.equals(group))
+            {
+                Matcher idMatcher = ID_PATTERN.matcher(key);
+                int id = idMatcher.find() ? Integer.parseInt(idMatcher.group(1)) : 0;
+
+                return Optional.of(new ParsedProperty(group, id, key, value));
+            }
+        }
+
+        return Optional.empty();
     }
 
     public DBInitPropertiesParser.PropertyEntry getFirstEntry(GroupType group)
