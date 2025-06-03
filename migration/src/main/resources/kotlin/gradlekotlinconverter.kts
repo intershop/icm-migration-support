@@ -401,7 +401,7 @@ fun String.convertProductFlavors(): String = this.convertNestedTypes("productFla
 // sourceSets { test }
 // becomes
 // sourceSets { named("test") }
-fun String.convertSourceSets(): String = this.convertNestedTypes("sourceSets", "named")
+fun String.convertSourceSets(): String = this.convertNestedTypes("sourceSets", "named", setOf("resources"))
 
 
 // signingConfigs { release }
@@ -409,12 +409,15 @@ fun String.convertSourceSets(): String = this.convertNestedTypes("sourceSets", "
 // signingConfigs { register("release") }
 fun String.convertSigningConfigs(): String = this.convertNestedTypes("signingConfigs", "register")
 
-
-fun String.convertNestedTypes(buildTypes: String, named: String): String {
+fun String.convertNestedTypes(buildTypes: String, named: String, excludeKeywords: Set<String> = emptySet()): String {
     return this.getExpressionBlock("$buildTypes\\s*\\{".toRegex()) { substring ->
         substring.replace("\\S*\\s(?=\\{)".toRegex()) {
-            val valueWithoutWhitespace = it.value.replace(" ", "")
-            "$named(\"$valueWithoutWhitespace\") "
+            val valueWithoutWhitespace = it.value.trim()
+            if (valueWithoutWhitespace in excludeKeywords) {
+                valueWithoutWhitespace
+            } else {
+                "$named(\"$valueWithoutWhitespace\")"
+            }
         }
     }
 }
@@ -806,11 +809,16 @@ fun String.fixDependenciesSectionBraces(): String {
     }
 }
 
+// tasks.abc.dependsOn(tasks.xyz)
+// becomes
+// tasks.abc.configure {
+//     dependsOn(tasks.xyz)
+// }
 fun String.convertTaskDependencies(): String {
 
-    val taskDependenyRegex = """tasks\.(\w+)\.dependsOn\(tasks\.(\w+)\)""".toRegex()
+    val taskDependencyRegex = """tasks\.(\w+)\.dependsOn\(tasks\.(\w+)\)""".toRegex()
 
-    return this.replace(taskDependenyRegex) {
+    return this.replace(taskDependencyRegex) {
         val destructured = it.destructured
         """
             |tasks.${destructured.component1()}.configure {
@@ -818,6 +826,114 @@ fun String.convertTaskDependencies(): String {
             |}""".trimMargin()
     }
 }
+
+// from 'src/main/resources'
+// becomes
+// from("src/main/resources")
+fun String.convertFrom(): String {
+
+    val expressionBase = "\\s*((\".*\"\\s*,)\\s*)*(\".*\")".toRegex()
+    val fromExp = "from$expressionBase".toRegex()
+
+    return this.replace(fromExp) { fromBlock ->
+        if(fromBlock.value.contains("from\"")) return@replace fromBlock.value // exclude: "from" to
+
+        // avoid cases where some lines at the start/end are blank
+        val multiLine = fromBlock.value.split('\n').count { it.isNotBlank() } > 1
+
+        val isolated = expressionBase.find(fromBlock.value)?.value ?: ""
+        if (multiLine) "from(\n${isolated.trim()}\n)" else "from(${isolated.trim()})"
+        // Possible visual improvement: when using multiline, the first line should have the same
+        // margin/spacing as the others.
+    }
+}
+
+// into new File(project.buildDir, 'target_resources')
+// becomes
+// into(layout.buildDirectory.dir("target_resources"))
+//
+// srcDir new File(project.buildDir, 'target_resources')
+// becomes
+// srcDir(layout.buildDirectory.dir("target_resources"))
+fun String.convertIntoSrcDir(): String {
+    val genericNewFileExp = """(into|srcDir)\s+new\s+File\s*\(\s*(project\.)?buildDir\s*,\s*['"](.+)['"]\s*\)""".toRegex()
+
+    return this.replace(genericNewFileExp) { matchResult ->
+        val (command, projectPrefix, targetPath) = matchResult.destructured
+        "$command(layout.buildDirectory.dir(\"$targetPath\"))"
+    }
+}
+
+// expand(version: project.version)
+// becomes
+// expand(mapOf("version" to project.version))
+fun String.convertExpand(): String {
+    val expandExp = """expand\((\w+):\s*([^,\)]+)(?:,\s*(\w+):\s*([^,\)]+))*\)""".toRegex()
+
+    return this.replace(expandExp) { matchResult ->
+        val content = matchResult.value.substring(7, matchResult.value.length - 1) // Entferne "expand(" und ")"
+
+        // Teile den Inhalt in einzelne Paare auf und formatiere sie um
+        val pairs = content.split(",")
+            .map { it.trim() }.joinToString(", ") {
+                val keyValue = it.split(":")
+                if (keyValue.size == 2) {
+                    "\"${keyValue[0].trim()}\" to ${keyValue[1].trim()}"
+                } else {
+                    it
+                }
+            }
+
+        "expand(mapOf($pairs))"
+    }
+}
+
+// task custom_task(type: Copy)
+// becomes
+// tasks.register<Copy>("custom_task")
+fun String.convertCopyTask(): String {
+    val copyExp = Regex("""task\s+(\w+)\s*\(type:\s*Copy\)""")
+    return this.replace(copyExp) { matchResult ->
+        "tasks.register<Copy>(\"${matchResult.groupValues[1]}\")"
+    }
+}
+
+// tasks.compileJava.dependsOn custom_task
+// becomes
+// tasks.getByName("compileJava").dependsOn("custom_task")
+// and if it's compileJava, also add:
+// tasks.getByName("sourcesJar").dependsOn("custom_task")
+// tasks.getByName("processResources").dependsOn("custom_task")
+fun String.convertDynamicTaskDependencies(): String {
+    val taskDependencyExp = """tasks\.(\w+)\.dependsOn\s+(\w+)""".toRegex()
+
+    return this.replace(taskDependencyExp) { matchResult ->
+        val (taskName, dependsOnTask) = matchResult.destructured
+        val convertedLine = """tasks.getByName("$taskName").dependsOn("$dependsOnTask")"""
+
+        // Wenn es sich um compileJava handelt, füge die zusätzlichen Abhängigkeiten hinzu
+        if (taskName == "compileJava") {
+            """$convertedLine
+tasks.getByName("sourcesJar").dependsOn("$dependsOnTask")
+tasks.getByName("processResources").dependsOn("$dependsOnTask")"""
+        } else {
+            convertedLine
+        }
+    }
+}
+
+// rename { String varName -> ... }
+// becomes
+// rename { varName: String -> ... }
+fun String.convertRenameNotation(): String {
+    val renameExp = """rename\s*\{\s*String\s+(\w+)\s*->""".toRegex()
+
+    return this.replace(renameExp) { matchResult ->
+        val variableName = matchResult.groupValues[1]
+        "rename { $variableName: String ->"
+    }
+}
+
 
 // testImplementation(group: "junit", name: "junit", version: "4.12")
 // becomes
@@ -893,6 +1009,12 @@ fun String.applyConversions() : String {
     .convertJavaPluginReference() // custom
     .fixDependenciesSectionBraces() // custom
     .convertTaskDependencies() // custom
+    .convertFrom() // custom
+    .convertRenameNotation() // custom
+    .convertExpand() // custom
+    .convertIntoSrcDir() // custom
+    .convertCopyTask() // custom
+    .convertDynamicTaskDependencies() // custom
 }
 
 fun writeToClipboard(content : String) {
