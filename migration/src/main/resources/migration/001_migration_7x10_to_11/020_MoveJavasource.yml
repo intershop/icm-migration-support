@@ -9,4 +9,5 @@ options:
     "java" : "src/main/java"
     "pipeletXmls" : "src/main/resources"
   filter-map:
+    "java" : ".*\\.java$"
     "pipeletXmls" : "^.*/pipelet/.*\\.xml$"
