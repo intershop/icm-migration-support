@@ -48,7 +48,12 @@ public class CfgResourceConverter
      */
     public enum ResourceType
     {
-        TRANSPORT("transport"), APPLICATION("application"), USR("usr"), MNGDSRVC("mngdsrvc"), DMNPRFRNCE("dmnprfrnce");
+        TRANSPORT("transport"), 
+        APPLICATION("application"), 
+        USR("usr"), 
+        MNGDSRVC("mngdsrvc"), 
+        DMNPRFRNCE("dmnprfrnce"), 
+        UNKNOWN("");;
 
         private final String value;
 
@@ -63,13 +68,25 @@ public class CfgResourceConverter
         {
             return value;
         }
+
+        public static ResourceType fromValue(String input) {
+            for (ResourceType type : ResourceType.values()) {
+                if (type.getValue().equals(input)) {
+                    return type;
+                }
+            }
+            return UNKNOWN;
+        }
+
+        public String getPrefix()
+        {
+            return ResourceType.UNKNOWN.getValue().equals(this.value) ? "" : "pfconfigurationfs>" + value;
+        }
     }
 
     private Path source;
     private Path target;
     private String resourceType;
-
-    private String prefix = "";
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CfgResourceConverter.class);
 
@@ -85,17 +102,9 @@ public class CfgResourceConverter
         this.source = source;
         this.target = target;
 
-        this.resourceType = "";
-        // set with a valid resource type, only
-        for (ResourceType type : ResourceType.values())
-        {
-            if (type.getValue().equals(resourceType))
-            {
-                this.resourceType = resourceType;
-                this.prefix = "pfconfigurationfs>" + resourceType;
-                break;
-            }
-        }
+        this.resourceType = ResourceType.fromValue(resourceType).getValue();
+
+
     }
 
     /**
@@ -185,7 +194,7 @@ public class CfgResourceConverter
             }
             else
             {
-                targetLine = this.prefix + ">" + line.trim();
+                targetLine = ResourceType.fromValue(this.resourceType).getPrefix() + ">" + line.trim();
                 targetLines.add(targetLine);
             }
         }
@@ -260,7 +269,7 @@ public class CfgResourceConverter
                     {
                         groupStr = cfgDomainDir + ">" + groupStr;
                     }
-                    targetLine = this.prefix + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
+                    targetLine = ResourceType.fromValue(this.resourceType).getPrefix() + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
                                     + tartEntry.get(2).trim();
                     if (!targetLine.endsWith(" = n/a"))
                     {
@@ -339,7 +348,7 @@ public class CfgResourceConverter
                     }
                     cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
                     StringBuffer bTargetLine
-                    = new StringBuffer().append(this.prefix)
+                    = new StringBuffer().append(ResourceType.fromValue(this.resourceType).getPrefix())
                       .append(">")
                       .append(taretEntry.get( cfgGroup + ".ServiceDefinitionID"))
                       .append(">").append(taretEntry.get(cfgGroup + ".ServiceConfigurationName"))

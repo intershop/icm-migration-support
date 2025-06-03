@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
@@ -14,13 +15,14 @@ import org.slf4j.LoggerFactory;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.utils.FileUtils;
+
+// import ch.qos.logback.core.net.ssl.TrustManagerFactoryFactoryBean;
 
 public class MigrateConfigResources implements MigrationPreparer
 {
 
     private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
-
-    private String configurationXML = "";
 
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
@@ -49,6 +51,7 @@ public class MigrateConfigResources implements MigrationPreparer
         Path staticshareFolder = staticFilesFolder.resolve("share");
         Path staticSitesFolder = staticFilesFolder.resolve("sites");
         Path cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
+        ConfigurationXMLBuilder configurationXMLBuilder = new ConfigurationXMLBuilder(cartridgeName.getFileName().toString());
         Path sourceMain = cartridgeDir.resolve("src/main");
         String migrationSubject = cartridgeName.getFileName().toString();
 
@@ -74,7 +77,6 @@ public class MigrateConfigResources implements MigrationPreparer
                     LOGGER.warn("Can't find  files {}.", path);
                     continue;
                 }
-
                 Files.walk(path)
                      .filter(p -> p.getNameCount() > staticFilesFolder.getNameCount() + 1)
                      .map(p -> p.subpath(1 + staticFilesFolder.getNameCount(), p.getNameCount()))
@@ -103,8 +105,13 @@ public class MigrateConfigResources implements MigrationPreparer
                                      String targetName = targetFile.toFile().getAbsolutePath();
                                      targetName = targetName.replace(".resource", ".properties");
                                      Path target = Paths.get(targetName);
+                                     
                                      convertResourceFile(targetType, source, target);
                                      Files.delete(source);
+
+                                     String domainName = target.getParent().getFileName().toString();
+                                     configurationXMLBuilder.addLine(targetType, domainName, targetName );
+
                                      context.recordSuccess(migrationSubject, MODIFY, source, target);
                                  }
                                  else
@@ -121,6 +128,12 @@ public class MigrateConfigResources implements MigrationPreparer
                          }
                      });
             }
+            Path configurationXMFilePath = cartridgeDir.resolve("src/main/resources/resources")
+                    .resolve(cartridgeName).resolve("config").resolve("coniguration.xml");
+            if(!configurationXMFilePath.toFile().exists())
+                Files.createFile(configurationXMFilePath);
+            FileUtils.writeLines(configurationXMFilePath, 
+                configurationXMLBuilder.generateConfigXML());          
 
         }
         catch(IOException e)
