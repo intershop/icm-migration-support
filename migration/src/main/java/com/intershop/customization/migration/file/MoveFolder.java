@@ -99,7 +99,8 @@ public class MoveFolder implements MigrationPreparer
                     {
                         LOGGER.warn("Files in '{}' need to be wired in configuration.xml.", targetPath);
                         context.recordWarning(cartridgeName, MOVE, sourcePath, targetPath,
-                                "Files need to be wired in configuration.xml");
+                                "Files need to be wired in configuration.xml. " +
+                                "For details about the configuration framework, see 'Concept - Configuration'.");
                     }
                 }
                 else {
