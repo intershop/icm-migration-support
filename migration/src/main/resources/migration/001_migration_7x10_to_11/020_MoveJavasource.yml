@@ -1,0 +1,13 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.file.MoveFolder
+message: "refactor: move javasource code to src/main/java and pipelet XMLs to resources"
+options:
+  source-map:
+    "java" : "javasource"
+    "pipeletXmls" : "javasource"
+  target-map:
+    "java" : "src/main/java"
+    "pipeletXmls" : "src/main/resources"
+  filter-map:
+    "java" : ".*\\.java$"
+    "pipeletXmls" : "^.*/pipelet/.*\\.xml$"
