@@ -1,0 +1,13 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.file.ClasspathResourceFileCopier
+message: "refactor: copy files to root project"
+options:
+  source-map:
+    # source file located in the resources directory
+    "rewrite" : "gradle/rewrite.gradle"
+  target-map:
+    # target file in the root project
+    "rewrite" : "rewrite.gradle"
+  log-map:
+    # optional log message for the copied file
+    "rewrite" : "Created rewrite.gradle in root project. Adjust the file to your needs and execute 'gradle --init-script rewrite.gradle rewriteRun' afterwards."
