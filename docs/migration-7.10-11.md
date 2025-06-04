@@ -43,7 +43,7 @@ Retrieve the ICM 11 customization template and follow the prerequisite steps.
 
 Use the customization template to create the initial project structure.
 
-* Checkout customization template.
+* Checkout the customization template.
 * Follow the documentation to configure the template.
   * Use versions for ICM 11 in the first step.
 * Execute the initialization script.
