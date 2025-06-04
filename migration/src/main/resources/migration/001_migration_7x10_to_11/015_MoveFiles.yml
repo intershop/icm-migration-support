@@ -3,6 +3,8 @@ migrator: com.intershop.customization.migration.file.MoveFiles
 message: "refactor: move additional files to new location"
 options:
   source-map:
-    "dca" : "staticfiles/cartridge/directCustomAttributes.xml"
+    "dca" : "staticfiles/cartridge"
   target-map:
-    "dca" : "src/main/resources/resources/{cartridgeName}/directCustomAttributes.xml"
+    "dca" : "src/main/resources/resources/{cartridgeName}"
+  filter-map:
+    "dca" : "directCustomAttributes\\.xml"
