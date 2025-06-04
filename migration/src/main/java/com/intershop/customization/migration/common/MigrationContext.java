@@ -1,19 +1,20 @@
 package com.intershop.customization.migration.common;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Global context for migration operations that tracks file and folder operations. Provides a way for migrators to
- * report success, skipped, unknown, and failed operations.
+ * report success, skipped, unknown, warning and failed operations.
  */
 public class MigrationContext
 {
@@ -26,7 +27,7 @@ public class MigrationContext
 
     public enum OperationStatus
     {
-        SUCCESS, SKIPPED, UNKNOWN, FAILED
+        SUCCESS, SKIPPED, UNKNOWN, WARNING, FAILED
     }
 
     public record Operation(OperationType type, Path source, Path target, OperationStatus status, String message)
@@ -34,13 +35,28 @@ public class MigrationContext
         @Override
         public String toString()
         {
-            return String.format("%s %s: %s -> %s (%s)", status, type, source != null ? source : "N/A",
-                    target != null ? target : "N/A", message != null ? message : "");
+            String sourcePath = source != null ? source.toString() : "N/A";
+            String targetPath = target != null ? target.toString() : "N/A";
+            String path = Objects.equals(source, target)
+                    ? sourcePath
+                    : String.format("%s -> %s", sourcePath, targetPath);
+
+            return String.format("%s %s: %s (%s)", status, type, path, message);
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            if (!(o instanceof Operation operation)) return false;
+            return Objects.equals(source(), operation.source())
+                    && Objects.equals(target(), operation.target())
+                    && type() == operation.type()
+                    && status() == operation.status();
         }
     }
 
     // Store operations by cartridge/project
-    private final Map<String, List<Operation>> operationsByProject = new HashMap<>();
+    private final Map<String, Set<Operation>> operationsByProject = new HashMap<>();
     private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new HashMap<>();
 
     /**
@@ -58,7 +74,12 @@ public class MigrationContext
     {
         Operation op = new Operation(type, source, target, status, message);
 
-        operationsByProject.computeIfAbsent(projectName, k -> new ArrayList<>()).add(op);
+        Set<Operation> projectOperations = operationsByProject.computeIfAbsent(projectName, k -> new HashSet<>());
+        if (!projectOperations.add(op))
+        {
+            return;
+        }
+
         statisticsByProject.computeIfAbsent(projectName, k -> new EnumMap<>(OperationStatus.class))
                 .merge(status, 1, Integer::sum);
 
@@ -93,6 +114,14 @@ public class MigrationContext
     }
 
     /**
+     * Record a warning for an operation
+     */
+    public void recordWarning(String projectName, OperationType type, Path source, Path target, String warning)
+    {
+        recordOperation(projectName, type, source, target, OperationStatus.WARNING, warning);
+    }
+
+    /**
      * Record a failed operation
      */
     public void recordFailure(String projectName, OperationType type, Path source, Path target, String error)
@@ -113,11 +142,12 @@ public class MigrationContext
             int success = stats.getOrDefault(OperationStatus.SUCCESS, 0);
             int skipped = stats.getOrDefault(OperationStatus.SKIPPED, 0);
             int unknown = stats.getOrDefault(OperationStatus.UNKNOWN, 0);
+            int warning = stats.getOrDefault(OperationStatus.WARNING, 0);
             int failed = stats.getOrDefault(OperationStatus.FAILED, 0);
-            int operationsSum = success + skipped + unknown + failed;
+            int operationsSum = success + skipped + unknown + warning + failed;
 
-            report.append(String.format("Project '%s': %d operations (%d successful, %d skipped, %d unknown, %d failed)%n",
-                    project, operationsSum, success, skipped, unknown, failed));
+            report.append(String.format("Project '%s': %d operations (%d successful, %d skipped, %d unknown, %d warnings, %d failed)%n",
+                    project, operationsSum, success, skipped, unknown, warning, failed));
 
             // List unknown operations for quick review
             if (unknown > 0)
@@ -126,6 +156,16 @@ public class MigrationContext
                 operationsByProject.get(project)
                         .stream()
                         .filter(op -> op.status() == OperationStatus.UNKNOWN)
+                        .forEach(op -> report.append("    - ").append(op).append("\n"));
+            }
+
+            // List warnings for quick review
+            if (warning > 0)
+            {
+                report.append("  Warnings:\n");
+                operationsByProject.get(project)
+                        .stream()
+                        .filter(op -> op.status() == OperationStatus.WARNING)
                         .forEach(op -> report.append("    - ").append(op).append("\n"));
             }
 

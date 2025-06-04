@@ -53,6 +53,7 @@ gradlew migration:migrateOne -Ptask=projects -Ptarget=<path_to_7_10_project> -Ps
 The migration steps are located in the `migration/src/main/resources/migration` folder of the project and are organized by major ICM versions. This allows to migrate from one major version to another while considering different starting points and supporting migration in more maintainable steps.
 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
+* [Migration 11 to 12](docs/migration-11-12.md)
 
 ### Third Party Libraries
 This project reuses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0. 

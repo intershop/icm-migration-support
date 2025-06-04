@@ -1,0 +1,27 @@
+initscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2" }
+    }
+    dependencies { classpath("org.openrewrite:plugin:7.7.0") }
+}
+rootProject {
+    plugins.apply(org.openrewrite.gradle.RewritePlugin)
+    dependencies {
+        rewrite("org.openrewrite.recipe:rewrite-migrate-java:3.11.0")
+    }
+    rewrite {
+        // see https://docs.openrewrite.org/recipes/java/migrate/jakarta/jakartaee10
+        activeRecipe("org.openrewrite.java.migrate.jakarta.JakartaEE10")
+        // see https://docs.openrewrite.org/recipes/java/migrate/upgradetojava21
+        activeRecipe("org.openrewrite.java.migrate.UpgradeToJava21")
+        // add any additional recipes here you want to run
+        setExportDatatables(true)
+    }
+    afterEvaluate {
+        if (repositories.isEmpty()) {
+            repositories {
+                mavenCentral()
+            }
+        }
+    }
+}

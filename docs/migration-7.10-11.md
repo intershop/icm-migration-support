@@ -25,9 +25,12 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
   - [Delete Obsolete Files](#delete-obsolete-files)
   - [Create Environment Example Files](#create-environment-example-files)
 - [Manual Migration Steps](#manual-migration-steps)
-  - [Globally Defined Dependencies](#globally-defined-dependencies)
-  - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
-  - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
+   - [Global defined dependencies](#global-defined-dependencies)
+   - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
+   - [Wiring Files using the Configuration Framework](#wiring-files-using-the-configuration-framework)
+   - [Adapt Logback Configuration](#adapt-logback-configuration)
+   - [Check remaining staticfiles](#check-remaining-staticfiles)
+   - [Verify and correct dependencies](#verify-and-correct-dependencies)
 
 ## Preparation Steps
 
@@ -301,15 +304,99 @@ task copySimpleSMBWhiteStore(type: Copy) {
 zipShare.dependsOn copySimpleSMBWhiteStore
 ```
 
-### Verify and Correct Dependencies
-Starting with ICM 11, dependencies must be declared at the cartridge level. This applies to implementation and runtime dependencies alike.
-In version 7.10, runtime dependencies were not utilized. Instead, the server required a cartridge list whose sequence indirectly reflected these runtime dependencies.
-This approach had inherent limitations, and the dependencies were not always accurate at the cartridge level.
+### Wiring Files using the Configuration Framework
 
-The cartridge list in the `build.gradle` file of the 7.10 assembly project defined the runtime dependencies indirectly and at the wrong level.
-It is no longer relevant and has already been deleted.
-The backup of the generated cartridge list is important in this step since it is a helpful tool for verifying and correcting dependencies between cartridges.
+Files in `cluster` and `domains` directories need to be wired using the Configuration Framework. The automated
+migration step moved these files to their new locations, but manual configuration is required:
 
-Each cartridge must be examined meticulously to determine its dependencies on other cartridges, and these dependencies must be documented in the respective `build.gradle.kts` file.
-This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare DBPrepare steps, and more.
-In summary, a dependency on another cartridge must be declared when additional code or output from that cartridge is necessary.
+1. Cluster- and Domain-specific config (`/src/main/resources/resources/{cartridgeName}/config/cluster`,
+   `/src/main/resources/resources/{cartridgeName}/config/domains/{domainName}`): Requires wiring in `configuration.xml`
+
+2. Cartridge- (app-type-)specific config (`/src/main/resources/resources/{cartridgeName}/config`): No wiring in
+   `configuration.xml`
+
+Verify that the configuration is correctly loaded at runtime by checking the server logs during startup.
+For more details about the configuration framework, refer to the [Concept - Configuration](https://support.intershop.com/kb/index.php/Display/301L43)
+Guide in the ICM documentation.
+
+### Adapt Logback Configuration
+
+In ICM 11, especially in cloud environments, the logback configuration needs to be adjusted to prevent issues with
+multiple application servers trying to write to the same log file.
+
+1. Remove file appenders from your logback configuration files:
+   - Locate your logback configuration files in `src/main/resources/resources/{cartridgeName}/logback/`
+   - Remove any `<appender>` configurations that write to files
+   - For example, remove configurations like:
+       ```xml
+       <appender name="DEBUG_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+           <file><@loggingDir@>/debug.log</file>
+           <encoder>
+               <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+           </encoder>
+           <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+               <FileNamePattern><@loggingDir@>/debug-%d{yyyy-MM-dd}.log.zip</FileNamePattern>
+           </rollingPolicy>
+       </appender>
+       ```
+
+2. Use console logging instead:
+   - Ensure you have a console appender configured:
+       ```xml
+       <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+           <encoder>
+               <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] %-5level %logger{36} %msg%n</pattern>
+           </encoder>
+       </appender>
+       ```
+
+   - Make sure the root logger or specific loggers use the console appender:
+       ```xml
+       <root level="INFO">
+           <appender-ref ref="STDOUT" />
+       </root>
+       ```
+
+In cloud environments, logs are typically collected and aggregated by external systems rather than stored in local
+files, making these changes essential for proper log management and centralized monitoring.
+
+### Check remaining staticfiles
+
+After the automated migration, you should verify if any staticfiles remain unmigrated:
+
+1. The migration tool should have reported any unmapped directories in the staticfiles folder
+
+2. There are exceptions for certain directories that are not moved and should remain in their original location:
+   - `staticfiles/cartridge/configdef`
+   - `staticfiles/cartridge/generationTemplates`
+   - `staticfiles/cartridge/lib`
+   - `staticfiles/cartridge/rules`
+   - `staticfiles/cartridge/static`
+   - `staticfiles/cartridge/definition`
+   - `staticfiles/cartridge/wsdl`
+   - `staticfiles/cartridge/urlrewrite`
+
+3. Check your project for any remaining staticfiles directories that were not properly migrated and should be moved
+
+4. For each remaining directory or file:
+   - Determine the appropriate new location based on the file type and purpose
+   - Manually move the file to its correct location in the ICM 11 structure
+   - Update any references to these files in your code if needed
+
+### Verify and correct dependencies
+Starting with ICM11, dependencies must be declared at the cartridge level. This applies to both implementation and runtime dependencies.
+In version 7.10, runtime dependencies were not utilized. The server necessitated a cartridge list, the sequence of which reflected these runtime 
+dependencies indirectly.
+The previous approach exhibited inherent limitations, and the dependencies were not always accurate at the cartridge level.
+
+The cartridge list, built in the `build.gradle` file of the 7.10 assembly project, defined the runtime dependencies only indirectly and on
+the wrong level.
+It is not of interest anymore and was already deleted.
+The backup of the generated cartridge list becomes in this step important since it is a helpful tool to verify and correct the dependencies between 
+the cartridges.
+
+It is imperative that each cartridge be meticulously examined to ascertain its dependencies on other cartridges, and that these dependencies be 
+documented in its respective `build.gradle.kts` file.
+This holds true for all source code artifacts, including component files, ISML templates, Java classes, and so on., as well as property files that 
+declare dbprepare steps.
+In summary, when an additional code or output from another cartridge is necessary, a dependency on that cartridge must be declared.
