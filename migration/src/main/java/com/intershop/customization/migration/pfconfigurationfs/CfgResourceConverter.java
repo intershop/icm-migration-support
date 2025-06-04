@@ -110,7 +110,7 @@ public class CfgResourceConverter
     /**
      * convert am ICM 7.10 reaource configuration to an ICM 11+ property file
      */
-    public void convertResource()
+    public void convertResource() throws IOException
     {
         if (this.resourceType.isEmpty())
         {
@@ -156,11 +156,13 @@ public class CfgResourceConverter
 
             FileUtils.writeLines(target, targetLines);
             // at least for local development
-            LOGGER.debug("Convered file {} ==>  {}.", source, target);
+            LOGGER.debug("Converted file {} ==>  {}.", source, target);
         }
         catch(IOException e)
         {
-            LOGGER.error("Error reading file: " + source, e);
+            LOGGER.error("Converting failed for file {} ==>  {}.", source, target);
+            e.printStackTrace();
+            throw new IOException("Error reading file: " + source, e);
         }
 
     }

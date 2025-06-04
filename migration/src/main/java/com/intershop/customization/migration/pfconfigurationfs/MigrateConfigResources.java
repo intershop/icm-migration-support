@@ -106,13 +106,19 @@ public class MigrateConfigResources implements MigrationPreparer
                                      targetName = targetName.replace(".resource", ".properties");
                                      Path target = Paths.get(targetName);
                                      
-                                     convertResourceFile(targetType, source, target);
-                                     Files.delete(source);
+                                     if( convertResourceFile(targetType, source, target))
+                                     {
+                                        Files.delete(source);
 
-                                     String domainName = target.getParent().getFileName().toString();
-                                     configurationXMLBuilder.addLine(targetType, domainName, targetName );
-
-                                     context.recordSuccess(migrationSubject, MODIFY, source, target);
+                                        String domainName = target.getParent().getFileName().toString();
+                                        configurationXMLBuilder.addLine(targetType, domainName, targetName );
+                                        context.recordSuccess(migrationSubject, MODIFY, source, target);
+                                     }
+                                     else
+                                     {
+                                         context.recordFailure(migrationSubject, MODIFY, source, targetFile,
+                                                 "conversion of resource file failed.");
+                                     }
                                  }
                                  else
                                  {
@@ -187,10 +193,18 @@ public class MigrateConfigResources implements MigrationPreparer
     /**
      * Convert resource files to properties files.
      **/
-    private void convertResourceFile(String resurceCfgType, Path source, Path target)
+    private boolean convertResourceFile(String resurceCfgType, Path source, Path target)
     {
+        boolean success = true;
         CfgResourceConverter converter = new CfgResourceConverter(resurceCfgType, source, target);
-        converter.convertResource();
+        try {
+            converter.convertResource();
+        } catch (IOException e) {
+            success = false;
+            LOGGER.error("Error reading file: " + source, e);
+            e.printStackTrace();
+        }
+        return success;
 
     }
 

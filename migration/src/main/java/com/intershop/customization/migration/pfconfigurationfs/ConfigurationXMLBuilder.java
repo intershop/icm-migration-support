@@ -1,8 +1,11 @@
 package com.intershop.customization.migration.pfconfigurationfs;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import com.intershop.customization.migration.pfconfigurationfs.CfgResourceConverter.ResourceType;
 
@@ -26,10 +29,19 @@ public class ConfigurationXMLBuilder {
     private HashSet <String> commondResources = new HashSet<>();
 
     // vonfigure the mappings to config XML values - see the tati blok
-    private HashMap<String, String> filters = new HashMap<>();
-    private HashMap<String, String> scopes = new HashMap<>();
-    private HashMap<String, String> environments = new HashMap<>();
-    private HashMap<String, String> systemTypes = new HashMap<>();
+    private static final String FILTERE_RESOURCE         = "resource";
+    private static final String FILTER_DOMAINE_RESOURCE = "domain-resource";
+    private static final HashMap<String, String> filters = new HashMap<>();
+
+    private static final String SCOPE_DOMAIN                = "domain";
+    private static final String SCOPE_CLUSTER_SERVER_DOMAIN = "cluster,server,domain";
+    private static final HashMap<String, String> scopes = new HashMap<>();
+
+    private static final String PLACEHOLDER_ENVIRONMENT         ="\\$\\{environment\\}";
+    private static final HashMap<String, String> environments = new HashMap<>();
+
+    private static final String PLACEHOLDER_STAGING_SYSTEM_TYPE ="\\$\\{staging.system.type\\}";
+    private static final HashMap<String, String> systemTypes = new HashMap<>();
 
     private String lastDopmainName ="";
 
@@ -47,32 +59,32 @@ public class ConfigurationXMLBuilder {
         footerLines.add("</configuration-setup>");
         
         // Initialize filters map
-        filters.put(ResourceType.APPLICATION.getValue(), "resource");
-        filters.put(ResourceType.DMNPRFRNCE.getValue(),  "domain-resource");
-        filters.put(ResourceType.MNGDSRVC.getValue(),    "resource");
-        filters.put(ResourceType.TRANSPORT.getValue(),   "domain-resource");
-        filters.put(ResourceType.USR.getValue(),         "resource");
-        filters.put(ResourceType.UNKNOWN.getValue(),     "domain-resource");
+        filters.put(ResourceType.APPLICATION.getValue(), FILTERE_RESOURCE);
+        filters.put(ResourceType.DMNPRFRNCE.getValue(),  FILTER_DOMAINE_RESOURCE);
+        filters.put(ResourceType.MNGDSRVC.getValue(),    FILTERE_RESOURCE);
+        filters.put(ResourceType.TRANSPORT.getValue(),   FILTER_DOMAINE_RESOURCE);
+        filters.put(ResourceType.USR.getValue(),         FILTERE_RESOURCE);
+        filters.put(ResourceType.UNKNOWN.getValue(),     FILTER_DOMAINE_RESOURCE);
     
         // Initialize scope map
-        scopes.put(ResourceType.APPLICATION.getValue(), "domain");
-        scopes.put(ResourceType.DMNPRFRNCE.getValue(),  "domain");
-        scopes.put(ResourceType.MNGDSRVC.getValue(),    "domain");
-        scopes.put(ResourceType.TRANSPORT.getValue(),   "domain");
-        scopes.put(ResourceType.USR.getValue(),         "cluster,server,domain");
-        scopes.put(ResourceType.UNKNOWN.getValue(),     "domain");
+        scopes.put(ResourceType.APPLICATION.getValue(), SCOPE_DOMAIN);
+        scopes.put(ResourceType.DMNPRFRNCE.getValue(),  SCOPE_DOMAIN);
+        scopes.put(ResourceType.MNGDSRVC.getValue(),    SCOPE_DOMAIN);
+        scopes.put(ResourceType.TRANSPORT.getValue(),   SCOPE_DOMAIN);
+        scopes.put(ResourceType.USR.getValue(),         SCOPE_CLUSTER_SERVER_DOMAIN);
+        scopes.put(ResourceType.UNKNOWN.getValue(),     SCOPE_DOMAIN);
 
         // TODO issue: Are the keys used from here uniquely defined by ADO?
 
         // environments
-        environments.put("development",     "\\$\\{environment\\}");        
-        environments.put("integration",     "\\$\\{environment\\}");        
-        environments.put("preproduction",   "\\$\\{environment\\}");        
-        environments.put("production",      "\\$\\{environment\\}");        
+        environments.put("development",     PLACEHOLDER_ENVIRONMENT);        
+        environments.put("integration",     PLACEHOLDER_ENVIRONMENT);        
+        environments.put("preproduction",   PLACEHOLDER_ENVIRONMENT);        
+        environments.put("production",      PLACEHOLDER_ENVIRONMENT);        
 
         // staging system types
-        systemTypes.put("editing",  "\\$\\{staging.system.type\\}");
-        systemTypes.put("live",     "\\$\\{staging.system.type\\}");
+        systemTypes.put("editing",  PLACEHOLDER_STAGING_SYSTEM_TYPE);
+        systemTypes.put("live",     PLACEHOLDER_STAGING_SYSTEM_TYPE);
     
     }
     ConfigurationXMLBuilder(String cartridgeName) {
@@ -86,7 +98,7 @@ public class ConfigurationXMLBuilder {
     {
         // if set and scope is "domai", add a domain name
         String xmlDomainName = "";
-        if (domainName != null && !domainName.isEmpty() && (0 <= (scopes.get(configType)).indexOf("domain") ))
+        if (domainName != null && !domainName.isEmpty() && (scopes.get(configType)).contains(SCOPE_DOMAIN) )
         {
             // add a domain if the configuration type requires one
             xmlDomainName = domainName;
@@ -97,15 +109,13 @@ public class ConfigurationXMLBuilder {
         .replaceFirst( "^.*" + this.cartridgeName+".config", "config");
 
         // set variables or environment and staging system type in the file name
-        for(String key: environments.keySet())
+        for(Map.Entry<String, String> env: environments.entrySet())
         {
-            cfgFileName = cfgFileName.replaceAll(key, environments.get(key));
-            // break;
+            cfgFileName = cfgFileName.replaceAll(env.getKey(), env.getValue());
         }
-        for(String key: systemTypes.keySet())
+        for(Map.Entry<String, String> sys: systemTypes.entrySet())
         {
-            cfgFileName = cfgFileName.replaceAll(key, systemTypes.get(key));
-            // break;
+            cfgFileName = cfgFileName.replaceAll(sys.getKey(), sys.getValue());
         }
 
         if (xmlDomainName.isEmpty())
@@ -167,7 +177,7 @@ public class ConfigurationXMLBuilder {
         boolean required)
     {
         return new StringBuffer( "\t\t<set")
-        .append("  filter=\"").append(scope)
+        .append("  filter=\"").append(filter)
         .append("  scope=\"").append(scope)
         .append((!xmlDomainName.isEmpty()) ? "\" domain=\"" + xmlDomainName : "")
         .append("\" resourceName=\"").append(fileName)
@@ -177,15 +187,13 @@ public class ConfigurationXMLBuilder {
         .append("\"/>").toString();
     }
 
-    public ArrayList<String>  generateConfigXML() 
+    public List<String>  generateConfigXML() 
     {
         ArrayList<String>  xmlLines = new ArrayList<>();
-        for (String line : headerLines) xmlLines.add((line));
-        
-        for (String line : commonLines) xmlLines.add((line));
-        for (String line : lines) xmlLines.add((line));
-
-        for (String line : footerLines) xmlLines.add((line));
+        xmlLines.addAll(headerLines);
+        xmlLines.addAll(commonLines);
+        xmlLines.addAll(lines);
+        xmlLines.addAll(footerLines);
 
         return xmlLines;
     }
