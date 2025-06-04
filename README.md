@@ -52,6 +52,7 @@ The migration steps are located in the `migration/src/main/resources/migration` 
 migrate from one major version to another, while keeping different start points in mind and supporting a migration in more maintainable steps.
 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
+* [Migration 11 to 12](docs/migration-11-12.md)
 
 ### Third Party Libraries
 This project re-uses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0. The code from the 
