@@ -94,9 +94,17 @@ public class MoveFolder implements MigrationPreparer
                 {
                     Files.move(sourcePath, targetPath);
                     context.recordSuccess(cartridgeName, MOVE, sourcePath, targetPath);
+
+                    if ("cluster".equals(artifactName) || "domains".equals(artifactName))
+                    {
+                        LOGGER.warn("Files in '{}' need to be wired in configuration.xml.", targetPath);
+                        context.recordWarning(cartridgeName, MOVE, sourcePath, targetPath,
+                                "Files need to be wired in configuration.xml. " +
+                                "For details about the configuration framework, see 'Concept - Configuration'.");
+                    }
                 }
                 else {
-                    LoggerFactory.getLogger(getClass()).warn("Folder '{}' exists.", targetPath);
+                    LOGGER.warn("Folder '{}' exists.", targetPath);
                     context.recordSkipped(cartridgeName, MOVE, sourcePath, targetPath, "Target folder already exists");
                 }
             }

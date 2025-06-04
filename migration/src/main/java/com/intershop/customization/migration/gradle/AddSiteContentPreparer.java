@@ -1,7 +1,6 @@
 package com.intershop.customization.migration.gradle;
 
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
-import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -67,12 +66,15 @@ public class AddSiteContentPreparer implements MigrationPreparer
                     FileUtils.writeString(dbinitProperties, injectSiteContentPreparer(parsedLines, highestPreEntry, firstMainEntry));
 
                     LOGGER.warn("SiteContentPreparer was added to file '{}'. Please remove possible 'Copy' tasks from '{}'", dbinitPropsOptional, projectDir.resolve("build.gradle"));
+                    context.recordWarning(cartridgeName, MODIFY, dbinitProperties, dbinitProperties,
+                            "SiteContentPreparer was added please remove possible 'Copy' tasks from 'build.gradle' for 'sites' folder.");
+
                     context.recordSuccess(cartridgeName, MODIFY, dbinitProperties, dbinitProperties);
                 }
                 catch(IOException e)
                 {
                     LOGGER.error("Can't register SiteContentPreparer in file " + dbinitPropsOptional, e);
-                    context.recordFailure(cartridgeName, MOVE, dbinitProperties, dbinitProperties,
+                    context.recordFailure(cartridgeName, MODIFY, dbinitProperties, dbinitProperties,
                             "Can't register SiteContentPreparer in file: " + e.getMessage());
                 }
             }
