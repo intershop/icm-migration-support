@@ -86,7 +86,7 @@ public class CfgResourceConverter
 
     private Path source;
     private Path target;
-    private String resourceType;
+    private ResourceType resourceType;
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(CfgResourceConverter.class);
 
@@ -102,7 +102,7 @@ public class CfgResourceConverter
         this.source = source;
         this.target = target;
 
-        this.resourceType = ResourceType.fromValue(resourceType).getValue();
+        this.resourceType = ResourceType.fromValue(resourceType);
 
 
     }
@@ -112,7 +112,7 @@ public class CfgResourceConverter
      */
     public void convertResource() throws IOException
     {
-        if (this.resourceType.isEmpty())
+        if (ResourceType.UNKNOWN == this.resourceType)
         {
             LOGGER.error("No resource type set. Can't convert file {}.", source);
             return;
@@ -135,17 +135,17 @@ public class CfgResourceConverter
             List<String> lines = FileUtils.readAllLines(source);
             List<String> targetLines = new ArrayList<>();
 
-            if (ResourceType.TRANSPORT.getValue().equals(this.resourceType)
-                || ResourceType.APPLICATION.getValue().equals(this.resourceType))
+            if ( ResourceType.TRANSPORT == this.resourceType
+                || ResourceType.APPLICATION == this.resourceType)
             {
                 targetLines = migrateTransportCfg(lines);
             }
-            else if (ResourceType.USR.getValue().equals(this.resourceType)
-                     || ResourceType.DMNPRFRNCE.getValue().equals(this.resourceType))
+            else if (ResourceType.USR  ==this.resourceType
+                     || ResourceType.DMNPRFRNCE == this.resourceType)
             {
                 targetLines = migrateSimpleCfg(lines);
             }
-            else if (ResourceType.MNGDSRVC.getValue().equals(this.resourceType))
+            else if ( ResourceType.MNGDSRVC == this.resourceType)
             {
                 targetLines = migrateManagedServiceCfg(lines);
             }
@@ -196,7 +196,7 @@ public class CfgResourceConverter
             }
             else
             {
-                targetLine = ResourceType.fromValue(this.resourceType).getPrefix() + ">" + line.trim();
+                targetLine = this.resourceType.getPrefix() + ">" + line.trim();
                 targetLines.add(targetLine);
             }
         }
@@ -267,11 +267,11 @@ public class CfgResourceConverter
                 if (tartEntry.size() == 3)
                 {
                     String groupStr = tartEntry.get(0).trim();
-                    if (ResourceType.APPLICATION.getValue().equals(this.resourceType))
+                    if (ResourceType.APPLICATION == this.resourceType)
                     {
                         groupStr = cfgDomainDir + ">" + groupStr;
                     }
-                    targetLine = ResourceType.fromValue(this.resourceType).getPrefix() + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
+                    targetLine = this.resourceType.getPrefix() + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
                                     + tartEntry.get(2).trim();
                     if (!targetLine.endsWith(" = n/a"))
                     {
@@ -350,7 +350,7 @@ public class CfgResourceConverter
                     }
                     cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
                     StringBuffer bTargetLine
-                    = new StringBuffer().append(ResourceType.fromValue(this.resourceType).getPrefix())
+                    = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(">")
                       .append(taretEntry.get( cfgGroup + ".ServiceDefinitionID"))
                       .append(">").append(taretEntry.get(cfgGroup + ".ServiceConfigurationName"))

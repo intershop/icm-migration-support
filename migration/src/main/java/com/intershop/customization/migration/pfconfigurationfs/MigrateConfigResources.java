@@ -2,19 +2,16 @@ package com.intershop.customization.migration.pfconfigurationfs;
 
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.utils.FileUtils;
 
 // import ch.qos.logback.core.net.ssl.TrustManagerFactoryFactoryBean;
