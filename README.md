@@ -57,5 +57,5 @@ The migration steps are located in the `migration/src/main/resources/migration` 
 
 ### Third Party Libraries
 This project reuses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0. 
-The code from the project was adapted to fit the needs of this project. 
-All changes are marked in the "Gradle Kotlin DSL converter" code with a comment in the function `applyConversions()`.
+The code from the project was adapted to fit the needs of this project.
+Comments in the function `applyConversions()` of the _Gradle Kotlin DSL converter_ code identify all changes.
