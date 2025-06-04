@@ -24,6 +24,7 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
   - [Rename Packages](#rename-packages)
   - [Delete Obsolete Files](#delete-obsolete-files)
   - [Create Environment Example Files](#create-environment-example-files)
+<<<<<<< HEAD
   - [Manual Migration Steps](#manual-migration-steps)
   - [Global defined dependencies](#global-defined-dependencies)
   - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
@@ -31,6 +32,15 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
   - [Adapt Logback Configuration](#adapt-logback-configuration)
   - [Check remaining staticfiles](#check-remaining-staticfiles)
   - [Verify and correct dependencies](#verify-and-correct-dependencies)
+=======
+- [Manual Migration Steps](#manual-migration-steps)
+   - [Global defined dependencies](#global-defined-dependencies)
+   - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
+   - [Wiring Files using the Configuration Framework](#wiring-files-using-the-configuration-framework)
+   - [Adapt Logback Configuration](#adapt-logback-configuration)
+   - [Check Remaining Static Files](#check-remaining-static-files)
+   - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
+>>>>>>> db1e29c (docs: review of markdown files)
 
 ## Preparation Steps
 
@@ -304,30 +314,28 @@ task copySimpleSMBWhiteStore(type: Copy) {
 zipShare.dependsOn copySimpleSMBWhiteStore
 ```
 
-### Wiring Files using the Configuration Framework
+### Wiring Files Using the Configuration Framework
 
-Files in `cluster` and `domains` directories need to be wired using the Configuration Framework. The automated
-migration step moved these files to their new locations, but manual configuration is required:
+Files in `cluster` and `domains` directories need to be wired using the configuration framework. 
+Although the automated migration step moved these files to their new locations, manual configuration is still required.
 
-1. Cluster- and Domain-specific config (`/src/main/resources/resources/{cartridgeName}/config/cluster`,
+1. Cluster-specific and domain-specific configuration (`/src/main/resources/resources/{cartridgeName}/config/cluster`,
    `/src/main/resources/resources/{cartridgeName}/config/domains/{domainName}`): Requires wiring in `configuration.xml`
 
-2. Cartridge- (app-type-)specific config (`/src/main/resources/resources/{cartridgeName}/config`): No wiring in
+2. Cartridge-specific and app-type-specific configuration (`/src/main/resources/resources/{cartridgeName}/config`): No wiring in
    `configuration.xml`
 
 Verify that the configuration is correctly loaded at runtime by checking the server logs during startup.
-For more details about the configuration framework, refer to the [Concept - Configuration](https://support.intershop.com/kb/index.php/Display/301L43)
-Guide in the ICM documentation.
+For more details about the configuration framework, refer to [Concept - Configuration](https://support.intershop.com/kb/index.php/Display/301L43) in the Intershop Knowledge Base.
 
 ### Adapt Logback Configuration
 
-In ICM 11, especially in cloud environments, the logback configuration needs to be adjusted to prevent issues with
-multiple application servers trying to write to the same log file.
+In ICM 11, especially in cloud environments, adjusting the Logback configuration is necessary to prevent issues when multiple application servers attempt to write to the same log file:
 
 1. Remove file appenders from your logback configuration files:
-   - Locate your logback configuration files in `src/main/resources/resources/{cartridgeName}/logback/`
-   - Remove any `<appender>` configurations that write to files
-   - For example, remove configurations like:
+   - Locate your logback configuration files in `src/main/resources/resources/{cartridgeName}/logback/`.
+   - Remove any `<appender>` configurations that write to files.
+   - For example, remove configurations such as:
        ```xml
        <appender name="DEBUG_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
            <file><@loggingDir@>/debug.log</file>
@@ -350,23 +358,21 @@ multiple application servers trying to write to the same log file.
        </appender>
        ```
 
-   - Make sure the root logger or specific loggers use the console appender:
+   - Make sure the root logger (or specific loggers) use the console appender:
        ```xml
        <root level="INFO">
            <appender-ref ref="STDOUT" />
        </root>
        ```
 
-In cloud environments, logs are typically collected and aggregated by external systems rather than stored in local
-files, making these changes essential for proper log management and centralized monitoring.
+In cloud environments, logs are typically collected and aggregated by external systems rather than stored in local files, making these changes essential for proper log management and centralized monitoring.
 
-### Check remaining staticfiles
+### Check Remaining Static Files
 
-After the automated migration, you should verify if any staticfiles remain unmigrated:
+After the automated migration, verify whether any static files were not migrated:
 
-1. The migration tool should have reported any unmapped directories in the staticfiles folder
-
-2. There are exceptions for certain directories that are not moved and should remain in their original location:
+1. The migration tool should have reported any unmapped directories in the `staticfiles` folder.
+1. Certain directories are exceptions and should remain in their original locations:
    - `staticfiles/cartridge/configdef`
    - `staticfiles/cartridge/generationTemplates`
    - `staticfiles/cartridge/lib`
@@ -375,19 +381,16 @@ After the automated migration, you should verify if any staticfiles remain unmig
    - `staticfiles/cartridge/definition`
    - `staticfiles/cartridge/wsdl`
    - `staticfiles/cartridge/urlrewrite`
-
-3. Check your project for any remaining staticfiles directories that were not properly migrated and should be moved
-
-4. For each remaining directory or file:
+1. Check your project for any remaining `staticfiles` directories that were not migrated but should have been moved.
+1. For each remaining directory or file:
    - Determine the appropriate new location based on the file type and purpose
    - Manually move the file to its correct location in the ICM 11 structure
    - Update any references to these files in your code if needed
 
-### Verify and correct dependencies
-Starting with ICM11, dependencies must be declared at the cartridge level. This applies to both implementation and runtime dependencies.
-In version 7.10, runtime dependencies were not utilized. The server necessitated a cartridge list, the sequence of which reflected these runtime 
-dependencies indirectly.
-The previous approach exhibited inherent limitations, and the dependencies were not always accurate at the cartridge level.
+### Verify and Correct Dependencies
+Starting with ICM 11, dependencies must be declared at the cartridge level. This applies to implementation and runtime dependencies alike.
+In version 7.10, runtime dependencies were not utilized. Instead, the server required a cartridge list whose sequence indirectly reflected these runtime dependencies.
+This approach had inherent limitations, and the dependencies were not always accurate at the cartridge level.
 
 The cartridge list in the `build.gradle` file of the 7.10 assembly project defined the runtime dependencies indirectly and at the wrong level.
 It is no longer relevant and has already been deleted.
