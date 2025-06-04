@@ -1,5 +1,6 @@
 package com.intershop.customization.migration.file;
 
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.DELETE;
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MOVE;
 import static com.intershop.customization.migration.file.MoveFilesConstants.PLACEHOLDER_CARTRIDGE_NAME;
 
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -116,7 +119,64 @@ public class MoveFolder implements MigrationPreparer
             }
         }
 
+        removeEmptyStaticFilesFolder(cartridgeDir, cartridgeName, context);
         checkRemainingStaticFiles(cartridgeDir, cartridgeName, context);
+    }
+
+    /**
+     * Removes the staticfiles directory if it only contains empty subdirectories. This helps clean up after migration
+     * when all files have been moved to their new locations.
+     *
+     * @param cartridgeDir The cartridge directory
+     * @param cartridgeName The name of the cartridge
+     * @param context The migration context
+     */
+    private void removeEmptyStaticFilesFolder(Path cartridgeDir, String cartridgeName, MigrationContext context)
+    {
+        Path staticFilesDir = cartridgeDir.resolve("staticfiles");
+        if (!Files.exists(staticFilesDir))
+        {
+            return;
+        }
+
+        try
+        {
+            // Check if the directory contains any regular files (recursively)
+            List<Path> files = FileUtils.listFiles(staticFilesDir, Files::isRegularFile, null);
+
+            if (files.isEmpty())
+            {
+                LOGGER.info("Removing empty staticfiles directory in cartridge {}", cartridgeName);
+
+                // Delete all content recursively, then the directory itself
+                try (var pathStream = Files.walk(staticFilesDir))
+                {
+                    pathStream.sorted(Comparator.reverseOrder()).forEach(path -> {
+                        try
+                        {
+                            Files.delete(path);
+                            context.recordSuccess(cartridgeName, DELETE, path, null);
+                        }
+                        catch (IOException e)
+                        {
+                            LOGGER.error("Failed to delete {}: {}", path, e.getMessage());
+                            context.recordFailure(cartridgeName, DELETE, path, null,
+                                    "Failed to delete empty staticfiles directory: " + e.getMessage());
+                        }
+                    });
+                }
+            }
+            else
+            {
+                LOGGER.debug("Static files directory still contains files, not removing");
+            }
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("Error checking if staticfiles directory is empty: {}", e.getMessage());
+            context.recordFailure(cartridgeName, DELETE, staticFilesDir, null,
+                    "Error checking if staticfiles directory is empty: " + e.getMessage());
+        }
     }
 
     /**
