@@ -354,12 +354,12 @@ multiple application servers trying to write to the same log file.
    - Make sure the root logger or specific loggers use the console appender:
        ```xml
        <root level="INFO">
-             <appender-ref ref="STDOUT" />
+           <appender-ref ref="STDOUT" />
        </root>
        ```
 
-These changes ensure that your application works correctly in ICM 11 cloud environments where multiple instances of the
-application server may be running simultaneously.
+In cloud environments, logs are typically collected and aggregated by external systems rather than stored in local
+files, making these changes essential for proper log management and centralized monitoring.
 
 ### Check remaining staticfiles
 
