@@ -25,9 +25,9 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
   - [Delete Obsolete Files](#delete-obsolete-files)
   - [Create Environment Example Files](#create-environment-example-files)
 - [Manual Migration Steps](#manual-migration-steps)
-   - [Global defined dependencies](#global-defined-dependencies)
+   - [Globally Defined Dependencies](#globally-defined-dependencies)
    - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
-   - [Wiring Files using the Configuration Framework](#wiring-files-using-the-configuration-framework)
+   - [Wiring Files Using the Configuration Framework](#wiring-files-using-the-configuration-framework)
    - [Adapt Logback Configuration](#adapt-logback-configuration)
    - [Check Remaining Static Files](#check-remaining-static-files)
    - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
@@ -50,8 +50,8 @@ Use the customization template to create the initial project structure.
 
 As a result, the following files are created:
 - `build.gradle.kts` - root build script to configure subprojects (cartridges)
-  -- define and apply gradle repositories (allows to download ICM cartridges)
-  -- apply version filter to subproject (allows central definition of versions at two subprojects `versions` and `versions_test`)
+  - Define and apply gradle repositories (allows to download ICM cartridges)
+  - Apply version filter to subproject (allows central definition of versions at two subprojects `versions` and `versions_test`)
 - `my_*` directories containing example cartridges for different purposes
 - `ft_production` directory defines the cartridge set of production
 - `ft_test` directory defines the test cartridge set for server tests (mostly test data)
@@ -60,7 +60,7 @@ As a result, the following files are created:
 To ensure the following migration bases on a working template, verify the following:
 1. Switch to your ICM 11+ project.
 1. Check that result of customization template is working.
-1. Set marker:
+1. Run the following comment to set the marker:
 
 ```
 gradlew compileTestJava
@@ -320,7 +320,7 @@ For more details about the configuration framework, refer to [Concept - Configur
 
 ### Adapt Logback Configuration
 
-In ICM 11, especially in cloud environments, adjusting the Logback configuration is necessary to prevent issues when multiple application servers attempt to write to the same log file:
+In ICM 11, adjusting the Logback configuration is necessary to prevent issues when multiple application servers attempt to write to the same log file:
 
 1. Remove file appenders from your logback configuration files:
    - Locate your logback configuration files in `src/main/resources/resources/{cartridgeName}/logback/`.
