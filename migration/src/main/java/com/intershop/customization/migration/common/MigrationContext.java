@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class MigrationContext
     }
 
     // Store operations by cartridge/project
-    private final Map<String, Set<Operation>> operationsByProject = new HashMap<>();
+    private final Map<String, Set<Operation>> operationsByProject = new TreeMap<>();
     private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new HashMap<>();
 
     /**
