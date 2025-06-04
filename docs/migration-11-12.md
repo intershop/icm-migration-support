@@ -17,7 +17,7 @@ This document outlines the migration process from ICM 11 to ICM 12. It includes 
 
 ## Automated Migration Steps
 
-The automated steps for migrating from 11 to 12 are defined in: `src/main/resources/migration/002_migration_11_to_12`.
+The automated steps for migrating from ICM 11 to ICM 12 are defined in: `src/main/resources/migration/002_migration_11_to_12`.
 
 Example command:
 ```
