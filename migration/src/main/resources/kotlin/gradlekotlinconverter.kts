@@ -900,22 +900,29 @@ fun String.convertCopyTask(): String {
 
 // tasks.compileJava.dependsOn custom_task
 // becomes
-// tasks.getByName("compileJava").dependsOn("custom_task")
+// tasks.named("compileJava") { dependsOn("custom_task") }
 // and if it's compileJava, also add:
-// tasks.getByName("sourcesJar").dependsOn("custom_task")
-// tasks.getByName("processResources").dependsOn("custom_task")
+// tasks.getByName("sourcesJar") { dependsOn("custom_task") }
+// tasks.getByName("processResources") { dependsOn("custom_task") }
 fun String.convertDynamicTaskDependencies(): String {
     val taskDependencyExp = """tasks\.(\w+)\.dependsOn\s+(\w+)""".toRegex()
 
     return this.replace(taskDependencyExp) { matchResult ->
         val (taskName, dependsOnTask) = matchResult.destructured
-        val convertedLine = """tasks.getByName("$taskName").dependsOn("$dependsOnTask")"""
+        val convertedLine = """
+            |tasks.named("$taskName") {
+            |    dependsOn("$dependsOnTask")
+            |}""".trimMargin()
 
-        // Wenn es sich um compileJava handelt, füge die zusätzlichen Abhängigkeiten hinzu
+        // add additional dependencies if the dependency was compileJava
         if (taskName == "compileJava") {
             """$convertedLine
-tasks.getByName("sourcesJar").dependsOn("$dependsOnTask")
-tasks.getByName("processResources").dependsOn("$dependsOnTask")"""
+               |tasks.named("sourcesJar") {
+               |    dependsOn("$dependsOnTask")
+               |}
+               |tasks.named("processResources") {
+               |    dependsOn("$dependsOnTask")
+               |}""".trimMargin()
         } else {
             convertedLine
         }
