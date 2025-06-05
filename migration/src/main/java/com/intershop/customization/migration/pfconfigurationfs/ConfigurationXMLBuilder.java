@@ -43,6 +43,7 @@ public class ConfigurationXMLBuilder {
     private static final HashMap<String, String> systemTypes = new HashMap<>();
 
     private String lastDopmainName ="";
+    private int resourceCfgEntryCounter = 0;
 
     private static final int MIN_PRIORITY = 61;
     int priority = MIN_PRIORITY;
@@ -175,6 +176,9 @@ public class ConfigurationXMLBuilder {
         String cartridgeName, 
         boolean required)
     {
+        // count xml entries to ensure there are convertes resource files
+        resourceCfgEntryCounter++;
+        // combine the xml entry
         return new StringBuffer( "\t\t<set")
         .append("  filter=\"").append(filter)
         .append("  scope=\"").append(scope)
@@ -195,6 +199,10 @@ public class ConfigurationXMLBuilder {
         xmlLines.addAll(footerLines);
 
         return xmlLines;
+    }
+
+    public int getGeneratedEntriesCount() {
+        return resourceCfgEntryCounter;
     }
 
 }

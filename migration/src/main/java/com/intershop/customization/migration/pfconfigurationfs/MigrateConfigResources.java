@@ -131,12 +131,22 @@ public class MigrateConfigResources implements MigrationPreparer
                          }
                      });
             }
-            Path configurationXMFilePath = cartridgeDir.resolve("src/main/resources/resources")
-                    .resolve(cartridgeName).resolve("config").resolve("configuration.xml");
-            if(!configurationXMFilePath.toFile().exists())
-                Files.createFile(configurationXMFilePath);
-            FileUtils.writeLines(configurationXMFilePath, 
-                configurationXMLBuilder.generateConfigXML());          
+            if(configurationXMLBuilder.getGeneratedEntriesCount() > 0)
+            {
+                LOGGER.info("Generating configuration.xml for cartridge {}.", cartridgeName);
+                Path configurationXMFilePath = cartridgeDir.resolve("src/main/resources/resources")
+                        .resolve(cartridgeName).resolve("config").resolve("configuration.xml");
+                if(!configurationXMFilePath.toFile().exists())
+                {
+                    Files.createFile(configurationXMFilePath);
+                }
+                FileUtils.writeLines(configurationXMFilePath, 
+                    configurationXMLBuilder.generateConfigXML());          
+            }
+            else
+            {
+                LOGGER.info("No configuration.xml needed for cartridge {}.", cartridgeName);
+            }
 
         }
         catch(IOException e)
