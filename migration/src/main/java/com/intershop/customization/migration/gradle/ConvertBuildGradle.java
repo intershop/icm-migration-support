@@ -82,16 +82,19 @@ public class ConvertBuildGradle implements MigrationPreparer
     {
         String cartridgeName = getResourceName(projectDir);
         Path buildGradle = projectDir.resolve("build.gradle");
+
+        LOGGER.info("Processing cartridge '{}'", cartridgeName);
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
             String newContent = migrate(lines);
             FileUtils.writeString(buildGradle, newContent);
             context.recordSuccess(cartridgeName, MODIFY, buildGradle, buildGradle);
+            LOGGER.info("Migrated build.gradle for cartridge '{}'", cartridgeName);
         }
         catch(IOException e)
         {
-            LOGGER.error("Can't convert build.gradle", e);
+            LOGGER.error("Can't convert build.gradle for cartridge '{}': {}", cartridgeName, e.getMessage());
             context.recordFailure(cartridgeName, MODIFY, buildGradle, buildGradle,
                     "Can't convert build.gradle: " + e.getMessage());
         }
