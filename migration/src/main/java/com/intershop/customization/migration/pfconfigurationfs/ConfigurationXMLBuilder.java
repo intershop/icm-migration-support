@@ -87,13 +87,26 @@ public class ConfigurationXMLBuilder {
         systemTypes.put("live",     PLACEHOLDER_STAGING_SYSTEM_TYPE);
     
     }
+
+    /**
+     * Constructor for ConfigurationXMLBuilder.
+     * Initializes the cartridge name and clears the (domain specific) and the (not domain related) common lines configuration XML lines 
+     *
+     * @param cartridgeName - the name of the cartridge for which the configuration XML is being built
+     */
     ConfigurationXMLBuilder(String cartridgeName) {
 
         lines.clear();
         commonLines.clear();
         this.cartridgeName = cartridgeName;
     }
-
+    /** gather the data and add a line to the list of configuration xml entries
+     * 
+     * @param configType - the type of the configuration (e.g. application, transport, etc.)
+     * @param domainName - the name of the domain for the configuration, if applicable
+     * @param cfgFileName - the name of the configuration file to be added
+     * 
+     */
     public void addLine(String configType, String domainName, String cfgFileName) 
     {
         // if set and scope is "domai", add a domain name
@@ -166,7 +179,19 @@ public class ConfigurationXMLBuilder {
 
         lastDopmainName = xmlDomainName;
     }
-
+    /** generates a configuration xml entry referring a configuration property file 
+     *
+     * @param filter - the filter type for the configuration
+     * @param scope - the scope of the configuration
+     * @param xmlDomainName - the domain name for the configuration if given
+     * @param fileName - the name of the configuration file
+     * @param priority - the priority of the configuration by domain
+     * @param cartridgeName - the name of the cartridge
+     * @param required - whether the configuration is required
+     * 
+     * @return the configuration xml entry
+     *  
+    */
     private String generateLine(    
         String filter, 
         String scope, 
@@ -181,7 +206,7 @@ public class ConfigurationXMLBuilder {
         // combine the xml entry
         return new StringBuffer( "\t\t<set")
         .append("  filter=\"").append(filter)
-        .append("  scope=\"").append(scope)
+        .append("\"  scope=\"").append(scope)
         .append((!xmlDomainName.isEmpty()) ? "\" domain=\"" + xmlDomainName : "")
         .append("\" resourceName=\"").append(fileName)
         .append("\" priority=\"").append(priority)
@@ -190,6 +215,13 @@ public class ConfigurationXMLBuilder {
         .append("\"/>").toString();
     }
 
+    /**
+     * Generates the configuration XML as a list of strings.
+     * This method combines the header, common, domain specific and footer lines
+     * with reach line referring a configuration property file.
+     *
+     * @return a list of strings representing the configuration XML
+     */
     public List<String>  generateConfigXML() 
     {
         ArrayList<String>  xmlLines = new ArrayList<>();
@@ -201,6 +233,12 @@ public class ConfigurationXMLBuilder {
         return xmlLines;
     }
 
+    /**
+     * Returns the number of generated configuration entries.
+     * This there are none, no configuration.xml is needed
+     *
+     * @return the count of generated configuration entries
+     */
     public int getGeneratedEntriesCount() {
         return resourceCfgEntryCounter;
     }

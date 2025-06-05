@@ -19,24 +19,17 @@ import com.intershop.customization.migration.utils.FileUtils;
 public class MigrateConfigResources implements MigrationPreparer
 {
 
-    private static final String YAML_KEY_CONFIGURATION_XML = "configuration-xml";
-
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
-    /* w.i.p.
-    @Override
-    public void setStep(MigrationStep step)
-    {
-        this.configurationXML = step.getOption(YAML_KEY_CONFIGURATION_XML);
-    }
-    */
 
-       /**
+    /**
      * Migrates a resource with context tracking.
-     * It allows recording success, failures, and other metrics.
+     * It allows recording success, failures, and other metrics.<br/>
+     * Actually the directory src/main/resources/resources/{cartridgeName}/config 
+     * is left for each carttridge as the .resource files were already moved there by tasks before.
      *
-     * @param resource Path to the resource that needs to be migrated
+     * @param resource Path to the resource that needs to be migrated,
      * @param context The migration context for tracking operations and their results
      */
 
@@ -44,24 +37,17 @@ public class MigrateConfigResources implements MigrationPreparer
     public void migrate(Path cartridgeDir, MigrationContext context)
     {
         Path staticFilesFolder = cartridgeDir.resolve("staticfiles");
-        Path staticCartridgeFolder = staticFilesFolder.resolve("cartridge");
         Path staticshareFolder = staticFilesFolder.resolve("share");
-        Path staticSitesFolder = staticFilesFolder.resolve("sites");
         Path cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
         ConfigurationXMLBuilder configurationXMLBuilder = new ConfigurationXMLBuilder(cartridgeName.getFileName().toString());
         Path sourceMain = cartridgeDir.resolve("src/main");
         String migrationSubject = cartridgeName.getFileName().toString();
 
-        if (!staticCartridgeFolder.toFile().exists())
-        {
-            LOGGER.debug("Can't find cartridges static folder {}.", staticCartridgeFolder);
-            return;
-        }
-        LOGGER.info("Processing cartridges {} in {}.", cartridgeName, staticCartridgeFolder.toFile().getAbsolutePath());
+        LOGGER.info("Processing cartridge {} in {}.", cartridgeName, cartridgeDir.toFile().getAbsolutePath());
 
         try
         {
-            List<Path> toBeMigrated = List.of(staticCartridgeFolder, staticshareFolder, staticSitesFolder, sourceMain);
+            List<Path> toBeMigrated = List.of( staticshareFolder, sourceMain);
             for (Path path : toBeMigrated)
             {
 
@@ -154,44 +140,32 @@ public class MigrateConfigResources implements MigrationPreparer
             throw new RuntimeException(e);
         }
     }
-
+    /**
+     * resolve the target path to place the converted resource (= property) file.
+     * 
+     * @param cartridgeName - the cartridge name
+     * @param source - the source file path
+     * @param sourceMain the src/main path
+     * @return targetPath the target path to write the resulting property  file to
+     */
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
-        String fileName = source.getName(0).toString();
         Path targetPath = sourceMain.resolve("resources/resources").resolve(cartridgeName);
-        if (targetPath.toString()
-                      .contains("resources" + java.io.File.separator + "resources" + java.io.File.separator
-                                      + cartridgeName))
+        if (targetPath.toString().contains(
+            "resources" + java.io.File.separator 
+            + "resources" + java.io.File.separator 
+            + cartridgeName))
         {
-            switch(fileName)
-            {
-                case "domains":
-                    // staticfiles/share/system/config/domains ->
-                    // src/main/resources/resources/{cartridgeName}/config/domains
-                    Path targetSubDomains = source.subpath(2, source.getNameCount());
-                    targetPath = targetPath.resolve(targetSubDomains);
-                    break;
-                case "system":
-                    // staticfiles/share/system/config
-                    // -> src/main/resources/resources/{cartridgeName}/config
-                    Path targetSubConfig = source.subpath(1, source.getNameCount());
-                    targetPath = targetPath.resolve(targetSubConfig);
-                    break;
-                case "cartridge":
-                    // staticfiles/share/sites
-                    // -> src/main/resources/resources/{cartridgeName}/sites
-                    Path targetSubSites = source.subpath(2, source.getNameCount());
-                    targetPath = targetPath.resolve(targetSubSites);
-                    break;
-                default:
-                    // others -> src/main/resources/resources/{cartridgeName}
-                    Path targetSub = source.subpath(3, source.getNameCount());
-                    targetPath = targetPath.resolve(targetSub);
-            }
+            // others -> src/main/resources/resources/{cartridgeName}
+            Path targetSub = source.subpath(1, source.getNameCount());
+            targetPath = targetPath.resolve(targetSub);
         }
         return targetPath;
     }
 
+    /** returns true if the file is a .resource file to be migrated
+     * @param path containing the file name to be verified
+     */
     private boolean shouldMigrate(Path path)
     {
         return path.getFileName().toString().endsWith(".resource");
