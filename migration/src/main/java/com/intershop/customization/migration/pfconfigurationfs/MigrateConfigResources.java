@@ -132,7 +132,7 @@ public class MigrateConfigResources implements MigrationPreparer
                      });
             }
             Path configurationXMFilePath = cartridgeDir.resolve("src/main/resources/resources")
-                    .resolve(cartridgeName).resolve("config").resolve("coniguration.xml");
+                    .resolve(cartridgeName).resolve("config").resolve("configuration.xml");
             if(!configurationXMFilePath.toFile().exists())
                 Files.createFile(configurationXMFilePath);
             FileUtils.writeLines(configurationXMFilePath, 
