@@ -22,7 +22,7 @@ class ConvertToCartridgeDependencyTest
         List<String> lines = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.source")));
         String expected = FileUtils.readString(Paths.get(getResourceURI("ConvertToCartridgeDependencyTest.expected")));
         MigrationStep step = MigrationStep.valueOf(getGlobalResourceURI(
-                "migration/001_migration_7x10_to_11/030_ConvertToCartridgeDependency.yml"));
+                "migration/001_migration_7x10_to_11/035_ConvertToCartridgeDependency.yml"));
         underTest.setStep(step);
         String result = underTest.migrate(lines);
         assertEquals(expected, result);
