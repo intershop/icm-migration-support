@@ -129,6 +129,11 @@ public class MoveFilteredFolder implements MigrationPreparer
     // apply the filter to determine if a file should be moved
     private boolean shouldMove(Path path, String filter)
     {
-        return path.toFile().getAbsolutePath().matches(filter);
+        String absolutePath = path.toFile().getAbsolutePath();
+        String normalizedPath = absolutePath.replaceAll("\\\\", "/");
+
+        return normalizedPath.matches(filter);
+
+//        return path.toFile().getAbsolutePath().matches(filter);
     }
 }
