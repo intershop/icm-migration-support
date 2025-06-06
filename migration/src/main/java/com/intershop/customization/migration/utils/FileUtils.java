@@ -120,4 +120,45 @@ public class FileUtils
             return streamedLines.anyMatch(l -> l.contains(text));
         }
     }
+
+    /**
+     * Removes empty directories recursively.
+     *
+     * @param path the path to the directory to remove
+     * @throws IOException if an I/O error occurs
+     */
+    public static void removeEmptyDirectories(Path path) throws  IOException
+    {
+        if (path == null || !Files.exists(path))
+        {
+            return;
+        }
+
+        if (Files.isDirectory(path))
+        {
+            // try to remove all subdirectories first
+            try (Stream<Path> stream = Files.list(path))
+            {
+                stream.forEach( file -> {
+                    try
+                    {
+                        removeEmptyDirectories(file);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new RuntimeException("Error removing empty directories: " + e.getMessage(), e);
+                    }
+                });
+            }
+
+            // if the directory has no sub elements, delete it
+            try (Stream<Path> stream = Files.list(path))
+            {
+                if (stream.findAny().isEmpty())
+                {
+                    Files.delete(path);
+                }
+            }
+        }
+    }
 }
