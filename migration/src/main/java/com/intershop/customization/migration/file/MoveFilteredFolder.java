@@ -29,13 +29,10 @@ import org.slf4j.LoggerFactory;
  * options:
  *   source-map:
  *     "java" : "javasource"
- *     "pipeletXmls" : "javasource"
  *   target-map:
  *     "java" : "src/main/java"
- *     "pipeletXmls" : "src/main/resources"
  *   filter-map:
  *     "java" : ".*\\.java$"
- *     "pipeletXmls" : "^.*\\\\pipelet\\\\.*\\.xml$"
  * </pre>
  */
 public class MoveFilteredFolder implements MigrationPreparer
