@@ -2,6 +2,7 @@ package com.intershop.customization.migration;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import com.intershop.customization.migration.common.MigrationContext;
@@ -124,8 +125,14 @@ public class Migrator
     protected void migrateProjects(File rootProject)
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
+        List<MigrationStep> allSteps = steps.getSteps();
 
-        for (MigrationStep step: steps.getSteps())
+        if (!prepareMigrate(rootProject, allSteps))
+        {
+            return;
+        }
+
+        for (MigrationStep step: allSteps)
         {
             MigrationPreparer migrator = step.getMigrator();
             migrator.migrateRoot(rootProject.toPath(), context);
@@ -135,7 +142,7 @@ public class Migrator
             {
                 return;
             }
-            for (File cartridgeDir: files)
+            for (File cartridgeDir : files)
             {
                 if (cartridgeDir.isDirectory() && !cartridgeDir.getName().startsWith(".") && (new File(cartridgeDir, "build.gradle")).exists())
                 {
@@ -155,7 +162,14 @@ public class Migrator
     protected void migrateProject(File projectDir)
     {
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
-        for(MigrationStep step: steps.getSteps())
+        List<MigrationStep> allSteps = steps.getSteps();
+
+        if (!prepareMigrate(projectDir, allSteps))
+        {
+            return;
+        }
+
+        for(MigrationStep step : allSteps)
         {
             MigrationPreparer migrator = step.getMigrator();
 
@@ -164,6 +178,33 @@ public class Migrator
         }
 
         LOGGER.info(context.generateSummaryReport());
+    }
+
+    /**
+     * Prepares the migration by executing all preparers for each migration step.
+     * This method is called before the actual migration process starts.
+     *
+     * @param projectDir the project directory to prepare for migration
+     * @param allSteps the list of all migration steps to be executed
+     * @return {@code true} if preparation was successful, {@code false} if there were critical errors
+     */
+    protected boolean prepareMigrate(File projectDir, List<MigrationStep> allSteps)
+    {
+        for (MigrationStep step : allSteps)
+        {
+            MigrationPreparer migrator = step.getMigrator();
+            migrator.prepareMigrate(projectDir.toPath(), context);
+        }
+
+        if (context.hasCriticalError())
+        {
+            LOGGER.error("Migration preparation aborted due to critical errors:\n  - {}",
+                    String.join("\n  - ", context.getCriticalErrors()));
+            return false;
+        }
+
+        LOGGER.info("Migration preparation completed successfully.");
+        return true;
     }
 
     /**
