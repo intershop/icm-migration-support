@@ -133,7 +133,5 @@ public class MoveFilteredFolder implements MigrationPreparer
         String normalizedPath = absolutePath.replaceAll("\\\\", "/");
 
         return normalizedPath.matches(filter);
-
-//        return path.toFile().getAbsolutePath().matches(filter);
     }
 }
