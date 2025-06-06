@@ -14,8 +14,6 @@ import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.utils.FileUtils;
 
-// import ch.qos.logback.core.net.ssl.TrustManagerFactoryFactoryBean;
-
 public class MigrateConfigResources implements MigrationPreparer
 {
 
@@ -181,7 +179,6 @@ public class MigrateConfigResources implements MigrationPreparer
         } catch (IOException e) {
             success = false;
             LOGGER.error("Error reading file: " + source, e);
-            e.printStackTrace();
         }
         return success;
 

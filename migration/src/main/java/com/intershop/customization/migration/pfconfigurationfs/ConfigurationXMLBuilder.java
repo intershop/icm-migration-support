@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.intershop.customization.migration.pfconfigurationfs.CfgResourceConverter.ResourceType;
 
@@ -18,29 +19,29 @@ public class ConfigurationXMLBuilder {
 
     private String cartridgeName = "";
 
-    private ArrayList<String> headerLines = new ArrayList<>();
-    private ArrayList<String> footerLines = new ArrayList<>();
-    private ArrayList<String> lines = new ArrayList<>();
-    private ArrayList<String> commonLines = new ArrayList<>();
+    private List<String> headerLines = new ArrayList<>();
+    private List<String> footerLines = new ArrayList<>();
+    private List<String> lines = new ArrayList<>();
+    private List<String> commonLines = new ArrayList<>();
 
     // keep the file names already added to the XML
-    private HashSet <String> domainResources = new HashSet<>();
-    private HashSet <String> commondResources = new HashSet<>();
+    private Set  <String> domainResources = new HashSet<>();
+    private Set  <String> commondResources = new HashSet<>();
 
     // vonfigure the mappings to config XML values - see the tati blok
-    private static final String FILTERE_RESOURCE         = "resource";
-    private static final String FILTER_DOMAINE_RESOURCE = "domain-resource";
-    private static final HashMap<String, String> filters = new HashMap<>();
+    private static final String FILTERE_RESOURCE            = "resource";
+    private static final String FILTER_DOMAINE_RESOURCE     = "domain-resource";
+    private static final Map<String, String> filters        = new HashMap<>();
 
     private static final String SCOPE_DOMAIN                = "domain";
     private static final String SCOPE_CLUSTER_SERVER_DOMAIN = "cluster,server,domain";
-    private static final HashMap<String, String> scopes = new HashMap<>();
+    private static final Map<String, String> scopes         = new HashMap<>();
 
-    private static final String PLACEHOLDER_ENVIRONMENT         ="\\$\\{environment\\}";
-    private static final HashMap<String, String> environments = new HashMap<>();
+    private static final String PLACEHOLDER_ENVIRONMENT     ="\\$\\{environment\\}";
+    private static final Map<String, String> environments   = new HashMap<>();
 
     private static final String PLACEHOLDER_STAGING_SYSTEM_TYPE ="\\$\\{staging.system.type\\}";
-    private static final HashMap<String, String> systemTypes = new HashMap<>();
+    private static final Map<String, String> systemTypes        = new HashMap<>();
 
     private String lastDopmainName ="";
     private int resourceCfgEntryCounter = 0;

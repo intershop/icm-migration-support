@@ -161,7 +161,6 @@ public class CfgResourceConverter
         catch(IOException e)
         {
             LOGGER.error("Converting failed for file {} ==>  {}.", source, target);
-            e.printStackTrace();
             throw new IOException("Error reading file: " + source, e);
         }
 
@@ -210,7 +209,7 @@ public class CfgResourceConverter
      * <br/>
      * gets converted to ICM11+:<br/>
      * pfconfigurationfs>#type#>#UrlIdentifier#>#ParameterName# = #Value#<br/>
-     * pfconfigurationfs>#type#>rest>ExternalApplicationBaseURL = https://int-live-connect.roehm.com<br/>
+     * pfconfigurationfs>#type#>rest>ExternalApplicationBaseURL = https://int-live-connect.example.com<br/>
      * whereby<br/>
      * #ParameterName# to #Value# for the application determined by <site = processed domain>&#UrlIdentifier#.<br/>
      * 
