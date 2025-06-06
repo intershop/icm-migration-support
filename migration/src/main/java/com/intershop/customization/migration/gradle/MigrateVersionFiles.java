@@ -1,6 +1,6 @@
 package com.intershop.customization.migration.gradle;
 
-import static com.intershop.customization.migration.common.MigrationContext.OperationType.CREATE;
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -48,6 +48,16 @@ public class MigrateVersionFiles implements MigrationPreparer
     public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
 
     @Override
+    public void prepareMigrate(Path projectDir, MigrationContext context)
+    {
+        Path versionsBuild = projectDir.resolve("versions").resolve(BUILD_GRADLE_KTS);
+        if (!Files.exists(versionsBuild))
+        {
+            context.recordCriticalError("'" + BUILD_GRADLE_KTS + "' does not exist in " + projectDir);
+        }
+    }
+
+    @Override
     public void migrateRoot(Path projectDir, MigrationContext context)
     {
         List<Path> versionFiles = collectVersionFiles(projectDir);
@@ -71,12 +81,12 @@ public class MigrateVersionFiles implements MigrationPreparer
         {
             List<String> linesStream = FileUtils.readAllLines(versionsBuild);
             FileUtils.writeString(versionsBuild, migrate(linesStream, collectedVersionData));
-            context.recordSuccess(projectName, CREATE, null, projectDir);
+            context.recordSuccess(projectName, MODIFY, null, projectDir);
         }
         catch(IOException e)
         {
             LOGGER.error("Can't migrate *.version files to 'versions' project", e);
-            context.recordFailure(projectName, CREATE, null, projectDir,
+            context.recordFailure(projectName, MODIFY, null, projectDir,
                     "Can't migrate *.version files to 'versions' project: " + e.getMessage());
         }
     }

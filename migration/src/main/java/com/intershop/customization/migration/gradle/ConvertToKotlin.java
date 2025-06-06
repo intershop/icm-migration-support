@@ -37,20 +37,22 @@ public class ConvertToKotlin implements MigrationPreparer
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     @Override
+    public void prepareMigrate(Path resource, MigrationContext context)
+    {
+        String kotlinVersion = getKotlinRuntimeVersion();
+        if (kotlinVersion == null)
+        {
+            context.recordCriticalError("Kotlin runtime environment is not available.");
+        }
+    }
+
+    @Override
     public void migrate(Path resource, MigrationContext context)
     {
         String resourceName = getResourceName(resource);
         LOGGER.info("Migrating project build files of '{}' to Kotlin", resourceName);
 
         String kotlinVersion = getKotlinRuntimeVersion();
-        if (kotlinVersion == null)
-        {
-            LOGGER.error("Kotlin runtime environment is not available. Aborting migration auf 'build.gradle' files to 'build.gradle.kts'.");
-            context.recordFailure(resourceName, MODIFY, resource, resource,
-                    "Kotlin runtime environment is not available. Aborting migration of 'build.gradle' files to 'build.gradle.kts'.");
-            return;
-        }
-
         LOGGER.debug("Kotlin runtime version found: {}", kotlinVersion);
 
         try
