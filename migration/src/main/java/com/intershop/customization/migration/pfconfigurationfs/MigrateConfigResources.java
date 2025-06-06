@@ -57,7 +57,7 @@ public class MigrateConfigResources implements MigrationPreparer
                 }
                 else
                 {
-                    LOGGER.warn("Can't find  files {}.", path);
+                    LOGGER.warn("path {} is not a durectory.", path);
                     continue;
                 }
                 Files.walk(path)
@@ -120,8 +120,12 @@ public class MigrateConfigResources implements MigrationPreparer
             if(configurationXMLBuilder.getGeneratedEntriesCount() > 0)
             {
                 LOGGER.info("Generating configuration.xml for cartridge {}.", cartridgeName);
-                Path configurationXMFilePath = cartridgeDir.resolve("src/main/resources/resources")
-                        .resolve(cartridgeName).resolve("config").resolve("configuration.xml");
+                Path configurationXMFilePath = cartridgeDir.resolve(
+                    "src"
+                    +java.io.File.separator+"main"
+                    +java.io.File.separator+"resources"
+                    +java.io.File.separator+"resources")
+                    .resolve(cartridgeName).resolve("config").resolve("configuration.xml");
                 if(!configurationXMFilePath.toFile().exists())
                 {
                     Files.createFile(configurationXMFilePath);
