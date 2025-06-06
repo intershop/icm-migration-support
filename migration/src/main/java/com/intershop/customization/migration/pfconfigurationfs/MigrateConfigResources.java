@@ -150,16 +150,10 @@ public class MigrateConfigResources implements MigrationPreparer
      */
     private Path getTarget(Path cartridgeName, Path source, Path sourceMain)
     {
-        Path targetPath = sourceMain.resolve("resources/resources").resolve(cartridgeName);
-        if (targetPath.toString().contains(
-            "resources" + java.io.File.separator 
-            + "resources" + java.io.File.separator 
-            + cartridgeName))
-        {
-            // others -> src/main/resources/resources/{cartridgeName}
-            Path targetSub = source.subpath(1, source.getNameCount());
-            targetPath = targetPath.resolve(targetSub);
-        }
+        Path targetPath = sourceMain.resolve("resources"+java.io.File.separator+"resources").resolve(cartridgeName);
+        // others -> src/main/resources/resources/{cartridgeName}
+        Path targetSub = source.subpath(1, source.getNameCount());
+        targetPath = targetPath.resolve(targetSub);
         return targetPath;
     }
 
