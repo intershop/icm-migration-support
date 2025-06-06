@@ -159,12 +159,12 @@ Moves specific files to their new locations within the ICM 11 structure:
 
 ### Move Java Source Code
 
-Migrator: `MoveFolder`
+Migrator: `MoveFilteredFolder`
 
 Moves Java source code and pipelet XML files to their appropriate locations in the ICM 11 structure:
 
 - `javasource` -> `src/main/java` (Java source files)
-- `javasource` -> `src/main/resources` (only XML files matching pattern `^.*/pipelet/.*\.xml$`)
+- `javasource` -> `src/main/resources` (only XML files matching pattern `^.*\\pipelet\\.*\.xml$`)
 
 This step ensures that:
 

@@ -124,4 +124,26 @@ class FileUtilsTest
         List<Path> files = FileUtils.listTopLevelFiles(tempDir, txtFilter, byName);
         assertEquals(List.of(file1), files);
     }
+
+    @Test
+    void testRemoveEmptyDirectories() throws IOException
+    {
+        Path subDir = tempDir.resolve("sub");
+        Files.createDirectory(subDir);
+        Path file1 = subDir.resolve("a.txt");
+        Files.createFile(file1);
+
+        // Remove empty directories
+        FileUtils.removeEmptyDirectories(subDir);
+
+        // Check if the subdirectory is still there
+        assertTrue(Files.exists(subDir));
+
+        // Now remove the file and check again
+        Files.delete(file1);
+        FileUtils.removeEmptyDirectories(subDir);
+
+        // The subdirectory should be removed now
+        assertFalse(Files.exists(subDir));
+    }
 }
