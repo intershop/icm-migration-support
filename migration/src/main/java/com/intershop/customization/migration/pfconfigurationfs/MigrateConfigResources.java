@@ -91,8 +91,15 @@ public class MigrateConfigResources implements MigrationPreparer
                                         Files.delete(source);
 
                                         String domainName = target.getParent().getFileName().toString();
-                                        configurationXMLBuilder.addLine(targetType, domainName, targetName );
-                                        context.recordSuccess(migrationSubject, MODIFY, source, target);
+                                        if (configurationXMLBuilder.addLine(targetType, domainName, targetName ))
+                                        {
+                                            context.recordSuccess(migrationSubject, MODIFY, source, target);
+                                        }
+                                        else
+                                        {
+                                            context.recordFailure(migrationSubject, MODIFY, source, target,
+                                                "adding line to configuration.xml failed - Could not find domain name ");
+                                        }
                                      }
                                      else
                                      {

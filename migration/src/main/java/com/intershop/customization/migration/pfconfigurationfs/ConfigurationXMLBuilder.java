@@ -31,11 +31,8 @@ public class ConfigurationXMLBuilder {
 
     // vonfigure the mappings to config XML values - see the tati blok
     private static final String FINDER_DOMAIN_RESOURCE      = "domain-resource";
-    private static final Map<String, String> finders        = new HashMap<>();
 
     private static final String SCOPE_DOMAIN                = "domain";
-    private static final String SCOPE_CLUSTER_SERVER_DOMAIN = "cluster,server,domain";
-    private static final Map<String, String> scopes         = new HashMap<>();
 
     private static final String PLACEHOLDER_ENVIRONMENT     ="\\$\\{environment\\}";
     // LinkedHashMap to keep the order of replacements - e.g. the issue with (pre)production
@@ -60,24 +57,6 @@ public class ConfigurationXMLBuilder {
         footerLines.add("\t</sets>");
         footerLines.add("</configuration-setup>");
         
-        // Initialize filters finders
-        finders.put(ResourceType.APPLICATION.getValue(), FINDER_DOMAIN_RESOURCE);
-        finders.put(ResourceType.DMNPRFRNCE.getValue(),  FINDER_DOMAIN_RESOURCE);
-        finders.put(ResourceType.MNGDSRVC.getValue(),    FINDER_DOMAIN_RESOURCE);
-        finders.put(ResourceType.TRANSPORT.getValue(),   FINDER_DOMAIN_RESOURCE);
-        finders.put(ResourceType.USR.getValue(),         FINDER_DOMAIN_RESOURCE);
-        finders.put(ResourceType.UNKNOWN.getValue(),     FINDER_DOMAIN_RESOURCE);
-    
-        // Initialize scope map
-        scopes.put(ResourceType.APPLICATION.getValue(), SCOPE_DOMAIN);
-        scopes.put(ResourceType.DMNPRFRNCE.getValue(),  SCOPE_DOMAIN);
-        scopes.put(ResourceType.MNGDSRVC.getValue(),    SCOPE_DOMAIN);
-        scopes.put(ResourceType.TRANSPORT.getValue(),   SCOPE_DOMAIN);
-        scopes.put(ResourceType.USR.getValue(),         SCOPE_CLUSTER_SERVER_DOMAIN);
-        scopes.put(ResourceType.UNKNOWN.getValue(),     SCOPE_DOMAIN);
-
-        // TODO issue: Are the keys used from here uniquely defined by ADO?
-
         // environments
         environments.put("development",     PLACEHOLDER_ENVIRONMENT);        
         environments.put("integration",     PLACEHOLDER_ENVIRONMENT);        
@@ -109,14 +88,17 @@ public class ConfigurationXMLBuilder {
      * @param cfgFileName - the name of the configuration file to be added
      * 
      */
-    public void addLine(String configType, String domainName, String cfgFileName) 
+    public boolean addLine(String configType, String domainName, String cfgFileName) 
     {
         // if set and scope is "domai", add a domain name
         String xmlDomainName = "";
-        if (domainName != null && !domainName.isEmpty() && (scopes.get(configType)).contains(SCOPE_DOMAIN) )
+        if (domainName != null && !domainName.isEmpty() )
         {
             // add a domain if the configuration type requires one
             xmlDomainName = domainName;
+        }
+        else{
+            return false;
         }
 
         // resource file name relative to the cartridge name
@@ -133,53 +115,34 @@ public class ConfigurationXMLBuilder {
             cfgFileName = cfgFileName.replaceAll(sys.getKey(), sys.getValue());
         }
 
-        if (xmlDomainName.isEmpty())
+        // count up priority by domain starting with 60 for each of them
+         if (xmlDomainName.equals(lastDopmainName))
         {
-            if(!commondResources.contains(cfgFileName))
-            {
-                // count up priority for entries without a domain  starting with 60.
-                priorityEMptyDOmain =calcPriority(cfgFileName, priorityEMptyDOmain);
-                commonLines.add( generateLine(
-                    finders.get(configType),
-                    scopes.get(configType), 
+            if(!domainResources.contains(cfgFileName))
+            {   
+                priority = calcPriority(cfgFileName, priority);
+                lines.add(generateLine(
+                    FINDER_DOMAIN_RESOURCE,
+                    SCOPE_DOMAIN, 
                     xmlDomainName, 
                     cfgFileName, 
-                    priorityEMptyDOmain,
+                    priority,
                     this.cartridgeName, 
                     false));
-                commondResources.add(cfgFileName);
+                // to ensure the file name is unique in the domain
+                // (using variables they can get multiple)
+                domainResources.add(cfgFileName);
             }
-       }
-       else
-       {
-            // count up priority by domain starting with 60 for each of them
-             if (xmlDomainName.equals(lastDopmainName))
-            {
-                if(!domainResources.contains(cfgFileName))
-                {   
-                    priority = calcPriority(cfgFileName, priority);
-                    lines.add(generateLine(
-                        finders.get(configType),
-                        scopes.get(configType), 
-                        xmlDomainName, 
-                        cfgFileName, 
-                        priority,
-                        this.cartridgeName, 
-                        false));
-                    // to ensure the file name is unique in the domain
-                    // (using variables they can get multiple)
-                    domainResources.add(cfgFileName);
-                }
-            }
-            else
-            {
-                lines.add("\t\t<!--- domain " + xmlDomainName + " -->");
-                domainResources = new HashSet<>();
-                priority = MIN_PRIORITY;
-            }        
-        } 
+        }
+        else
+        {
+            lines.add("\t\t<!--- domain " + xmlDomainName + " -->");
+            domainResources = new HashSet<>();
+            priority = MIN_PRIORITY;
+        }        
 
         lastDopmainName = xmlDomainName;
+        return true;
     }
 
     /**
@@ -242,7 +205,7 @@ public class ConfigurationXMLBuilder {
         return new StringBuffer( "\t\t<set")
         .append("  finder=\"").append(finder)
         .append("\"  scope=\"").append(scope)
-        .append((!xmlDomainName.isEmpty()) ? "\" domain=\"" + xmlDomainName : "")
+        .append("\" domain=\"" + xmlDomainName)
         .append("\" resourceName=\"").append(fileName)
         .append("\" priority=\"").append(priority)
         .append("\" cartridge=\"").append(cartridgeName)
