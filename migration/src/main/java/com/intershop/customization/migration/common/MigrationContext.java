@@ -1,10 +1,12 @@
 package com.intershop.customization.migration.common;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory;
 public class MigrationContext
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
+    private final List<String> criticalErrors = new ArrayList<>();
 
     public enum OperationType
     {
@@ -128,6 +131,37 @@ public class MigrationContext
     public void recordFailure(String projectName, OperationType type, Path source, Path target, String error)
     {
         recordOperation(projectName, type, source, target, OperationStatus.FAILED, error);
+    }
+
+    /**
+     * Record a critical error that should cause the entire migration to abort.
+     *
+     * @param message The error message explaining why the migration should be aborted
+     */
+    public void recordCriticalError(String message)
+    {
+        this.criticalErrors.add(message);
+        LOGGER.error("CRITICAL MIGRATION ERROR: {}", message);
+    }
+
+    /**
+     * Checks if a critical errors has been recorded that should abort the migration.
+     *
+     * @return {@code true} if a critical error has been recorded, {@code false} otherwise
+     */
+    public boolean hasCriticalError()
+    {
+        return !criticalErrors.isEmpty();
+    }
+
+    /**
+     * Get the recorded critical errors, if any.
+     *
+     * @return List of critical error messages
+     */
+    public List<String> getCriticalErrors()
+    {
+        return criticalErrors;
     }
 
     /**
