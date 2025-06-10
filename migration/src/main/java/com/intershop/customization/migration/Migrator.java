@@ -144,7 +144,8 @@ public class Migrator
             }
             for (File cartridgeDir : files)
             {
-                if (cartridgeDir.isDirectory() && !cartridgeDir.getName().startsWith(".") && (new File(cartridgeDir, "build.gradle")).exists())
+                if (cartridgeDir.isDirectory() && !cartridgeDir.getName().startsWith(".")
+                        && ((new File(cartridgeDir, "build.gradle")).exists() || (new File(cartridgeDir, "build.gradle.kts")).exists()))
                 {
                     migrator.migrate(cartridgeDir.toPath(), context);
                 }
