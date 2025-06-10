@@ -3,6 +3,7 @@ package com.intershop.customization.migration.pfconfigurationfs;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,16 +30,16 @@ public class ConfigurationXMLBuilder {
     private Set  <String> commondResources = new HashSet<>();
 
     // vonfigure the mappings to config XML values - see the tati blok
-    private static final String FILTERE_RESOURCE            = "resource";
-    private static final String FILTER_DOMAINE_RESOURCE     = "domain-resource";
-    private static final Map<String, String> filters        = new HashMap<>();
+    private static final String FINDER_DOMAIN_RESOURCE      = "domain-resource";
+    private static final Map<String, String> finders        = new HashMap<>();
 
     private static final String SCOPE_DOMAIN                = "domain";
     private static final String SCOPE_CLUSTER_SERVER_DOMAIN = "cluster,server,domain";
     private static final Map<String, String> scopes         = new HashMap<>();
 
     private static final String PLACEHOLDER_ENVIRONMENT     ="\\$\\{environment\\}";
-    private static final Map<String, String> environments   = new HashMap<>();
+    // LinkedHashMap to keep the order of replacements - e.g. the issue with (pre)production
+    private static final Map<String, String> environments   = new LinkedHashMap<>();
 
     private static final String PLACEHOLDER_STAGING_SYSTEM_TYPE ="\\$\\{staging.system.type\\}";
     private static final Map<String, String> systemTypes        = new HashMap<>();
@@ -46,7 +47,7 @@ public class ConfigurationXMLBuilder {
     private String lastDopmainName ="";
     private int resourceCfgEntryCounter = 0;
 
-    private static final int MIN_PRIORITY = 61;
+    private static final int MIN_PRIORITY = 60;
     int priority = MIN_PRIORITY;
     int priorityEMptyDOmain = MIN_PRIORITY;
 
@@ -59,13 +60,13 @@ public class ConfigurationXMLBuilder {
         footerLines.add("\t</sets>");
         footerLines.add("</configuration-setup>");
         
-        // Initialize filters map
-        filters.put(ResourceType.APPLICATION.getValue(), FILTERE_RESOURCE);
-        filters.put(ResourceType.DMNPRFRNCE.getValue(),  FILTER_DOMAINE_RESOURCE);
-        filters.put(ResourceType.MNGDSRVC.getValue(),    FILTERE_RESOURCE);
-        filters.put(ResourceType.TRANSPORT.getValue(),   FILTER_DOMAINE_RESOURCE);
-        filters.put(ResourceType.USR.getValue(),         FILTERE_RESOURCE);
-        filters.put(ResourceType.UNKNOWN.getValue(),     FILTER_DOMAINE_RESOURCE);
+        // Initialize filters finders
+        finders.put(ResourceType.APPLICATION.getValue(), FINDER_DOMAIN_RESOURCE);
+        finders.put(ResourceType.DMNPRFRNCE.getValue(),  FINDER_DOMAIN_RESOURCE);
+        finders.put(ResourceType.MNGDSRVC.getValue(),    FINDER_DOMAIN_RESOURCE);
+        finders.put(ResourceType.TRANSPORT.getValue(),   FINDER_DOMAIN_RESOURCE);
+        finders.put(ResourceType.USR.getValue(),         FINDER_DOMAIN_RESOURCE);
+        finders.put(ResourceType.UNKNOWN.getValue(),     FINDER_DOMAIN_RESOURCE);
     
         // Initialize scope map
         scopes.put(ResourceType.APPLICATION.getValue(), SCOPE_DOMAIN);
@@ -137,8 +138,9 @@ public class ConfigurationXMLBuilder {
             if(!commondResources.contains(cfgFileName))
             {
                 // count up priority for entries without a domain  starting with 60.
+                priorityEMptyDOmain =calcPriority(cfgFileName, priorityEMptyDOmain);
                 commonLines.add( generateLine(
-                    filters.get(configType),
+                    finders.get(configType),
                     scopes.get(configType), 
                     xmlDomainName, 
                     cfgFileName, 
@@ -146,7 +148,6 @@ public class ConfigurationXMLBuilder {
                     this.cartridgeName, 
                     false));
                 commondResources.add(cfgFileName);
-                priorityEMptyDOmain++;
             }
        }
        else
@@ -156,15 +157,15 @@ public class ConfigurationXMLBuilder {
             {
                 if(!domainResources.contains(cfgFileName))
                 {   
+                    priority = calcPriority(cfgFileName, priority);
                     lines.add(generateLine(
-                        filters.get(configType),
+                        finders.get(configType),
                         scopes.get(configType), 
                         xmlDomainName, 
                         cfgFileName, 
                         priority,
                         this.cartridgeName, 
                         false));
-                    priority++;
                     // to ensure the file name is unique in the domain
                     // (using variables they can get multiple)
                     domainResources.add(cfgFileName);
@@ -180,9 +181,42 @@ public class ConfigurationXMLBuilder {
 
         lastDopmainName = xmlDomainName;
     }
+
+    /**
+     * returna the increased priority
+     * considering the predefind values for 
+     * <ul>
+     *   <li>${environment}_*.properties: priority="62"</li>
+     *   <li>${environment}_${staging.system.type}_*.properties" priority="64"</li>
+     *   <li>increasinv value otherwise</li>
+     * </ul>
+     * 
+     * @param fileName propery file name to be checked
+     * @param givenpriority the current domain's or oman independent priority
+     * @return the increades priority vallue considering the system type values
+     */
+    private int calcPriority(String fileName, int givenpriority)
+    {
+        int priority = givenpriority +1;
+
+        // ommit pre-defined values
+        if((62 == priority) || (64 == priority)) priority++;
+
+        // set pre-defined vales
+        if(fileName.contains("staging.system.type"))
+        {
+            priority = 64;
+        }
+        else if(fileName.contains("environment"))
+        {
+            priority = 62;
+        }
+
+        return priority;
+    }
     /** generates a configuration xml entry referring a configuration property file 
      *
-     * @param filter - the filter type for the configuration
+     * @param finder - the filter type for the configuration
      * @param scope - the scope of the configuration
      * @param xmlDomainName - the domain name for the configuration if given
      * @param fileName - the name of the configuration file
@@ -194,7 +228,7 @@ public class ConfigurationXMLBuilder {
      *  
     */
     private String generateLine(    
-        String filter, 
+        String finder, 
         String scope, 
         String xmlDomainName, 
         String fileName, 
@@ -206,7 +240,7 @@ public class ConfigurationXMLBuilder {
         resourceCfgEntryCounter++;
         // combine the xml entry
         return new StringBuffer( "\t\t<set")
-        .append("  filter=\"").append(filter)
+        .append("  finder=\"").append(finder)
         .append("\"  scope=\"").append(scope)
         .append((!xmlDomainName.isEmpty()) ? "\" domain=\"" + xmlDomainName : "")
         .append("\" resourceName=\"").append(fileName)

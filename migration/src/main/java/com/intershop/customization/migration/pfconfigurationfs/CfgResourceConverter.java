@@ -52,8 +52,9 @@ public class CfgResourceConverter
         APPLICATION("application"), 
         USR("usr"), 
         MNGDSRVC("mngdsrvc"), 
+        PMTSRVC("pmntsrvc"), 
         DMNPRFRNCE("dmnprfrnce"), 
-        UNKNOWN("");;
+        UNKNOWN("");
 
         private final String value;
 
@@ -80,7 +81,22 @@ public class CfgResourceConverter
 
         public String getPrefix()
         {
-            return ResourceType.UNKNOWN.getValue().equals(this.value) ? "" : "pfconfigurationfs>" + value;
+            String prfValue = "";
+            if( ResourceType.UNKNOWN.getValue().equals(this.value) ) 
+            {
+                prfValue = "";
+             } 
+             else if( ResourceType.APPLICATION.getValue().equals(this.value) ) 
+             {
+                prfValue = "pfconfigurationfs>appprfrnce";
+                
+             }
+             else
+             {
+                prfValue = "pfconfigurationfs>" + this.value;
+                
+             }
+            return prfValue;
         }
     }
 
@@ -144,10 +160,14 @@ public class CfgResourceConverter
                      || ResourceType.DMNPRFRNCE == this.resourceType)
             {
                 targetLines = migrateSimpleCfg(lines);
-            }
+            } 
             else if ( ResourceType.MNGDSRVC == this.resourceType)
             {
                 targetLines = migrateManagedServiceCfg(lines);
+            }
+            else if ( ResourceType.PMTSRVC == this.resourceType)
+            {
+                targetLines = migratePaymantServiceCfg(lines);
             }
             else
             {
@@ -353,6 +373,89 @@ public class CfgResourceConverter
                       .append(">")
                       .append(taretEntry.get( cfgGroup + ".ServiceDefinitionID"))
                       .append(">").append(taretEntry.get(cfgGroup + ".ServiceConfigurationName"))
+                      .append(">").append(taretEntry.get(cfgGroup + ".ParameterName"))
+                      .append(" = ").append(taretEntry.get(cfgGroup + ".Value"));
+
+                    targetLine = bTargetLine.toString();
+                    targetLines.add(targetLine);
+
+                    taretEntry.clear();
+                }
+            }
+        }
+        return targetLines;
+    }
+
+    /**
+     * The ICm 7.10 configuration:<br/>
+     * ConfigItemX.PaymentServiceID=...<br/>
+     * ConfigItemX.PaymentServiceConfigurationID=...<br/>
+     * ConfigItemX.ParameterName=...<br/>
+     * ConfigItemX.Value=...<br/>
+     * <br/>
+     * gets converted to ICM11+:<br/>
+     * pfconfigurationfs>mngdsrvc>#PaymentServiceID#>#PaymentServiceConfigurationID#>#ParameterName# = #Value#b#<r/>
+     * ...with the 4 values IS7.10
+     */
+    private ArrayList<String> migratePaymantServiceCfg(List<String> lines)
+    {
+        ArrayList<String> targetLines = new ArrayList<>();
+
+        // Process and write lines to another file
+        String targetLine = "";
+        HashMap<String, String> taretEntry = new HashMap<>();
+
+        // String cfgDomainDir = source.getParent().toFile().getName();
+
+        for (String line : lines)
+        {
+            line = line.trim();
+
+            // transport resource file
+            if (line.isEmpty() || (line.startsWith("#")))
+            {
+                targetLine = line;
+                targetLines.add(targetLine);
+            }
+            else
+            {
+                // scan input line
+
+                String cfgGroup = "";
+                String cfgKey = "";
+                String cfgValue = "";
+
+                // gather the source data
+                if (taretEntry.size() < 4)
+                {
+                    // scan the source line
+                    String[] entry = line.split("=");
+                    if (entry.length == 2)
+                    {
+                        cfgKey = entry[0].trim();
+                        cfgValue = entry[1].trim();
+                        if (0 >= cfgKey.indexOf("."))
+                        {
+                            cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
+                            cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
+                        }
+                    }
+                    taretEntry.put(cfgKey, cfgValue);
+                }
+                // all values found - build and add the target line and
+                // reset the source data
+                if (taretEntry.size() == 4)
+                {
+                    if (0 >= cfgKey.indexOf("."))
+                    {
+                        cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
+                    }
+                    cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
+                    StringBuffer bTargetLine
+                    = new StringBuffer().append(this.resourceType.getPrefix())
+                      .append(">")
+                      .append(taretEntry.get( cfgGroup + ".PaymentServiceID"))
+                      .append(">").append(taretEntry.get(cfgGroup + ".PaymentServiceConfigurationID"))
                       .append(">").append(taretEntry.get(cfgGroup + ".ParameterName"))
                       .append(" = ").append(taretEntry.get(cfgGroup + ".Value"));
 
