@@ -35,7 +35,6 @@ public class MigrateConfigResources implements MigrationPreparer
     public void migrate(Path cartridgeDir, MigrationContext context)
     {
         Path staticFilesFolder = cartridgeDir.resolve("staticfiles");
-        Path staticshareFolder = staticFilesFolder.resolve("share");
         Path cartridgeName = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
         ConfigurationXMLBuilder configurationXMLBuilder = new ConfigurationXMLBuilder(cartridgeName.getFileName().toString());
         Path sourceMain = cartridgeDir.resolve("src/main");
@@ -45,7 +44,7 @@ public class MigrateConfigResources implements MigrationPreparer
 
         try
         {
-            List<Path> toBeMigrated = List.of( staticshareFolder, sourceMain);
+            List<Path> toBeMigrated = List.of( sourceMain );
             for (Path path : toBeMigrated)
             {
 
