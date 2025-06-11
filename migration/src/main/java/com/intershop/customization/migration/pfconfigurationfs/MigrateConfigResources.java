@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.slf4j.LoggerFactory;
 
@@ -44,19 +43,15 @@ public class MigrateConfigResources implements MigrationPreparer
 
         try
         {
-            List<Path> toBeMigrated = List.of( sourceMain );
-            for (Path path : toBeMigrated)
-            {
+            Path path =  sourceMain;
 
-                if (path.toFile().isDirectory())
-                {
-                    LOGGER.debug("Processing  files {}.", path);
-                }
-                else
-                {
-                    LOGGER.warn("path {} is not a durectory.", path);
-                    continue;
-                }
+            if (! path.toFile().isDirectory())
+            {
+                LOGGER.warn("path {} is not a directory.", path);
+            }
+            else
+            {
+                LOGGER.debug("Processing  files {}.", path);
                 Files.walk(path)
                      .filter(p -> p.getNameCount() > staticFilesFolder.getNameCount() + 1)
                      .map(p -> p.subpath(1 + staticFilesFolder.getNameCount(), p.getNameCount()))
