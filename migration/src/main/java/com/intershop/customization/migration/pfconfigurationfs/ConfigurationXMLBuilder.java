@@ -116,30 +116,28 @@ public class ConfigurationXMLBuilder {
         }
 
         // count up priority by domain starting with 60 for each of them
-         if (xmlDomainName.equals(lastDopmainName))
-        {
-            if(!domainResources.contains(cfgFileName))
-            {   
-                priority = calcPriority(cfgFileName, priority);
-                lines.add(generateLine(
-                    FINDER_DOMAIN_RESOURCE,
-                    SCOPE_DOMAIN, 
-                    xmlDomainName, 
-                    cfgFileName, 
-                    priority,
-                    this.cartridgeName, 
-                    false));
-                // to ensure the file name is unique in the domain
-                // (using variables they can get multiple)
-                domainResources.add(cfgFileName);
-            }
-        }
-        else
+         if (!xmlDomainName.equals(lastDopmainName))
         {
             lines.add("\t\t<!--- domain " + xmlDomainName + " -->");
             domainResources = new HashSet<>();
             priority = MIN_PRIORITY;
         }        
+
+        if(!domainResources.contains(cfgFileName))
+        {   
+            priority = calcPriority(cfgFileName, priority);
+            lines.add(generateLine(
+                FINDER_DOMAIN_RESOURCE,
+                SCOPE_DOMAIN, 
+                xmlDomainName, 
+                cfgFileName, 
+                priority,
+                this.cartridgeName, 
+                false));
+            // to ensure the file name is unique in the domain
+            // (using variables they can get multiple)
+            domainResources.add(cfgFileName);
+        }
 
         lastDopmainName = xmlDomainName;
         return true;
@@ -203,8 +201,8 @@ public class ConfigurationXMLBuilder {
         resourceCfgEntryCounter++;
         // combine the xml entry
         return new StringBuffer( "\t\t<set")
-        .append("  finder=\"").append(finder)
-        .append("\"  scope=\"").append(scope)
+        .append(" finder=\"").append(finder)
+        .append("\" scope=\"").append(scope)
         .append("\" domain=\"" + xmlDomainName)
         .append("\" resourceName=\"").append(fileName)
         .append("\" priority=\"").append(priority)
