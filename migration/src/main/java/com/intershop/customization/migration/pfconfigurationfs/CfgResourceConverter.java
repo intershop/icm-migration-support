@@ -242,7 +242,6 @@ public class CfgResourceConverter
 
         // Process and write lines to another file
         String targetLine = "";
-        String cfgDomainDir = source.getParent().toFile().getName();
 
         // fuill target line
         ArrayList<String> tartEntry = new ArrayList<>();
@@ -286,10 +285,6 @@ public class CfgResourceConverter
                 if (tartEntry.size() == 3)
                 {
                     String groupStr = tartEntry.get(0).trim();
-                    if (ResourceType.APPLICATION == this.resourceType)
-                    {
-                        groupStr = cfgDomainDir + ">" + groupStr;
-                    }
                     targetLine = this.resourceType.getPrefix() + ">" + groupStr + ">" + tartEntry.get(1).trim() + " = "
                                     + tartEntry.get(2).trim();
                     if (!targetLine.endsWith(" = n/a"))
@@ -321,8 +316,6 @@ public class CfgResourceConverter
         // Process and write lines to another file
         String targetLine = "";
         HashMap<String, String> taretEntry = new HashMap<>();
-
-        // String cfgDomainDir = source.getParent().toFile().getName();
 
         for (String line : lines)
         {
@@ -404,8 +397,6 @@ public class CfgResourceConverter
         // Process and write lines to another file
         String targetLine = "";
         HashMap<String, String> taretEntry = new HashMap<>();
-
-        // String cfgDomainDir = source.getParent().toFile().getName();
 
         for (String line : lines)
         {
