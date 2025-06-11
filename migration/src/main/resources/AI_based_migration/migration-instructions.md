@@ -1,7 +1,11 @@
 # Migration steps to migrate cartridges from 7.10 to ICM11+
+* cartridges are gradle sub-projects
+* sub-projects 'versions' and 'versions_test' are no cartridges
+* migrate first all build-files, then adapt and move files, then apply java changes
 
 ## Migrate cartridge build.gradle files
 
+* *convert to kotlin* and rename files to build.gradle.kts
 * apply new plugins:
 |old|new|
 |---|---|
@@ -9,7 +13,6 @@
 |'static-cartridge'|id("com.intershop.icm.cartridge.product")|
 |'test-cartridge'|id("com.intershop.icm.cartridge.test")|
 * keep all other plugins
-* convert to kotlin
 * convert all project dependencies from
 |compile project(':project_name')|cartridge(project(":project_name"))|
 * convert compile dependencies to either 'cartridge' or 'implementation', use 'cartridge' for all packages starting with 'com.intershop.', use 'implementation' for all others
