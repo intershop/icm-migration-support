@@ -1,0 +1,66 @@
+Migrate cartridge build.gradle steps:
+- apply new plugins:
+    - 'java-cartridge' --> java
+    - 'static-cartridge' --> id("com.intershop.icm.cartridge.product")
+    - 'test-cartridge' --> id("com.intershop.icm.cartridge.test")
+- keep all other plugins
+- convert to kotlin
+- convert all project dependencies:
+    - compile project(':project_name') --> cartridge(project(":project_name"))
+- convert compile dependencies to either 'cartridge' or 'implementation',
+    - use 'cartridge' for all packages starting with 'com.intershop.',
+    - use 'implementation' for all others
+- remove section 'intershop', only use 'description' top-level
+- replace dependencies:
+    - bouncycastle:bcmail-jdk14 --> org.bouncycastle.bcprov-jdk15on
+    - com.fasterxml.jackson.jaxrs:jackson-jaxrs-base --> com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-base
+    - com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider --> com.fasterxml.jackson.jakarta.rs:jackson-jakarta-rs-json-provider
+    - com.google.inject.extensions:guice-servlet --> com.intershop.guice:guice-servlet
+    - com.google.javascript:closure-compiler-unshaded --> com.google.javascript:closure-compiler
+    - com.jayway.restassured:json-path --> io.rest-assured:json-path
+    - com.jayway.restassured:rest-assured --> io.rest-assured:rest-assured
+    - com.jayway.restassured:xml-path --> io.rest-assured:xml-path
+    - com.mycila.guice.extensions:mycila-guice-closeable --> com.intershop.mycila-guice:mycila-guice-closeable
+    - com.mycila.guice.extensions:mycila-guice-injection --> com.intershop.mycila-guice:mycila-guice-injection
+    - com.mycila.guice.extensions:mycila-guice-jsr250 --> com.intershop.mycila-guice:mycila-guice-jsr250
+    - com.sun.mail:javax.mail --> com.sun.mail:jakarta.mail
+    - commons-collections:commons-collections --> org.apache.commons:commons-collections4
+    - commons-dbcp:commons-dbcp --> org.apache.commons:commons-dbcp2
+    - commons-lang:commons-lang --> org.apache.commons:commons-lang3
+    - commons-pool:commons-pool --> org.apache.commons:commons-pool2
+    - io.swagger:swagger-annotations --> io.swagger.core.v3:swagger-annotations-jakarta
+    - io.swagger:swagger-core --> io.swagger.core.v3:swagger-core-jakarta
+    - io.swagger:swagger-jaxrs --> io.swagger.core.v3:swagger-jaxrs2-jakarta
+    - io.swagger:swagger-models --> io.swagger.core.v3:swagger-models-jakarta
+    - javax.activation:activation --> jakarta.activation:jakarta.activation-api
+    - javax.annotation:javax.annotation-api --> jakarta.annotation:jakarta.annotation-api
+    - javax.validation:validation-api --> jakarta.validation:jakarta.validation-api
+    - javax.ws.rs:javax.ws.rs-api --> jakarta.ws.rs:jakarta.ws.rs-api
+    - org.hamcrest:hamcrest-core --> org.hamcrest:hamcrest
+    - org.hamcrest:hamcrest-library --> org.hamcrest:hamcrest
+- move files of cartridges:
+    - edl --> src/main/resources/resources/<cartridge>/edl
+    - staticfiles/cartridge --> src/main/resources/resources/<cartridge>
+    - staticfiles/cartridge/templates --> src/main/isml/<cartridge>
+    - staticfiles/cartridge/components --> src/main/resources/resources/<cartridge>/components
+    - staticfiles/cartridge/config --> src/main/resources/resources/<cartridge>/config
+    - staticfiles/cartridge/extensions --> src/main/resources/resources/<cartridge>/extensions
+    - staticfiles/cartridge/lib --> src/main/resources
+    - staticfiles/cartridge/localizations --> src/main/resources/resources/<cartridge>/localizations
+    - staticfiles/cartridge/pipelines --> src/main/resources/resources/<cartridge>/pipelines
+    - staticfiles/cartridge/queries --> src/main/resources/resources/<cartridge>/queries
+    - staticfiles/cartridge/static -->
+    - staticfiles/cartridge/webforms --> src/main/resources/resources/<cartridge>/webforms
+    - staticfiles/cartridge/webservices -->
+    - staticfiles/cartridge/pagelets --> src/main/resources/resources/<cartridge>/pagelets
+    - $SHARE/system/config/cartridges/<cartridge>.properties --> src/main/resources/cartridges/<cartridge>.properties
+- replace packages in java files of cartridges:
+    - com.intershop.sellside.rest.common.patch.PATCH --> jakarta.ws.rs.PATCH
+    - javax.annotation.* --> jakarta.annotation.*
+    - (excluded javax.annotation.processing)
+    - javax.servlet.* --> jakarta.servlet.*
+    - javax.validation.* --> jakarta.validation.*
+    - javax.ws.rs.* --> jakarta.ws.rs.*
+    - javax.xml.bind.* --> jakarta.xml.bind.*
+    - javax.mail.* --> jakarta.mail.*
+    - javax.inject.* --> jakarta.inject.*
