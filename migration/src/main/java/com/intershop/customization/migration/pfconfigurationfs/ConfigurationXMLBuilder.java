@@ -203,7 +203,7 @@ public class ConfigurationXMLBuilder {
         return new StringBuffer( "\t\t<set")
         .append(" finder=\"").append(finder)
         .append("\" scope=\"").append(scope)
-        .append("\" domain=\"" + xmlDomainName)
+        .append("\" domainName=\"" + xmlDomainName)
         .append("\" resourceName=\"").append(fileName)
         .append("\" priority=\"").append(priority)
         .append("\" cartridge=\"").append(cartridgeName)
