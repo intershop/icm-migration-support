@@ -92,6 +92,15 @@ public class GitRepository implements Closeable
         }
     }
 
+    /**
+     * Returns the directory of the git repository.
+     * @return the directory of the git repository
+     */
+    public File getRepositoryDirectory()
+    {
+        return repositoryDirectory;
+    }
+
     @Override
     public void close()
     {

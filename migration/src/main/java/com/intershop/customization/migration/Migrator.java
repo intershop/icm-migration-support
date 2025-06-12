@@ -11,7 +11,7 @@ import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.common.MigrationStepFolder;
 import com.intershop.customization.migration.git.GitInitializationException;
 import com.intershop.customization.migration.git.GitRepository;
-
+import com.intershop.customization.migration.git.GitValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ public class Migrator
 
     private final File migrationStepFolder;
     private Optional<GitRepository> gitRepository = Optional.empty();
-    private MigrationContext context = new MigrationContext();
+    private final MigrationContext context = new MigrationContext();
 
     /**
      * Initializes the migrator
@@ -63,6 +63,8 @@ public class Migrator
                 migrator.initializeGitRepository(Arrays.stream(args)
                                                        .noneMatch(o -> o.equalsIgnoreCase(OPTION_NO_AUTO_COMMIT)), projectPath);
 
+                migrator.validateGitRepository();
+
                 if ("project".equals(args[POS_TASK]))
                 {
                     LOGGER.info("Convert project at {}.", projectPath);
@@ -80,7 +82,11 @@ public class Migrator
                 System.exit(1);
             }
         }
-        catch(Exception e)
+        catch (GitValidationException gve)
+        {
+            LOGGER.error("Validation of git repository failed: {}", gve.getMessage());
+        }
+        catch (Exception e)
         {
             LOGGER.error("Unexpected error during migration", e);
             System.exit(1);
@@ -135,6 +141,7 @@ public class Migrator
         for (MigrationStep step: allSteps)
         {
             MigrationPreparer migrator = step.getMigrator();
+
             migrator.migrateRoot(rootProject.toPath(), context);
 
             File[] files = rootProject.listFiles();
@@ -221,5 +228,26 @@ public class Migrator
             String sha = repository.commit(commitMessage);
             LOGGER.info("Commited changes of migration step to git repository at '{}' with message '{}'.", sha, commitMessage);
         }
+    }
+
+    public void validateGitRepository() throws GitValidationException
+    {
+        if (gitRepository.isEmpty())
+        {
+            return; // No git repository initialized, nothing to validate
+        }
+
+        // Check if the git repository is clean
+        if (!gitRepository.get().isClean())
+        {
+            String message = String.format(
+                            "Git repository at '%s' is not clean. Please commit or discard any changes before running the migration.",
+                            gitRepository.get().getRepositoryDirectory());
+            throw new GitValidationException(message);
+        }
+
+        String message = String.format("Git repository at '%s' is clean and ready for migration.",
+                        gitRepository.get().getRepositoryDirectory());
+        LOGGER.debug(message);
     }
 }
