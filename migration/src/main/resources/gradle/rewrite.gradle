@@ -14,6 +14,9 @@ rootProject {
         activeRecipe("org.openrewrite.java.migrate.jakarta.JakartaEE10")
         // see https://docs.openrewrite.org/recipes/java/migrate/upgradetojava21
         activeRecipe("org.openrewrite.java.migrate.UpgradeToJava21")
+        // https://docs.openrewrite.org/recipes/gradle/migratetogradle8
+        activeRecipe("org.openrewrite.gradle.MigrateToGradle8")
+
         // add any additional recipes here you want to run
         setExportDatatables(true)
     }
