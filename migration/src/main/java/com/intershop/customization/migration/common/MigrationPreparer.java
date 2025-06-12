@@ -48,6 +48,17 @@ public interface MigrationPreparer
     }
 
     /**
+     * Prepares a root resource for migration. This method is called before the actual migration process starts.
+     * It can be used to perform any necessary setup or validation on a resource at root level.
+     *
+     * @param resource Path to the root directory that needs to be prepared
+     * @param context The migration context for tracking operations and their results
+     */
+    default void prepareMigrateRoot(Path resource, MigrationContext context)
+    {
+    }
+
+    /**
      * Migrates a resource with context tracking.
      * It allows recording success, failures, and other metrics.
      *

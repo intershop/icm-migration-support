@@ -24,6 +24,7 @@ public class Migrator
     private static final int POS_STEPS = 2;
 
     private static final String OPTION_NO_AUTO_COMMIT = "--noAutoCommit";
+    private static final int MAX_SEARCH_DEPTH_FOR_GIT_REPO = 1;
 
     private final File migrationStepFolder;
     private Optional<GitRepository> gitRepository = Optional.empty();
@@ -110,7 +111,7 @@ public class Migrator
             try
             {
                 LOGGER.debug("Initializing Git repository for '{}' ...", projectPath);
-                this.gitRepository = Optional.of(new GitRepository(projectPath));
+                this.gitRepository = Optional.of(new GitRepository(projectPath, MAX_SEARCH_DEPTH_FOR_GIT_REPO));
             }
             catch(GitInitializationException e)
             {
@@ -133,7 +134,7 @@ public class Migrator
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         List<MigrationStep> allSteps = steps.getSteps();
 
-        if (!prepareMigrate(rootProject, allSteps))
+        if (!prepareMigrate(rootProject, true, allSteps))
         {
             return;
         }
@@ -172,7 +173,7 @@ public class Migrator
         MigrationStepFolder steps = MigrationStepFolder.valueOf(migrationStepFolder.toPath());
         List<MigrationStep> allSteps = steps.getSteps();
 
-        if (!prepareMigrate(projectDir, allSteps))
+        if (!prepareMigrate(projectDir, false, allSteps))
         {
             return;
         }
@@ -189,19 +190,27 @@ public class Migrator
     }
 
     /**
-     * Prepares the migration by executing all preparers for each migration step.
-     * This method is called before the actual migration process starts.
+     * Prepares the migration by executing all preparers for each migration step. This method is called before the
+     * actual migration process starts.
      *
      * @param projectDir the project directory to prepare for migration
+     * @param isRoot {@code true} if the project is a root project, {@code false} otherwise
      * @param allSteps the list of all migration steps to be executed
      * @return {@code true} if preparation was successful, {@code false} if there were critical errors
      */
-    protected boolean prepareMigrate(File projectDir, List<MigrationStep> allSteps)
+    protected boolean prepareMigrate(File projectDir, boolean isRoot, List<MigrationStep> allSteps)
     {
         for (MigrationStep step : allSteps)
         {
             MigrationPreparer migrator = step.getMigrator();
-            migrator.prepareMigrate(projectDir.toPath(), context);
+            if (isRoot)
+            {
+                migrator.prepareMigrateRoot(projectDir.toPath(), context);
+            }
+            else
+            {
+                migrator.prepareMigrate(projectDir.toPath(), context);
+            }
         }
 
         if (context.hasCriticalError())
