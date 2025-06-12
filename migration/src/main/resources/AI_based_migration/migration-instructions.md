@@ -7,17 +7,24 @@
 
 * *convert to kotlin* and rename files to build.gradle.kts
 * apply new plugins:
+
 |old|new|
 |---|---|
 |'java-cartridge'|java|
 |'static-cartridge'|id("com.intershop.icm.cartridge.product")|
 |'test-cartridge'|id("com.intershop.icm.cartridge.test")|
+
 * keep all other plugins
 * convert all project dependencies from
+
+|old|new|
+|---|---|
 |compile project(':project_name')|cartridge(project(":project_name"))|
+
 * convert compile dependencies to either 'cartridge' or 'implementation', use 'cartridge' for all packages starting with 'com.intershop.', use 'implementation' for all others
 * remove section 'intershop', only use 'description' top-level
 * replace dependencies
+
 |old|new|
 |---|---|
 |bouncycastle:bcmail-jdk14|org.bouncycastle.bcprov-jdk15on|
@@ -69,6 +76,7 @@
 ## Change java files
 
 * replace packages in java files of cartridges
+
 |old|new|
 |---|---|
 |com.intershop.sellside.rest.common.patch.PATCH|jakarta.ws.rs.PATCH|
