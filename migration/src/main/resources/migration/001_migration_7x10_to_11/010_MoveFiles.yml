@@ -4,7 +4,19 @@ message: "refactor: move additional files to new location"
 options:
   source-map:
     "dca" : "staticfiles/cartridge"
+    "domainsplittings": "staticfiles/share/system/config/cluster"
+    "urlrewriterules": "staticfiles/share/system/config/cluster"
+    "configuration": "staticfiles/share/system/config/cluster"
+    "replication": "staticfiles/share/system/config/cluster"
   target-map:
     "dca" : "src/main/resources/resources/{cartridgeName}"
+    "domainsplittings": "src/main/resources/resources/{cartridgeName}/config"
+    "urlrewriterules": "src/main/resources/resources/{cartridgeName}/config"
+    "configuration": "src/main/resources/resources/{cartridgeName}/config"
+    "replication": "src/main/resources/resources/{cartridgeName}/replication"
   filter-map:
     "dca" : "directCustomAttributes\\.xml"
+    "domainsplittings": "domainsplittings\\.xml"
+    "urlrewriterules": "urlrewriterules\\.xml"
+    "configuration": "configuration\\.xml"
+    "replication": "replication\\.xml"
