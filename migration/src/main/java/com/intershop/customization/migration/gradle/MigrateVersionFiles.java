@@ -48,12 +48,12 @@ public class MigrateVersionFiles implements MigrationPreparer
     public static final String BUILD_GRADLE_KTS = "build.gradle.kts";
 
     @Override
-    public void prepareMigrate(Path projectDir, MigrationContext context)
+    public void prepareMigrateRoot(Path projectDir, MigrationContext context)
     {
-        Path versionsBuild = projectDir.resolve("versions").resolve(BUILD_GRADLE_KTS);
-        if (!Files.exists(versionsBuild))
+        Path versionsDir = projectDir.resolve("versions");
+        if (!Files.exists(versionsDir.resolve(BUILD_GRADLE_KTS)))
         {
-            context.recordCriticalError("'" + BUILD_GRADLE_KTS + "' does not exist in " + projectDir);
+            context.recordCriticalError("'" + BUILD_GRADLE_KTS + "' does not exist in " + versionsDir);
         }
     }
 

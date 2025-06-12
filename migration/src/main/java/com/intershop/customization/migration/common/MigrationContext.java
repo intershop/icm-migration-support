@@ -141,7 +141,6 @@ public class MigrationContext
     public void recordCriticalError(String message)
     {
         this.criticalErrors.add(message);
-        LOGGER.error("CRITICAL MIGRATION ERROR: {}", message);
     }
 
     /**

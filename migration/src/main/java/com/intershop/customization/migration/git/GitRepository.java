@@ -19,29 +19,33 @@ public class GitRepository implements Closeable
     private final File repositoryDirectory;
     private final Git git;
 
-    public GitRepository(File repositoryDirectory) throws GitInitializationException
+    public GitRepository(File projectDirectory, int maxRepoSearchDepth) throws GitInitializationException
     {
-        this.repositoryDirectory = repositoryDirectory;
-
-        File gitDir = new File(repositoryDirectory, ".git");
-        if (!gitDir.exists() || !gitDir.isDirectory())
-        {
-            LOGGER.error("Given project dir '{}' is no git repository .", repositoryDirectory);
-            throw new GitInitializationException("Given project dir '" + repositoryDirectory + "' is no git repository.", null);
+        FileRepositoryBuilder builder = new FileRepositoryBuilder();
+        File ceiling = projectDirectory;
+        for (int i = 0; i < maxRepoSearchDepth && ceiling.getParentFile() != null; i++) {
+            ceiling = ceiling.getParentFile();
         }
 
-        FileRepositoryBuilder builder = new FileRepositoryBuilder();
         try
         {
-            Repository repository = builder.setGitDir(gitDir)
-                                           .readEnvironment() // scan environment GIT_* variables
+            Repository repository = builder.findGitDir(projectDirectory) // lookup .git dir
+                                           .addCeilingDirectory(ceiling)    // limit search depth
+                                           .readEnvironment()               // scan environment GIT_* variables
                                            .build();
+
+            if (repository.getDirectory() == null)
+            {
+                LOGGER.error("No git repository found in project dir '{}' or parent directories.", projectDirectory);
+                throw new GitInitializationException("No git repository found in project dir '" + projectDirectory + "' or parent directories.", null);
+            }
+            this.repositoryDirectory = repository.getDirectory();
             this.git = new Git(repository);
         }
         catch(IOException e)
         {
-            LOGGER.error("Failed to initialize git repository at {}.", repositoryDirectory, e);
-            throw new GitInitializationException("Failed to initialize git repository at " + repositoryDirectory, e);
+            LOGGER.error("Failed to initialize git repository at {}.", projectDirectory, e);
+            throw new GitInitializationException("Failed to initialize git repository at " + projectDirectory, e);
         }
     }
 
