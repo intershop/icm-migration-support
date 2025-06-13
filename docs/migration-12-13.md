@@ -21,7 +21,7 @@ The automated steps for migrating from ICM 12 to ICM 13 are defined in: `src/mai
 
 Example command:
 ```
-gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/002_migration_12_to_13
+gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/003_migration_12_to_13
 ```
 
 ### Integrate OpenRewrite recipes
@@ -35,7 +35,7 @@ Adds Intershops migration recipes to the root of the project for the use of Open
 ### Run OpenRewrite on the Migration Project
 
 Run OpenRewrite to apply migration recipes
-* Replace removed method of `ChannelBO` by their replacement method
+* TODO list steps
 to the migration project:
 ```
 gradlew --init-script rewrite.gradle rewriteRun

@@ -1,9 +1,0 @@
----
-type: specs.openrewrite.org/v1beta/recipe
-name: com.intershop.migration.12to13.ChannelBOOwnedRepository
-displayName: Change ChannelBO#getOwnedRepository to ChannelBO#getOwnedRepositoryBO
-recipeList:
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.sellside.enterprise.capi.channel.ChannelBO getOwnedRepository()
-      newMethodName: getOwnedRepositoryBO
-      ignoreDefinition: true

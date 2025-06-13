@@ -8,8 +8,6 @@ rootProject {
     plugins.apply(org.openrewrite.gradle.RewritePlugin)
 
     rewrite {
-        configFile = file("${rootProject.projectDir}/rewrite.yaml")
-
         activeRecipe("com.intershop.migration.12to13.ChannelBOOwnedRepository")
 
         // add any additional recipes here you want to run

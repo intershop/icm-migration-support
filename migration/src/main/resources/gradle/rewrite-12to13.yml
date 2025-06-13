@@ -1,0 +1,51 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.MigrationToICM13
+displayName: Migrate API dependencies to ICM 13
+description: |
+  Collection of recipes to migrate API dependencies to ICM 13.
+  It changes method names and updates package imports accordingly.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.enterprise.capi.channel.ChannelBO getOwnedRepository()
+      newMethodName: getOwnedRep
+  - com.intershop.migration.app_sf_rest.EmailSendingHandlerMigration
+  - com.intershop.migration.app_sf_rest.BitSetDeserializerMigration
+  - com.intershop.migration.bc_catalog.CatalogBORepositoryMigration
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.app_sf_rest.EmailSendingHandlerMigration
+displayName: 3-step migration of the EmailSendingHandler#send() to the new signature
+recipeList:
+  - org.openrewrite.java.AddNullMethodArgument:
+      methodPattern: com.intershop.sellside.rest.common.capi.resource.email.handler.EmailSendingHandler send(com.intershop.component.user.capi.UserBO, com.intershop.component.application.capi.ApplicationBO, java.lang.String)
+      parameterType: java.lang.String
+      argumentIndex: 2
+  - org.openrewrite.java.AddNullMethodArgument:
+      methodPattern: com.intershop.sellside.rest.common.capi.resource.email.handler.EmailSendingHandler send(com.intershop.component.user.capi.UserBO, com.intershop.component.application.capi.ApplicationBO, java.lang.String, java.lang.String)
+      parameterType: java.lang.String
+      argumentIndex: 4
+  - org.openrewrite.java.ReorderMethodArguments:
+      methodPattern: com.intershop.sellside.rest.common.capi.resource.email.handler.EmailSendingHandler send(com.intershop.component.user.capi.UserBO, com.intershop.component.application.capi.ApplicationBO, java.lang.String, java.lang.String, java.lang.String)
+      newParameterNames: [applicationBO, userBO, sender, template, subject]
+      oldParameterNames: [userBO, applicationBO, sender, template, subject]
+      ignoreDefinition: true
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.app_sf_rest.BitSetDeserializerMigration
+displayName: Migrate BitSetDeserializer to the new package
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.intershop.sellside.rest.common.capi.BitSetDeserializer
+      newFullyQualifiedTypeName: com.intershop.sellside.rest.common.v1.capi.BitSetDeserializer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.intershop.sellside.rest.common.capi.BitSetSerializer
+      newFullyQualifiedTypeName: com.intershop.sellside.rest.common.v1.capi.BitSetSerializer
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.bc_catalog.CatalogBORepositoryMigration
+displayName: Migrate CatalogBORepository
+recipeList:
+  - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
+      existingFullyQualifiedConstantName: com.intershop.component.catalog.capi.CatalogBORepositoryExtensionFactory.EXTENSION_ID
+      fullyQualifiedConstantName: com.intershop.component.catalog.capi.CatalogBORepositoryExtension.EXTENSION_ID
