@@ -146,6 +146,10 @@ Migrator: `MoveFiles`
 Moves specific files to their new locations within the ICM 11 structure:
 
 - `staticfiles/cartridge/directCustomAttributes.xml` -> `src/main/resources/resources/{cartridgeName}/directCustomAttributes.xml`
+- `staticfiles/share/system/config/cluster/domainsplittings.xml` -> `src/main/resources/resources/{cartridgeName}/config/domainsplittings.xml`
+- `staticfiles/share/system/config/cluster/urlrewriterules.xml` -> `src/main/resources/resources/{cartridgeName}/config/urlrewriterules.xml`
+- `staticfiles/share/system/config/cluster/configuration.xml` -> `src/main/resources/resources/{cartridgeName}/config/configuration.xml`
+- `staticfiles/share/system/config/cluster/replication.xml` -> `src/main/resources/resources/{cartridgeName}/replication/replication.xml`
 
 ### Move Java Source Code
 
