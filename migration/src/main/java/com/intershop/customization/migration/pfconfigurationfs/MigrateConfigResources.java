@@ -1,6 +1,7 @@
 package com.intershop.customization.migration.pfconfigurationfs;
 
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
+import static com.intershop.customization.migration.common.MigrationContext.OperationType.CREATE;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,14 +12,14 @@ import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
+import com.intershop.customization.migration.common.MigrationContext.OperationType;
 import com.intershop.customization.migration.utils.FileUtils;
 
 public class MigrateConfigResources implements MigrationPreparer
 {
 
-
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
-
 
     /**
      * Migrates a resource with context tracking.
@@ -131,7 +132,10 @@ public class MigrateConfigResources implements MigrationPreparer
 
                 if(configurationXMLFile.toFile().exists())
                 {
-                    LOGGER.warn("{}} already exists, generate {}.", configurationXMLFile, alternateConfigurationXMLFile);
+                    String msg = configurationXMLFile + " already exists, generate " + alternateConfigurationXMLFile + "!";
+                    LOGGER.warn(msg);
+                    context.recordWarning(migrationSubject, OperationType.CREATE, configurationXMLFile, 
+                        configurationXMLFile, msg);
                     configurationXMLFile = alternateConfigurationXMLFile;
                 }
                 Files.createFile(configurationXMLFile);
