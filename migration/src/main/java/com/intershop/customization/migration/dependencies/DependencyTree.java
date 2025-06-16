@@ -3,6 +3,7 @@ package com.intershop.customization.migration.dependencies;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class DependencyTree<T> {
     DependencyEntry<T> root;
 
@@ -25,6 +26,28 @@ public class DependencyTree<T> {
             traverse(child);
         }
     }
+
+        // Recursive method to find an element in the n-ary tree
+    public static Dependency findElement(Dependency root, Dependency target) {
+        if (root == null) {
+            return null; // Base case: tree is empty
+        }
+
+        if (root.equals(target)) {
+            return target; // Found the target
+        }
+
+        // Recursively search in the children
+        for (DependencyEntry<T>  child : root.getChildren()) {
+            if (findElement(child, target)) 
+            {
+                return target;
+            }
+        }
+
+        return null; // Target not found
+    }
+
 }
 
 /**
