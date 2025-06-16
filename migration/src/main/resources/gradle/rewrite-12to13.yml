@@ -1,6 +1,6 @@
 ---
-type: specs.openrewrite.org/v1beta/recipe
 name: com.intershop.migration.MigrationToICM13
+type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate API dependencies to ICM 13
 description: |
   Collection of recipes to migrate API dependencies to ICM 13.
@@ -8,13 +8,56 @@ description: |
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.sellside.enterprise.capi.channel.ChannelBO getOwnedRepository()
-      newMethodName: getOwnedRep
-  - com.intershop.migration.app_sf_rest.EmailSendingHandlerMigration
-  - com.intershop.migration.app_sf_rest.BitSetDeserializerMigration
-  - com.intershop.migration.bc_catalog.CatalogBORepositoryMigration
+      newMethodName: getOwnedRepositoryBO
+  - com.intershop.migration.icm13.AppSfRestMigration
+  - com.intershop.migration.icm13.BcCatalogMigration
+  - com.intershop.migration.icm13.AppSfRestOrderMigration
+  - com.intershop.migration.icm13.AppSfRestBasketMigration
+  - com.intershop.migration.icm13.XcsMigration
+
 ---
+name: com.intershop.migration.icm13.AppSfRestMigration
 type: specs.openrewrite.org/v1beta/recipe
-name: com.intershop.migration.app_sf_rest.EmailSendingHandlerMigration
+displayName: Migrate app_sf_rest cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.app_sf_rest.EmailSendingHandlerMigration
+  - com.intershop.migration.icm13.app_sf_rest.BitSetDeSerializerMigration
+
+---
+name: com.intershop.migration.icm13.AppSfRestOrderMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate app_sf_rest_order cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.app_sf_rest_order.OrderListResourceMigration
+  - com.intershop.migration.icm13.app_sf_rest_order.OrderListGetRequestMigration
+
+---
+name: com.intershop.migration.icm13.AppSfRestBasketMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate app_sf_rest_basket cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.app_sf_rest_basket.BasketFeedbackHandlerMigration
+
+---
+name: com.intershop.migration.icm13.BcCatalogMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate bc_catalog cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.bc_catalog.CatalogBORepositoryMigration
+
+---
+name: com.intershop.migration.icm13.XcsMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate xcs cartridge usages to ICM 13
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.beehive.xcs.capi.catalog.CatalogMgr getCatalogCategoryByUUID(java.lang.String)
+      newMethodName: resolveCatalogCategoryFromID
+  - com.intershop.migration.icm13.xcs.ProductVariationMgrMigration
+
+---
+name: com.intershop.migration.icm13.app_sf_rest.EmailSendingHandlerMigration
+type: specs.openrewrite.org/v1beta/recipe
 displayName: 3-step migration of the EmailSendingHandler#send() to the new signature
 recipeList:
   - org.openrewrite.java.AddNullMethodArgument:
@@ -30,9 +73,10 @@ recipeList:
       newParameterNames: [applicationBO, userBO, sender, template, subject]
       oldParameterNames: [userBO, applicationBO, sender, template, subject]
       ignoreDefinition: true
+
 ---
+name: com.intershop.migration.icm13.app_sf_rest.BitSetDeSerializerMigration
 type: specs.openrewrite.org/v1beta/recipe
-name: com.intershop.migration.app_sf_rest.BitSetDeserializerMigration
 displayName: Migrate BitSetDeserializer to the new package
 recipeList:
   - org.openrewrite.java.ChangeType:
@@ -41,11 +85,170 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.intershop.sellside.rest.common.capi.BitSetSerializer
       newFullyQualifiedTypeName: com.intershop.sellside.rest.common.v1.capi.BitSetSerializer
+
 ---
+name: com.intershop.migration.icm13.app_sf_rest_order.OrderListResourceMigration
 type: specs.openrewrite.org/v1beta/recipe
-name: com.intershop.migration.bc_catalog.CatalogBORepositoryMigration
+displayName: Migrate OrderListResource changes
+recipeList:
+  - org.openrewrite.java.AddNullMethodArgument:
+      methodPattern: com.intershop.sellside.rest.order.v1.capi.resource.order.OrderListResource getOrders_V1(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Integer, java.lang.Integer, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.util.List)
+      parameterType: java.util.List
+      argumentIndex: 17
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.order.v1.capi.resource.order.OrderListResource getOrders_V1(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Integer, java.lang.Integer, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.util.List, java.util.List)
+      argumentIndex: 18
+      primitiveType: boolean
+      literal: false
+
+---
+name: com.intershop.migration.icm13.app_sf_rest_order.OrderListGetRequestMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate OrderListGetRequest changes
+recipeList:
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.order.v1.capi.request.order.OrderListGetRequest <constructor>(com.intershop.sellside.rest.order.v1.capi.handler.OrderHandler, com.intershop.component.rest.capi.resource.RestResourceCacheHandler, java.util.function.Function, Provider, Provider, Provider)
+      parameterType: com.intershop.sellside.rest.order.v1.capi.handler.OrderSearchContextCreator
+      literal: com.intershop.beehive.core.capi.naming.NamingMgr.get(OrderSearchContextCreator.class)
+
+---
+name: com.intershop.migration.icm13.app_sf_rest_basket.BasketFeedbackHandlerMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate FeedbackHandler changes
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler
+      newFullyQualifiedTypeName: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getBasketNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_BASKET_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getLineItemNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_LINE_ITEM_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getShippingBucketNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getShippingBucketNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPaymentNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_PAYMENT_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPaymentInstrumentNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPromotionCodeNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: BasketConstantsREST.ERROR_PROMOTIONCODE_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getAddressNotFoundFeedbackResource()
+      newMethodName: getFeedback
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
+      parameterType: jakarta.ws.rs.core.Response.StatusType
+      literal: Response.StatusType.NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
+      parameterType: java.lang.String
+      literal: CommonConstantsREST#ERROR_ADDRESS_NOT_FOUND
+      argumentIndex: 1
+  - org.openrewrite.gradle.AddDependency:
+      groupId: com.intershop.business
+      artifactId: app_sf_rest_common
+      configuration: cartridge
+      onlyIfUsing: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler
+
+---
+name: com.intershop.migration.icm13.bc_catalog.CatalogBORepositoryMigration
+type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate CatalogBORepository
 recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: com.intershop.component.catalog.capi.CatalogBORepositoryExtensionFactory.EXTENSION_ID
       fullyQualifiedConstantName: com.intershop.component.catalog.capi.CatalogBORepositoryExtension.EXTENSION_ID
+
+---
+name: com.intershop.migration.icm13.xcs.ProductVariationMgrMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductVariationMgr usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.beehive.xcs.capi.productvariation.ProductVariationMgr createPAVByDomainRelationsPageable(java.lang.String)
+      newMethodName: createPAVByDomainRelationsIterator
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.beehive.xcs.capi.productvariation.ProductVariationMgr getProductVariationValueByUUID(java.lang.String)
+      newMethodName: resolveVariationTypeFromID
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.beehive.xcs.capi.productvariation.ProductVariationMgr getVariationTypeByUUID(java.lang.String)
+      newMethodName: resolveVariationTypeFromID

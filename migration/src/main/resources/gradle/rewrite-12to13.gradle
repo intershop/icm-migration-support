@@ -8,7 +8,7 @@ rootProject {
     plugins.apply(org.openrewrite.gradle.RewritePlugin)
 
     rewrite {
-        activeRecipe("com.intershop.migration.12to13.ChannelBOOwnedRepository")
+        activeRecipe("com.intershop.migration.MigrationToICM13")
 
         // add any additional recipes here you want to run
         setExportDatatables(true)
