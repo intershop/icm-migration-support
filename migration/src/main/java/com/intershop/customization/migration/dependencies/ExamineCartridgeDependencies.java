@@ -13,20 +13,28 @@ import com.intershop.customization.migration.common.MigrationPreparer;
 public class ExamineCartridgeDependencies  implements MigrationPreparer
 {
 
-    DependencyTree<Dependency> dependencyxTree;
+    static DependencyTree<Dependency> dependencyxTree;
+    static DependencyEntry <Dependency> rootDependencyEntry;
 
 
+    /** main ethod to examine cartidge dependencies..<br/>
+     * if not yet ecaminded 1st a carteidge is assigned to the prject.<br/>
+     * Loopuing throgh the carteidges, their 
+     * dependencies are (re-)assigned as tghey depend on each other....<br/>
+     * 
+     */
     @Override
     public void migrate(Path cartridgeDir, MigrationContext context) {
 
         Path cartridgePath = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
         String cartridgeName = cartridgePath.toString();
 
-        Dependency depemdemcy = new Dependency(
+        Dependency dependency = new Dependency(
             cartridgeName,
             null, 
             DependencyType.ROOT);
-        dependencyxTree = new DependencyTree<Dependency>(depemdemcy);
+        dependencyxTree = new DependencyTree<Dependency>(dependency);
+        rootDependencyEntry = dependencyxTree.getRoot();
 
         // scan build.grale.kts in first level (artridge) directories
         String fileToFind = "build.grale.kts";
@@ -47,13 +55,29 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
 
     private static void analyzeBuildFile(Path dir, String targetFile) {
         if(Files.exists(dir.resolve(targetFile))) {
-            System.out.println("Found " + targetFile + " in directory: " + dir);
             File buildFile = dir.resolve(targetFile).toFile();
-            System.out.println("Found " + targetFile + " in directory: " + dir);
-            
-        } else {
-            System.out.println("Did not find " + targetFile + " in directory: " + dir);
-        }
+            String cartridgName = dir.getParent().getFileName().toString();  
+
+            Dependency dependency = new Dependency(
+                cartridgName,
+                buildFile.getName(),
+                DependencyType.CARTRIDGE);
+
+            Depencency existingEntry = dependencyxTree.findElement(rootDependencyEntry, dependency);
+            try {
+                if(null == existingEntry) {
+                    DependencyEntry<Dependency> dependencyEntry = new DependencyEntry<>(dependency);
+                    dependencyEntry.addChild(dependencyEntry);
+                    System.out.println("Added dependency: " + dependency);
+                    System.out.println("Found " + targetFile + " in directory: " + dir);
+                
+                } else {
+                    System.out.println("Did not find " + targetFile + " in directory: " + dir);
+                }
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
     }
 
 }
