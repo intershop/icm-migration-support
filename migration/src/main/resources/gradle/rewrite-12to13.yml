@@ -14,6 +14,8 @@ recipeList:
   - com.intershop.migration.icm13.AppSfRestOrderMigration
   - com.intershop.migration.icm13.AppSfRestBasketMigration
   - com.intershop.migration.icm13.XcsMigration
+  - com.intershop.migration.icm13.BcMvcMigration
+  - com.intershop.migration.icm13.BcProductMigration
 
 ---
 name: com.intershop.migration.icm13.AppSfRestMigration
@@ -54,6 +56,22 @@ recipeList:
       methodPattern: com.intershop.beehive.xcs.capi.catalog.CatalogMgr getCatalogCategoryByUUID(java.lang.String)
       newMethodName: resolveCatalogCategoryFromID
   - com.intershop.migration.icm13.xcs.ProductVariationMgrMigration
+
+---
+name: com.intershop.migration.icm13.BcMvcMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate bc_mvc cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.bc_mvc.MVCatalogMgrMigration
+
+---
+name: com.intershop.migration.icm13.BcProductMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate bc_product cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.bc_product.ProductBOAttachmentsExtensionMigration
+  - com.intershop.migration.icm13.bc_product.ProductBORepositoryMigration
+  - com.intershop.migration.icm13.bc_product.ProductBOMigration
 
 ---
 name: com.intershop.migration.icm13.app_sf_rest.EmailSendingHandlerMigration
@@ -252,3 +270,120 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.beehive.xcs.capi.productvariation.ProductVariationMgr getVariationTypeByUUID(java.lang.String)
       newMethodName: resolveVariationTypeFromID
+
+---
+name: com.intershop.migration.icm13.bc_mvc.MVCatalogMgrMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate MVCatalogMgr usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createOfferRepository(com.intershop.beehive.core.capi.domain.Domain)
+      newMethodName: createRepository
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain)
+      parameterType: int
+      literal: MVCatalogConstants.REPOSITORY_TYPE_OFFER
+      argumentIndex: 1
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain, int)
+      parameterType: java.lang.String
+      literal: "Repository"
+      argumentIndex: 2
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createProductRepository(com.intershop.beehive.core.capi.domain.Domain)
+      newMethodName: createRepository
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain)
+      parameterType: int
+      literal: MVCatalogConstants.REPOSITORY_TYPE_PRODUCT
+      argumentIndex: 1
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain, int)
+      parameterType: java.lang.String
+      literal: "Repository"
+      argumentIndex: 2
+  - org.openrewrite.java.AddImport:
+      type: com.intershop.component.mvc.capi.catalog.MVCatalogConstants
+      onlyIfReferenced: true
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr getCatalogByDomain(com.intershop.beehive.core.capi.domain.Domain)
+      newMethodName: getCatalogByCatalogDomain
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr isOnline(com.intershop.component.mvc.capi.catalog.Catalog)
+      parameterType: java.util.Date
+      literal: new Date()
+      argumentIndex: 1
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr isOnline(com.intershop.component.mvc.capi.catalog.Catalog, java.util.Date)
+      argumentIndex: 0
+
+---
+name: com.intershop.migration.icm13.bc_product.ProductBOAttachmentsExtensionMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductBOAttachmentsExtension usages
+recipeList:
+  - org.openrewrite.java.AddNullMethodArgument:
+      methodPattern: com.intershop.component.product.capi.attachment.ProductBOAttachmentsExtension createProductAttachmentBO(java.lang.String, java.lang.String, java.lang.String, com.intershop.beehive.core.capi.localization.LocaleInformation, boolean)
+      parameterType: java.lang.Long
+      argumentIndex: 5
+  - org.openrewrite.java.AddNullMethodArgument:
+      methodPattern: com.intershop.component.product.capi.attachment.ProductBOAttachmentsExtension createProductAttachmentBO(com.intershop.component.product.capi.attachment.ProductAttachmentBO, java.lang.String, java.lang.String, java.lang.String, com.intershop.beehive.core.capi.localization.LocaleInformation, boolean)
+      parameterType: java.lang.Long
+      argumentIndex: 6
+
+---
+name: com.intershop.migration.icm13.bc_product.ProductBORepositoryMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductBORepository usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository getProductByProductRef(com.intershop.beehive.xcs.common.ProductRef)
+      newMethodName: getProductBOByProductRef
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository getProductBySKU(java.lang.String, java.lang.String)
+      newMethodName: getProductBOBySKU
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository getProductBOBySKU(java.lang.String, java.lang.String)
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository createProxyProduct(com.intershop.component.product.capi.ProductBO, com.intershop.component.catalog.capi.CatalogCategoryBO)
+      newMethodName: createProxyProductBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository getImplicitlyAssignedProducts(com.intershop.beehive.core.capi.domain.Domain, java.lang.String, java.lang.String, com.intershop.beehive.core.capi.localization.LocaleInformation, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.String, java.lang.Integer, java.util.Iterator)
+      newMethodName: getImplicitlyAssignedProductBOs
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBORepository getAssignedProducts(com.intershop.beehive.core.capi.domain.Domain, com.intershop.beehive.core.capi.localization.LocaleInformation, com.intershop.component.catalog.capi.CatalogCategoryBO, java.lang.String, java.lang.String, java.lang.String,  java.lang.Integer, java.lang.String, java.lang.Integer, java.util.Iterator)
+      newMethodName: getAssignedProductBOs
+
+---
+name: com.intershop.migration.icm13.bc_product.ProductBOMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductBORepository usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO getProductAttachments()
+      newMethodName: getProductAttachmentBOs
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO getProductAttachmentsForType(java.lang.String)
+      newMethodName: getProductAttachmentBOsForType
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO getBundleInformation()
+      newMethodName: getBundleInformationBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO setDefaultCatalogCategory(com.intershop.component.catalog.capi.CatalogCategoryBO)
+      newMethodName: setDefaultCatalogCategoryBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO getDefaultVariationProduct()
+      newMethodName: getDefaultVariationProductBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO getDefaultVariationProductWithFallback(com.intershop.beehive.core.capi.user.User)
+      newMethodName: getDefaultAccessibleVariation
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.component.product.capi.ProductBO getDefaultAccessibleVariation(com.intershop.beehive.core.capi.user.User)
+      argumentIndex: 0
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.product.capi.ProductBO isProductVisibleForUser(com.intershop.beehive.core.capi.user.User)
+      newMethodName: isAccessible
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.component.product.capi.ProductBO isAccessible(com.intershop.beehive.core.capi.user.User)
+      argumentIndex: 0
