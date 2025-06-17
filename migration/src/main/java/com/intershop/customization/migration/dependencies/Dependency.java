@@ -1,21 +1,21 @@
 package com.intershop.customization.migration.dependencies;
 
 public record Dependency(
-    String carteidgeName,
+    String name,
     String artifactName,
     DependencyType dependencyType
 ) 
 {
-    public Dependency(String carteidgeName, String artifactName, DependencyType dependencyType)
+    public Dependency(String name, String artifactName, DependencyType dependencyType)
      {
-        this.carteidgeName = carteidgeName;
+        this.name = name;
         this.artifactName = artifactName;
         this.dependencyType = dependencyType;
     }
 
-    public String getCarteidgeName() 
+    public String getName() 
     {
-        return carteidgeName;
+        return name;
     }
 
     public String getArtifactName() 
