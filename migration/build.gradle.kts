@@ -12,6 +12,7 @@ tasks.test {
 
 dependencies {
     implementation("io.github.classgraph:classgraph")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.slf4j:slf4j-api")
     implementation("org.yaml:snakeyaml")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
