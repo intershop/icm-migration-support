@@ -7,12 +7,17 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigResources;
 
 public class ExamineCartridgeDependencies  implements MigrationPreparer
 {
+
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
     static DependencyTree<Dependency> dependencyxTree;
     static DependencyEntry <Dependency> rootDependencyEntry;
@@ -27,26 +32,42 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
     @Override
     public void migrate(Path cartridgeDir, MigrationContext context) {
 
-        // Path cartridgePath = cartridgeDir.getName(cartridgeDir.getNameCount() - 1);
+        if (null == cartridgeDir || !Files.exists(cartridgeDir)) {
+            LOGGER.error("Project path does not exist:{} ", cartridgeDir.toFile());
+            return;
+        }
+        Path projectPath = cartridgeDir.getName(2);
         Path cartridgePath = cartridgeDir.getName(3);
         String cartridgeName = cartridgePath.toString();
 
-        Dependency dependency = new Dependency(
-            cartridgeName,
-            null, 
-            DependencyType.CARTRIDGE);
-        dependencyxTree = new DependencyTree<Dependency>(dependency);
-        rootDependencyEntry = dependencyxTree.getRoot();
+        if (toBeExaminded(cartridgePath)) {
+            if(null == rootDependencyEntry) {
+                // if not yet initialized, create a new root entry
+                // for the dependency tree
+                Dependency rootDependency = new Dependency(
+                    projectPath.getFileName().toString(),
+                    null, 
+                    DependencyType.ROOT);
+                dependencyxTree = new DependencyTree<Dependency>(rootDependency);
+            }
+            rootDependencyEntry = dependencyxTree.getRoot();
+            Dependency dependency = new Dependency(
+                cartridgeName,
+                null, 
+                DependencyType.CARTRIDGE);
+            rootDependencyEntry.addChild(new DependencyEntry<>(dependency));
 
-        // scan build.grale.kts in first level (artridge) directories
-        String fileToFind = "build.gradle.kts";
-        searchFirstLevelDirs(cartridgeDir, fileToFind);
+            // scan build.grale.kts in first level (artridge) directories
+            String fileToFind = "build.gradle.kts";
+            searchFirstLevelDirs(cartridgeDir, fileToFind);
 
-        Gson gson = new Gson();
-        String json = gson.toJson(dependencyxTree);
+            Gson gson = new Gson();
+            String json = gson.toJson(dependencyxTree);
 
-        // just goes to STDOUT  - so far...
-        System.out.println(json);
+            // just goes to STDOUT  - so far...
+            System.out.println(json);
+        }
+
     }
     private static void searchFirstLevelDirs(Path startDir, String targetFile) 
     {
