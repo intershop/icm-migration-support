@@ -16,6 +16,8 @@ recipeList:
   - com.intershop.migration.icm13.XcsMigration
   - com.intershop.migration.icm13.BcMvcMigration
   - com.intershop.migration.icm13.BcProductMigration
+  - com.intershop.migration.icm13.BcProductConfigurationMigration
+  - com.intershop.migration.icm13.CoreMigration
 
 ---
 name: com.intershop.migration.icm13.AppSfRestMigration
@@ -72,6 +74,23 @@ recipeList:
   - com.intershop.migration.icm13.bc_product.ProductBOAttachmentsExtensionMigration
   - com.intershop.migration.icm13.bc_product.ProductBORepositoryMigration
   - com.intershop.migration.icm13.bc_product.ProductBOMigration
+
+---
+name: com.intershop.migration.icm13.BcProductConfigurationMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate bc_product_configuration cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.bc_product_configuration.ProductConfigurationValidatorValueListBOMigration
+  - com.intershop.migration.icm13.bc_product_configuration.AbstractProductConfigurationBOMigration
+  - com.intershop.migration.icm13.bc_product_configuration.AbstractProductConfigurationOptionSelectionBOMigration
+  - com.intershop.migration.icm13.bc_product_configuration.ProductPreConfigurationBORepositoryMigration
+
+---
+name: com.intershop.migration.icm13.CoreMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate core cartridge usages to ICM 13
+recipeList:
+  - com.intershop.migration.icm13.core.NumberSeriesProviderMigration
 
 ---
 name: com.intershop.migration.icm13.app_sf_rest.EmailSendingHandlerMigration
@@ -387,3 +406,108 @@ recipeList:
   - org.openrewrite.java.DeleteMethodArgument:
       methodPattern: com.intershop.component.product.capi.ProductBO isAccessible(com.intershop.beehive.core.capi.user.User)
       argumentIndex: 0
+
+---
+name: com.intershop.migration.icm13.bc_product_configuration.ProductConfigurationValidatorValueListBOMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductConfigurationValidatorValueListBO usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.validator.ProductConfigurationValidatorValueListBO getProductValue(int, int)
+      newMethodName: getProductBOValue
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.validator.ProductConfigurationValidatorValueListBO getProductValue(int, int, com.intershop.component.product.capi.ProductBO)
+      newMethodName: getProductBOValue
+
+---
+name: com.intershop.migration.icm13.bc_product_configuration.AbstractProductConfigurationBOMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate AbstractProductConfigurationBO usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationBO getSet()
+      newMethodName: getProductConfigurationSetBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationBO getProduct()
+      newMethodName: getProductBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationBO createConfigurationOptionSelection(com.intershop.component.productconfiguration.capi.set.ProductConfigurationOptionBO)
+      newMethodName: createProductConfigurationOptionSelectionBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationBO removeOptionSelection(com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO)
+      newMethodName: removeProductConfigurationOptionSelectionBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationBO getConfigurationOptionSelections()
+      newMethodName: getProductConfigurationOptionSelectionBOs
+
+---
+name: com.intershop.migration.icm13.bc_product_configuration.AbstractProductConfigurationOptionSelectionBOMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate AbstractProductConfigurationOptionSelectionBO usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO getProductValue()
+      newMethodName: getProductBOValue
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO setProductValue(com.intershop.component.product.capi.ProductBO)
+      newMethodName: setProductBOValue
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO setProductValueNull(boolean)
+      newMethodName: setProductBOValueNull
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO getConfigurationValue()
+      newMethodName: getProductConfigurationValueBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO setConfigurationValue(com.intershop.component.productconfiguration.capi.set.ProductConfigurationValueBO)
+      newMethodName: setProductConfigurationValueBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO getConfiguration()
+      newMethodName: getProductConfigurationBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.AbstractProductConfigurationOptionSelectionBO getOption()
+      newMethodName: getProductConfigurationOptionBO
+
+---
+name: com.intershop.migration.icm13.bc_product_configuration.ProductPreConfigurationBORepositoryMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Migrate ProductPreConfigurationBORepository usages
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository createProductPreConfiguration(com.intershop.component.productconfiguration.capi.set.ProductConfigurationSetBO, com.intershop.component.product.capi.ProductBO)
+      newMethodName: createProductPreConfigurationBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository getProductPreConfigurationsBySet(com.intershop.component.productconfiguration.capi.set.ProductConfigurationSetBO)
+      newMethodName: getProductPreConfigurationBOsBySet
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository getProductPreConfigurationByProductAndSet(com.intershop.component.product.capi.ProductBO, com.intershop.component.productconfiguration.capi.set.ProductConfigurationSetBO)
+      newMethodName: getProductPreConfigurationBOsByProductAndSet
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository deleteProductPreConfiguration(com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBO)
+      newMethodName: deleteProductPreConfigurationBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository deleteProductPreConfiguration(java.lang.String)
+      newMethodName: deleteProductPreConfigurationBO
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository getProductPreConfiguration(java.lang.String)
+      newMethodName: getProductPreConfigurationBOByID
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository getProductPreConfigurationByProduct(com.intershop.component.product.capi.ProductBO)
+      newMethodName: getProductPreConfigurationBOsByProduct
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.productconfiguration.capi.configuration.ProductPreConfigurationBORepository getAllProductPreConfigurations()
+      newMethodName: getAllProductPreConfigurationBOs
+
+---
+name: com.intershop.migration.icm13.core.NumberSeriesProviderMigration
+type: specs.openrewrite.org/v1beta/recipe
+displayName: Replace NumberSeriesProvider by NumberSequenceProvider
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.intershop.beehive.core.capi.series.NumberSeriesProvider
+      newFullyQualifiedTypeName: com.intershop.beehive.core.capi.series.NumberSequenceProvider
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: om.intershop.beehive.core.capi.series.NumberSequenceProvider nextValueInSeries(java.lang.String, boolean)
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: om.intershop.beehive.core.capi.series.NumberSequenceProvider nextValueInSeries(java.lang.String)
+      newMethodName: nextValue
