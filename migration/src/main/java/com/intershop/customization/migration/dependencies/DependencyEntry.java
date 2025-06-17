@@ -24,7 +24,6 @@ public class DependencyEntry<T> {
     }
 
     boolean equals(DependencyEntry<T> other) {
-        T thisValue = this.value;
 
         if (this != other) return false; // Check for reference equality
         if (other == null || getClass() != other.getClass()) return false;
