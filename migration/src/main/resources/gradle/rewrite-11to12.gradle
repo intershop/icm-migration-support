@@ -2,12 +2,13 @@ initscript {
     repositories {
         maven { url "https://plugins.gradle.org/m2" }
     }
-    dependencies { classpath("org.openrewrite:plugin:7.7.0") }
+    dependencies { classpath("org.openrewrite:plugin:7.8.0") }
 }
 rootProject {
     plugins.apply(org.openrewrite.gradle.RewritePlugin)
     dependencies {
         rewrite("org.openrewrite.recipe:rewrite-migrate-java:3.11.0")
+        rewrite("org.openrewrite.recipe:rewrite-spring:6.8.2")
     }
     rewrite {
         // see https://docs.openrewrite.org/recipes/java/migrate/jakarta/jakartaee10
@@ -16,6 +17,8 @@ rootProject {
         activeRecipe("org.openrewrite.java.migrate.UpgradeToJava21")
         // https://docs.openrewrite.org/recipes/gradle/migratetogradle8
         activeRecipe("org.openrewrite.gradle.MigrateToGradle8")
+        // custom recipes located in rewrite.yml (rewrite-11to12.yml)
+        activeRecipe("com.intershop.migration.MigrationToICM12")
 
         // add any additional recipes here you want to run
         setExportDatatables(true)

@@ -1,0 +1,122 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.MigrationToICM12
+displayName: Migrate API dependencies to ICM 12
+recipeList:
+  - com.intershop.migration.icm12.core.SAXParserPool
+  - com.intershop.migration.icm12.encryption.EncryptionManager
+  - com.intershop.migration.icm12.app_sf_rest.ProductListResource
+  - com.intershop.migration.icm12.xsd.ProcessChainXSD
+  - com.intershop.migration.icm12.core.JobMgr
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.icm12.core.SAXParserPool
+displayName: Migrate package for SAXParserPool
+recipeList:
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.intershop.beehive.core.capi.sax
+      newPackageName: com.intershop.common.capi.sax
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.icm12.encryption.EncryptionManager
+displayName: Migrate methods for EncryptionManager
+recipeList:
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(char[], String)
+      argumentIndex: 0
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(java.security.Key, String, String)
+      argumentIndex: 2
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(java.security.Key, String)
+      argumentIndex: 0
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(String, String, String)
+      argumentIndex: 2
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(String, String)
+      argumentIndex: 0
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager encrypt(String)
+      newMethodName: encryptString
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(char[], String)
+      argumentIndex: 0
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(java.security.Key, String, String)
+      argumentIndex: 2
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(java.security.Key, String)
+      argumentIndex: 0
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(String, String, String)
+      argumentIndex: 2
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(String, String)
+      argumentIndex: 0
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.common.encryption.capi.EncryptionManager decrypt(String)
+      newMethodName: decryptString
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.icm12.app_sf_rest.ProductListResource
+displayName: Migrate ProductListResource
+recipeList:
+  - org.openrewrite.java.spring.ChangeMethodParameter:
+      methodPattern: com.intershop.sellside.rest.common.capi.resource.ProductListResource getProducts(String, Integer, Integer, String, Boolean, String, String, String, String, String)
+      parameterType: int
+      parameterIndex: 1
+  - org.openrewrite.java.spring.ChangeMethodParameter:
+      methodPattern: com.intershop.sellside.rest.common.capi.resource.ProductListResource getProducts(String, Integer, Integer, String, Boolean, String, String, String, String, String)
+      parameterType: int
+      parameterIndex: 2
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.icm12.xsd.ProcessChainXSD
+displayName: Migrate XSD for ProcessChain
+recipeList:
+  - org.openrewrite.gradle.AddDependency:
+      groupid: com.intershop.xsd
+      artifactId: intershop-xsd
+      configuration: implementation
+      onlyIfUsing: com.intershop.beehive.core.internal.process.xml.*
+  - org.openrewrite.java.ChangePackage:
+      oldPackageName: com.intershop.beehive.core.internal.process.xml
+      newPackageName: com.intershop.xsd.processchain.v1
+  - org.openrewrite.xml.ChangeTagAttribute:
+      elementName: p:chain
+      attributeName: xmlns:p
+      oldValue: http://www.intershop.com/xml/ns/enfinity/6.4/core/processchain
+      newValue: https://www.intershop.com/xml/ns/semantic/processchain/v1
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: com.intershop.migration.icm12.core.JobMgr
+displayName: Migrate JobMgr
+recipeList:
+  - org.openrewrite.java.migrate.AddMissingMethodImplementation:
+      fullyQualifiedClassName: com.intershop.beehive.core.capi.job.JobMgr
+      methodPattern: '*..* setEnableJobProcessors(Collection)'
+      methodTemplateString: |
+        @Override
+        public void setEnableJobProcessors(Collection<String> serverIDs)
+        {
+            try
+            {
+                com.intershop.beehive.core.capi.naming.NamingMgr.get(com.intershop.beehive.core.capi.event.EventMgr.class)
+                    .distributeEvent(new com.intershop.beehive.core.internal.job.EnableJobProcessorEvent(serverIDs), com.intershop.beehive.core.internal.event.CoreEventChannels.JOB_ENABLE_CHANNEL);
+            }
+            catch(java.io.IOException ex)
+            {
+                throw new com.intershop.beehive.core.capi.common.SystemException(ex);
+            }
+        }
+  - org.openrewrite.java.migrate.AddMissingMethodImplementation:
+      fullyQualifiedClassName: com.intershop.beehive.core.capi.job.JobMgr
+      methodPattern: '*..* createJobCrontabTimeCondition(Domain, Date, String)'
+      methodTemplateString: |
+        @Override
+        public com.intershop.beehive.core.capi.job.JobCrontabTimeCondition createJobCrontabTimeCondition(Domain domain, Date startDate, String cronExpression)
+        {
+            com.intershop.beehive.core.capi.naming.NamingMgr.get(com.intershop.beehive.core.internal.job.JobCrontabTimeConditionPOFactory.class)
+                .create(domain, startDate, cronExpression);
+        }
