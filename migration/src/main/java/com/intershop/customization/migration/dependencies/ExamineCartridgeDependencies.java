@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
 import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigResources;
@@ -61,7 +62,7 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
             String fileToFind = "build.gradle.kts";
             searchFirstLevelDirs(cartridgeDir, fileToFind);
 
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(dependencyxTree);
 
             // just goes to STDOUT  - so far...
