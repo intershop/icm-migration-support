@@ -33,7 +33,6 @@ type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate app_sf_rest_order cartridge usages to ICM 13
 recipeList:
   - com.intershop.migration.icm13.app_sf_rest_order.OrderListResourceMigration
-  - com.intershop.migration.icm13.app_sf_rest_order.OrderListGetRequestMigration
 
 ---
 name: com.intershop.migration.icm13.AppSfRestBasketMigration
@@ -139,127 +138,98 @@ recipeList:
       literal: false
 
 ---
-name: com.intershop.migration.icm13.app_sf_rest_order.OrderListGetRequestMigration
-type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate OrderListGetRequest changes
-recipeList:
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.sellside.rest.order.v1.capi.request.order.OrderListGetRequest <constructor>(com.intershop.sellside.rest.order.v1.capi.handler.OrderHandler, com.intershop.component.rest.capi.resource.RestResourceCacheHandler, java.util.function.Function, Provider, Provider, Provider)
-      parameterType: com.intershop.sellside.rest.order.v1.capi.handler.OrderSearchContextCreator
-      literal: com.intershop.beehive.core.capi.naming.NamingMgr.get(OrderSearchContextCreator.class)
-
----
 name: com.intershop.migration.icm13.app_sf_rest_basket.BasketFeedbackHandlerMigration
 type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate FeedbackHandler changes
 recipeList:
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getBasketNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_BASKET_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getLineItemNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_LINE_ITEM_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getShippingBucketNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPaymentNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_PAYMENT_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPaymentInstrumentNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPromotionCodeNotFoundFeedbackResource()
+      primitiveType: String
+      literal: BasketConstantsREST.ERROR_PROMOTIONCODE_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.AddLiteralMethodArgument:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getAddressNotFoundFeedbackResource()
+      primitiveType: String
+      literal: CommonConstantsREST.ERROR_ADDRESS_NOT_FOUND
+      argumentIndex: 0
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getBasketNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getLineItemNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getShippingBucketNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPaymentNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPaymentInstrumentNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getPromotionCodeNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getAddressNotFoundFeedbackResource(String)
+      newMethodName: getFeedback
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler
       newFullyQualifiedTypeName: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getBasketNotFoundFeedbackResource()
-      newMethodName: getFeedback
   - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
+      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(String)
+      primitiveType: String
       literal: Response.StatusType.NOT_FOUND
       argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_BASKET_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getLineItemNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_LINE_ITEM_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getShippingBucketNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getShippingBucketNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPaymentNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_PAYMENT_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPaymentInstrumentNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getPromotionCodeNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: BasketConstantsREST.ERROR_PROMOTIONCODE_NOT_FOUND
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getAddressNotFoundFeedbackResource()
-      newMethodName: getFeedback
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback()
-      parameterType: jakarta.ws.rs.core.Response.StatusType
-      literal: Response.StatusType.NOT_FOUND
-      argumentIndex: 0
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.rest.resources.v1.capi.handler.FeedbackHandler getFeedback(jakarta.ws.rs.core.Response.StatusType)
-      parameterType: java.lang.String
-      literal: CommonConstantsREST#ERROR_ADDRESS_NOT_FOUND
-      argumentIndex: 1
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: Response.StatusType.NOT_FOUND
+      fullyQualifiedConstantName: jakarta.ws.rs.core.Response.StatusType.NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_BASKET_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_BASKET_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_LINE_ITEM_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_LINE_ITEM_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_SHIPPING_BUCKET_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_PAYMENT_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_PAYMENT_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: BasketConstantsREST.ERROR_PROMOTIONCODE_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.basket.v1.capi.BasketConstantsREST.ERROR_PROMOTIONCODE_NOT_FOUND
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: CommonConstantsREST.ERROR_ADDRESS_NOT_FOUND
+      fullyQualifiedConstantName: com.intershop.sellside.rest.common.v1.capi.CommonConstantsREST.ERROR_ADDRESS_NOT_FOUND
   - org.openrewrite.gradle.AddDependency:
       groupId: com.intershop.business
       artifactId: app_sf_rest_common
@@ -295,45 +265,41 @@ name: com.intershop.migration.icm13.bc_mvc.MVCatalogMgrMigration
 type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate MVCatalogMgr usages
 recipeList:
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createOfferRepository(com.intershop.beehive.core.capi.domain.Domain)
-      newMethodName: createRepository
   - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain)
-      parameterType: int
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createOfferRepository(com.intershop.beehive.core.capi.domain.Domain)
+      primitiveType: String
       literal: MVCatalogConstants.REPOSITORY_TYPE_OFFER
       argumentIndex: 1
   - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain, int)
-      parameterType: java.lang.String
-      literal: "Repository"
-      argumentIndex: 2
-  - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createProductRepository(com.intershop.beehive.core.capi.domain.Domain)
-      newMethodName: createRepository
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain)
-      parameterType: int
+      primitiveType: String
       literal: MVCatalogConstants.REPOSITORY_TYPE_PRODUCT
       argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createOfferRepository(com.intershop.beehive.core.capi.domain.Domain, String)
+      newMethodName: createRepository
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createProductRepository(com.intershop.beehive.core.capi.domain.Domain, String, String)
+      newMethodName: createRepository
   - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain, int)
-      parameterType: java.lang.String
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createRepository(com.intershop.beehive.core.capi.domain.Domain, String)
+      primitiveType: String
       literal: "Repository"
       argumentIndex: 2
-  - org.openrewrite.java.AddImport:
-      type: com.intershop.component.mvc.capi.catalog.MVCatalogConstants
-      onlyIfReferenced: true
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: MVCatalogConstants.REPOSITORY_TYPE_OFFER
+      fullyQualifiedConstantName: com.intershop.component.mvc.capi.catalog.MVCatalogConstants.REPOSITORY_TYPE_OFFER
+  - org.openrewrite.java.ReplaceStringLiteralWithConstant:
+      literalValue: MVCatalogConstants.REPOSITORY_TYPE_PRODUCT
+      fullyQualifiedConstantName: com.intershop.component.mvc.capi.catalog.MVCatalogConstants.REPOSITORY_TYPE_PRODUCT
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr getCatalogByDomain(com.intershop.beehive.core.capi.domain.Domain)
       newMethodName: getCatalogByCatalogDomain
-  - org.openrewrite.java.AddLiteralMethodArgument:
-      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr isOnline(com.intershop.component.mvc.capi.catalog.Catalog)
-      parameterType: java.util.Date
-      literal: new Date()
-      argumentIndex: 1
   - org.openrewrite.java.DeleteMethodArgument:
       methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr isOnline(com.intershop.component.mvc.capi.catalog.Catalog, java.util.Date)
+      argumentIndex: 1
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr isOnline(com.intershop.component.mvc.capi.catalog.Catalog)
       argumentIndex: 0
 
 ---
@@ -502,12 +468,12 @@ name: com.intershop.migration.icm13.core.NumberSeriesProviderMigration
 type: specs.openrewrite.org/v1beta/recipe
 displayName: Replace NumberSeriesProvider by NumberSequenceProvider
 recipeList:
+  - org.openrewrite.java.DeleteMethodArgument:
+      methodPattern: com.intershop.beehive.core.capi.series.NumberSeriesProvider nextValueInSeries(String, boolean)
+      argumentIndex: 1
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.intershop.beehive.core.capi.series.NumberSeriesProvider nextValueInSeries(String)
+      newMethodName: nextValue
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.intershop.beehive.core.capi.series.NumberSeriesProvider
       newFullyQualifiedTypeName: com.intershop.beehive.core.capi.series.NumberSequenceProvider
-  - org.openrewrite.java.DeleteMethodArgument:
-      methodPattern: om.intershop.beehive.core.capi.series.NumberSequenceProvider nextValueInSeries(java.lang.String, boolean)
-      argumentIndex: 1
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: om.intershop.beehive.core.capi.series.NumberSequenceProvider nextValueInSeries(java.lang.String)
-      newMethodName: nextValue
