@@ -5,4 +5,5 @@ options:
   dependency-map:
     commons-lang:commons-lang: org.apache.commons:commons-lang3
     commons-collections:commons-collections: org.apache.commons:commons-collections4
+    com.intershop.common:encryption: com.intershop:encryption
 
