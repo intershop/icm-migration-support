@@ -1,6 +1,6 @@
 type: specs.intershop.com/v1beta/migrate
 migrator: com.intershop.customization.migration.file.ClasspathResourceFileCopier
-message: "refactor: copy OpenRewrite configuration files to root project"
+message: "build: copy OpenRewrite configuration files for migration to ICM 13 to root project"
 options:
   source-map:
     # source file located in the resources directory

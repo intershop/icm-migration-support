@@ -7,6 +7,7 @@ description: |
   It changes method names and updates package imports accordingly.
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
+      displayName: Migrate ChannelBO#getOwnedRepository to getOwnedRepositoryBO
       methodPattern: com.intershop.sellside.enterprise.capi.channel.ChannelBO getOwnedRepository()
       newMethodName: getOwnedRepositoryBO
   - com.intershop.migration.icm13.AppSfRestMigration
@@ -54,6 +55,7 @@ type: specs.openrewrite.org/v1beta/recipe
 displayName: Migrate xcs cartridge usages to ICM 13
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
+      displayName: Migrate CatalogMgr method name getCatalogCategoryByUUID to resolveCatalogCategoryFromID
       methodPattern: com.intershop.beehive.xcs.capi.catalog.CatalogMgr getCatalogCategoryByUUID(java.lang.String)
       newMethodName: resolveCatalogCategoryFromID
   - com.intershop.migration.icm13.xcs.ProductVariationMgrMigration
@@ -94,7 +96,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.app_sf_rest.EmailSendingHandlerMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: 3-step migration of the EmailSendingHandler#send() to the new signature
+displayName: Migration of the EmailSendingHandler#send() to the new signature
 recipeList:
   - org.openrewrite.java.AddNullMethodArgument:
       methodPattern: com.intershop.sellside.rest.common.capi.resource.email.handler.EmailSendingHandler send(com.intershop.component.user.capi.UserBO, com.intershop.component.application.capi.ApplicationBO, java.lang.String)
@@ -113,7 +115,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.app_sf_rest.BitSetDeSerializerMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate BitSetDeserializer to the new package
+displayName: Migrate BitSetDeserializer/BitSetSerializer to the new package
 recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.intershop.sellside.rest.common.capi.BitSetDeserializer
@@ -125,7 +127,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.app_sf_rest_order.OrderListResourceMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate OrderListResource changes
+displayName: Migrate OrderListResource#getOrders_v1 signature
 recipeList:
   - org.openrewrite.java.AddNullMethodArgument:
       methodPattern: com.intershop.sellside.rest.order.v1.capi.resource.order.OrderListResource getOrders_V1(java.lang.String, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Integer, java.lang.Integer, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.lang.String, java.lang.String, java.util.List, java.util.List, java.util.List)
@@ -140,7 +142,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.app_sf_rest_basket.BasketFeedbackHandlerMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate FeedbackHandler changes
+displayName: Migrate BasketFeedbackHandler to FeedbackHandler
 recipeList:
   - org.openrewrite.java.AddLiteralMethodArgument:
       methodPattern: com.intershop.sellside.rest.basket.v1.capi.handler.BasketFeedbackHandler getBasketNotFoundFeedbackResource()
@@ -239,7 +241,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.bc_catalog.CatalogBORepositoryMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate CatalogBORepository
+displayName: Migrate EXTENSION_ID constant of CatalogBORepositoryExtension
 recipeList:
   - org.openrewrite.java.ReplaceConstantWithAnotherConstant:
       existingFullyQualifiedConstantName: com.intershop.component.catalog.capi.CatalogBORepositoryExtensionFactory.EXTENSION_ID
@@ -248,7 +250,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.xcs.ProductVariationMgrMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate ProductVariationMgr usages
+displayName: Migrate deprecated ProductVariationMgr methods to their replacements
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.beehive.xcs.capi.productvariation.ProductVariationMgr createPAVByDomainRelationsPageable(java.lang.String)
@@ -263,7 +265,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.bc_mvc.MVCatalogMgrMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate MVCatalogMgr usages
+displayName: Migrate deprecated MVCatalogMgr methods to their replacements
 recipeList:
   - org.openrewrite.java.AddLiteralMethodArgument:
       methodPattern: com.intershop.component.mvc.capi.catalog.MVCatalogMgr createOfferRepository(com.intershop.beehive.core.capi.domain.Domain)
@@ -305,7 +307,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.bc_product.ProductBOAttachmentsExtensionMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate ProductBOAttachmentsExtension usages
+displayName: Migrate deprecated ProductBOAttachmentsExtension methods to their replacements
 recipeList:
   - org.openrewrite.java.AddNullMethodArgument:
       methodPattern: com.intershop.component.product.capi.attachment.ProductBOAttachmentsExtension createProductAttachmentBO(java.lang.String, java.lang.String, java.lang.String, com.intershop.beehive.core.capi.localization.LocaleInformation, boolean)
@@ -343,7 +345,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.bc_product.ProductBOMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate ProductBORepository usages
+displayName: Migrate ProductBO method names
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.component.product.capi.ProductBO getProductAttachments()
@@ -376,7 +378,7 @@ recipeList:
 ---
 name: com.intershop.migration.icm13.bc_product_configuration.ProductConfigurationValidatorValueListBOMigration
 type: specs.openrewrite.org/v1beta/recipe
-displayName: Migrate ProductConfigurationValidatorValueListBO usages
+displayName: Migrate ProductConfigurationValidatorValueListBO method names
 recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.intershop.component.productconfiguration.capi.validator.ProductConfigurationValidatorValueListBO getProductValue(int, int)
