@@ -210,18 +210,25 @@ fun String.convertVariableDeclaration(): String {
 
 // [appIcon: "@drawable/ic_launcher", appRoundIcon: "@null"]
 // becomes
-// mapOf(appIcon to "@drawable/ic_launcher", appRoundIcon to "@null"])
+// mapOf(appIcon to "@drawable/ic_launcher", appRoundIcon to "@null")
+// other example
+// ['aKey': 'aValue', 'anotherKey': 'anotherValue']
+// becomes
+// mapOf("aKey" to "aValue", "anotherKey" to "anotherValue")
 fun String.convertMapExpression(): String {
-    val key = """\w+"""
-    val value = """[^,:\s\]]+"""
-    val keyValueGroup = """\s*$key:\s*$value\s*"""
+    val key = """(?:\w+|"[^"]*")"""
+    val keyTrimmerRegEx = """"?([^"]*)"?""".toRegex()
+    val value = """(?:[^,:\s\]]+|"[^"]*")"""
+    val keyValueGroup = """\s*$key\s*:\s*$value\s*"""
     val mapRegExp = """\[($keyValueGroup(?:,$keyValueGroup)*)\]""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    val extractOneGroupRegExp = """^\s*($key):\s*($value)\s*(?:,(.*)|)$""".toRegex() // Matches key, value, the-rest after comma if any
+    val extractOneGroupRegExp = """^\s*($key)\s*:\s*($value)\s*(?:,(.*)|)$""".toRegex() // Matches key, value, the-rest after comma if any
 
     fun extractAllMatches(matchesInKotlinCode: MutableList<String>, remainingString: String) { // Extract the first key=value, and recurse on the postfix
         val innerMatch: MatchResult = extractOneGroupRegExp.find(remainingString) ?: return
         val innerGroups = innerMatch.groupValues
-        matchesInKotlinCode += """"${innerGroups[1]}" to ${innerGroups[2]}"""
+        val keyTrimmerMatch: MatchResult = keyTrimmerRegEx.find(innerGroups[1]) ?: return
+        val trimmedKey = keyTrimmerMatch.groupValues
+        matchesInKotlinCode += """"${trimmedKey[1]}" to ${innerGroups[2]}"""
         if (innerGroups[3].isNotEmpty()) {
             val withoutComma = innerGroups[3]//.substring(1)
             extractAllMatches(matchesInKotlinCode, withoutComma)
@@ -979,7 +986,7 @@ fun String.convertBuildFeatures(): String {
 fun String.applyConversions() : String {
     return this.replaceApostrophes()
                .replaceDefWithVal()
-               .convertMapExpression() // Run before array
+               .convertMapExpression() // Run before array / regex adapted to allow quotes in keys and values
                .convertFileTree()
                .convertArrayExpression()
                .convertManifestPlaceHoldersWithMap() // Run after convertMapExpression
