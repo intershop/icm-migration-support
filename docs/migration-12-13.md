@@ -35,9 +35,7 @@ Adds Intershops migration recipes to the root of the project for the use of Open
 
 ### Run OpenRewrite on the Migration Project
 
-Run OpenRewrite to apply migration recipes
-* TODO list steps
-to the migration project:
+Run OpenRewrite to apply migration recipes to the migration project:
 ```
 gradlew --init-script rewrite.gradle rewriteRun
 ```
