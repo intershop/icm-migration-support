@@ -1,0 +1,15 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.file.ClasspathResourceFileCopier
+message: "build: copy OpenRewrite configuration files for migration to ICM 13 to root project"
+options:
+  source-map:
+    # source file located in the resources directory
+    "rewrite-task" : "gradle/rewrite-12to13.gradle"
+    "rewrite-recipes" : "gradle/rewrite-12to13.yml"
+  target-map:
+    # target file in the root project
+    "rewrite-task" : "rewrite.gradle"
+    "rewrite-recipes" : "rewrite.yml"
+  log-map:
+    # optional log message for the copied file
+    "rewrite-task" : "Created rewrite.gradle in root project. Adjust the file to your needs and execute 'gradle --init-script rewrite.gradle rewriteRun' afterwards."
