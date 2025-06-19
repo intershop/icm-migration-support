@@ -24,12 +24,11 @@ Example command:
 gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/002_migration_11_to_12
 ```
 
-### Apply Jakarta EE Migration support
+### Integrate OpenRewrite recipes
 
 Migrator: `ClasspathResourceFileCopier` 
 
-Applies Jakarta EE 10+ migration recipes if required (e.g., using OpenRewrite).
-- Add gradle init script `rewrite.gradle` to the root of the project
+Adds Intershops migration recipes to the root of the project for the use of OpenRewrite
 
 ## Manual Migration Steps
 
@@ -44,3 +43,21 @@ gradlew --init-script rewrite.gradle rewriteRun
 > The migration process, especially when running OpenRewrite or other code transformation tools, may require a significant amount of memory.  
 > Intershop recommends increasing the maximum heap size for Gradle by setting the `GRADLE_OPTS` environment variable, for example:  
 > `set GRADLE_OPTS=-Xmx4G` (on Windows) or `export GRADLE_OPTS=-Xmx4G` (on Linux/macOS).
+
+
+## Applied recipes
+
+- Migration to Jakarta EE 10
+- Migration to Java 21
+- Migration to Gradle 8 
+- Migration to ICM 12
+  - Migration of custom SAXParserPool
+  - Migration of EncryptionManager
+    - **Note**: Adjust the thrown exceptions in your custom code
+  - Migration of ProductListResource
+  - Migration of ProcessChain XSD
+  - Migration of custom JobMgr implementation
+    - added method implementations for
+      - `setEnableJobProcessors(Collection<String>)`
+      - `createJobCrontabTimeCondition(Domain, Date, String)`
+    - **Note:** add implementation for method `isJobAllowedOnServer(ServerInfo, JobConfiguration)`
