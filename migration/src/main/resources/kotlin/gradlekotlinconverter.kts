@@ -722,11 +722,12 @@ fun String.convertExcludeGroups(): String {
         val destructured = it.destructured
         val group1Id = destructured.component1()
         val group2Id = destructured.component2()
+        val group3Id = destructured.component3()
 
         if (group2Id.isNotBlank()) {
             "exclude(group = $group1Id, module = $group2Id)"
         }else {
-            "exclude(group = $group1Id)"
+            "exclude(group = $group3Id)"
         }
     }
 }
@@ -984,51 +985,52 @@ fun String.convertBuildFeatures(): String {
 }
 
 fun String.applyConversions() : String {
-    return this.replaceApostrophes()
-               .replaceDefWithVal()
-               .convertMapExpression() // Run before array / regex adapted to allow quotes in keys and values
-               .convertFileTree()
-               .convertArrayExpression()
-               .convertManifestPlaceHoldersWithMap() // Run after convertMapExpression
-               .convertVariableDeclaration()
-    .convertPlugins()
-    .convertPluginsIntoOneBlock()
-    .convertPluginsFrom()
-    .convertVariantFilter()
-    .convertAndroidBuildConfigFunctions()
-    .convertCompileToImplementation()
-    .replaceCoreLibraryDesugaringEnabled()
-    .convertDependencies() // custom keywords, regex fixed: space around keyword required
-    .convertMaven()
-    .addParentheses()
-    .addEquals()
-    .convertJavaCompatibility()
-    .convertCleanTask()
-    .convertProguardFiles()
-    .convertInternalBlocks()
-    .convertInclude()
-    .convertBuildTypes()
-    .convertProductFlavors()
-    .convertSourceSets()
-    .convertSigningConfigs()
-    .convertExcludeClasspath()
-    .convertExcludeModules() // fixed: optional spaces after colon
-    .convertExcludeGroups() // enhanced
-    .convertJetBrainsKotlin()
-    .convertSigningConfigBuildType()
-    .convertExtToExtra()
-    .addParenthesisToId()
-    .replaceColonWithEquals()
-    .convertBuildFeatures()
-    .convertJavaPluginReference() // custom
-    .fixDependenciesSectionBraces() // custom
-    .convertTaskDependencies() // custom
-    .convertFrom() // custom
-    .convertRenameNotation() // custom
-    .convertExpand() // custom
-    .convertIntoSrcDir() // custom
-    .convertCopyTask() // custom
-    .convertDynamicTaskDependencies() // custom
+    return this
+            .replaceApostrophes()
+            .replaceDefWithVal()
+            .convertMapExpression() // Run before array / regex adapted to allow quotes in keys and values
+            .convertFileTree()
+            .convertArrayExpression()
+            .convertManifestPlaceHoldersWithMap() // Run after convertMapExpression
+            .convertVariableDeclaration()
+            .convertPlugins()
+            .convertPluginsIntoOneBlock()
+            .convertPluginsFrom()
+            .convertVariantFilter()
+            .convertAndroidBuildConfigFunctions()
+            .convertCompileToImplementation()
+            .replaceCoreLibraryDesugaringEnabled()
+            .convertDependencies() // custom keywords, regex fixed: space around keyword required
+            .convertMaven()
+            .addParentheses()
+            .addEquals()
+            .convertJavaCompatibility()
+            .convertCleanTask()
+            .convertProguardFiles()
+            .convertInternalBlocks()
+            .convertInclude()
+            .convertBuildTypes()
+            .convertProductFlavors()
+            .convertSourceSets()
+            .convertSigningConfigs()
+            .convertExcludeClasspath()
+            .convertExcludeModules() // fixed: optional spaces after colon
+            .convertExcludeGroups() // enhanced
+            .convertJetBrainsKotlin()
+            .convertSigningConfigBuildType()
+            .convertExtToExtra()
+            .addParenthesisToId()
+            .replaceColonWithEquals()
+            .convertBuildFeatures()
+            .convertJavaPluginReference() // custom
+            .fixDependenciesSectionBraces() // custom
+            .convertTaskDependencies() // custom
+            .convertFrom() // custom
+            .convertRenameNotation() // custom
+            .convertExpand() // custom
+            .convertIntoSrcDir() // custom
+            .convertCopyTask() // custom
+            .convertDynamicTaskDependencies() // custom
 }
 
 fun writeToClipboard(content : String) {
