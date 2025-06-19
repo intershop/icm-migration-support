@@ -1,0 +1,23 @@
+initscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2" }
+    }
+    dependencies { classpath("org.openrewrite:plugin:7.8.0") }
+}
+rootProject {
+    plugins.apply(org.openrewrite.gradle.RewritePlugin)
+
+    rewrite {
+        activeRecipe("com.intershop.migration.MigrationToICM13")
+
+        // add any additional recipes here you want to run
+        setExportDatatables(true)
+    }
+    afterEvaluate {
+        if (repositories.isEmpty()) {
+            repositories {
+                mavenCentral()
+            }
+        }
+    }
+}
