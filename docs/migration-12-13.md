@@ -5,9 +5,12 @@ This document describes the migration journey from ICM 12 to ICM 13. It covers b
 ## Table of Contents
 
 - [Preparation Steps](#preparation-steps)
+  - [Prepare ICM 13 Branch](#prepare-icm-13-branch)
 - [Automated Migration Steps](#automated-migration-steps)
+  - [Integrate OpenRewrite recipes](#integrate-openrewrite-recipes)
 - [Manual Migration Steps](#manual-migration-steps)
-- [Applied recipes](#applied-recipes)
+  - [Run OpenRewrite on the Migration Project](#run-openrewrite-on-the-migration-project)
+    - [Applied recipes](#applied-recipes)
 
 ## Preparation Steps
 
@@ -45,23 +48,23 @@ gradlew --init-script rewrite.gradle rewriteRun
 > Intershop recommends increasing the maximum heap size for Gradle by setting the `GRADLE_OPTS` environment variable, for example:  
 > `set GRADLE_OPTS=-Xmx4G` (on Windows) or `export GRADLE_OPTS=-Xmx4G` (on Linux/macOS).
 
-# Applied recipes
+#### Applied recipes
 
 - Migration to ICM 13
-    - Migration of the EmailSendingHandler#send() to the new signature
-    - Migrate BitSetDeserializer/BitSetSerializer to the new package
-    - Migrate OrderListResource#getOrders_v1 to new signature
-    - Migrate BasketFeedbackHandler to FeedbackHandler
-    - Migrate EXTENSION_ID constant of CatalogBORepositoryExtension
-    - Migrate deprecated ProductVariationMgr methods to their replacements
-    - Migrate deprecated MVCatalogMgr methods to their replacements
-    - Migrate deprecated ProductBOAttachmentsExtension methods to their replacements
-    - Migrate ProductBORepository usages
-    - Migrate ProductBO method names
-    - Migrate ProductConfigurationValidatorValueListBO method names
-    - Migrate AbstractProductConfigurationBO usages
-    - Migrate AbstractProductConfigurationOptionSelectionBO usages
-    - Migrate ProductPreConfigurationBORepository usages
-    - Replace NumberSeriesProvider by NumberSequenceProvider
-    - Migrate ChannelBO#getOwnedRepository to getOwnedRepositoryBO
-    - Migrate CatalogMgr#getCatalogCategoryByUUID to resolveCatalogCategoryFromID
+  - Migration of the EmailSendingHandler#send() to the new signature
+  - Migrate BitSetDeserializer/BitSetSerializer to the new package
+  - Migrate OrderListResource#getOrders_v1 to new signature
+  - Migrate BasketFeedbackHandler to FeedbackHandler
+  - Migrate EXTENSION_ID constant of CatalogBORepositoryExtension
+  - Migrate deprecated ProductVariationMgr methods to their replacements
+  - Migrate deprecated MVCatalogMgr methods to their replacements
+  - Migrate deprecated ProductBOAttachmentsExtension methods to their replacements
+  - Migrate ProductBORepository usages
+  - Migrate ProductBO method names
+  - Migrate ProductConfigurationValidatorValueListBO method names
+  - Migrate AbstractProductConfigurationBO usages
+  - Migrate AbstractProductConfigurationOptionSelectionBO usages
+  - Migrate ProductPreConfigurationBORepository usages
+  - Replace NumberSeriesProvider by NumberSequenceProvider
+  - Migrate ChannelBO#getOwnedRepository to getOwnedRepositoryBO
+  - Migrate CatalogMgr#getCatalogCategoryByUUID to resolveCatalogCategoryFromID
