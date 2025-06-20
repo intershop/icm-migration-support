@@ -57,17 +57,21 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 cartridgeName,
                 null, 
                 DependencyType.CARTRIDGE);
-            if(DependencyTree.findElement(rootDependencyEntry, dependency) == null) {
+            if(DependencyTree.findElement(rootDependencyEntry, dependency) == null) 
+            {
                 // if not yet in the tree, add it
-                rootDependencyEntry.addChild(new DependencyEntry<>(dependency));
+                DependencyEntry<Dependency> cartridgeEntry = new DependencyEntry<>(dependency);
+                rootDependencyEntry.addChild(cartridgeEntry);
                 LOGGER.info("Adding cartridge {} to dependency tree", cartridgeName);
-            } else {
+
+                // scan build.grale.kts in first level (artridge) directories
+                String fileToFind = "build.gradle.kts";
+                searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
+            } 
+            else 
+            {
                 LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
             }
-
-            // scan build.grale.kts in first level (artridge) directories
-            String fileToFind = "build.gradle.kts";
-            searchFirstLevelDirs(cartridgeDir, fileToFind);
 
             // @TODO just goes to STDOUT  - so far...
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -77,14 +81,17 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
         }
 
     }
-    private static void searchFirstLevelDirs(Path startDir, String targetFile) 
+    private static void searchFirstLevelDirs(
+        DependencyEntry<Dependency> cartridgeEntry, 
+        Path startDir, 
+        String targetFile) 
     {
         try (Stream<Path> stream = Files.walk(startDir, 0, FileVisitOption.FOLLOW_LINKS) )
         {
             stream
                 .filter(Files::isDirectory)
                 .filter(dir -> toBeExaminded(dir)) // Exclude the start directory itself
-                .forEach(dir -> analyzeBuildFile(dir, targetFile));
+                .forEach(dir -> analyzeBuildFile(cartridgeEntry, dir, targetFile));
         } catch (IOException e) 
         {
             System.err.println("Error searching directories: " + e.getMessage());
@@ -100,7 +107,11 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 || dirName.contains("versions_test"));
     }
 
-    private static void analyzeBuildFile(Path dir, String targetFile) {
+    private static void analyzeBuildFile
+        (DependencyEntry<Dependency> cartridgeEntry, 
+        Path dir, 
+        String targetFile) 
+    {
         if(Files.exists(dir.resolve(targetFile))) {
             File buildFile = dir.resolve(targetFile).toFile();
             String cartridgName = dir.getFileName().toString();  
@@ -115,7 +126,7 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
             try {
                 if(null == existingEntry) { 
                     DependencyEntry<Dependency> dependencyEntry = new DependencyEntry<>(dependency);
-                    dependencyEntry.addChild(dependencyEntry);
+                    cartridgeEntry.addChild(dependencyEntry);
 
                     // analyze the dependencies within the build file
                     List<Dependency> denendencies = ktsAnalyzer.parseKtsFile(buildFile.toPath());
