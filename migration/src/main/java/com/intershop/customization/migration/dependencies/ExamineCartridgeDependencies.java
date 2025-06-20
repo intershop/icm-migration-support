@@ -14,16 +14,52 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
+import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigResources;
+
+// import nonapi.io.github.classgraph.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ExamineCartridgeDependencies  implements MigrationPreparer
 {
+    /** YAML key for tree format option 
+     * JSON and TEXT are supported.<br/>
+     * */ 
+    private static final String YAML_KEY_TREE_FORMAT = "treeFormat"; 
+    private String treeFormat = "TEXT"; // default format
 
-    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+    /** YAML key of the output file name to weite tre dependency tree to.<br/>
+     * prints to console if thereis none.
+     */ 
+    private static final String YAML_KEY_TREE_OUTPUT_FILE = "treeOutputFile"; 
+    private Path treeOutputFile = null; // default is no output file
 
     static DependencyTree<Dependency> dependencyxTree;
     static DependencyEntry <Dependency> rootDependencyEntry;
 
+
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+
+
+
+    @Override
+    public void setStep(MigrationStep step)
+    {
+        String treeFormat = step.getOption(YAML_KEY_TREE_FORMAT);
+        if ("TEXT".equalsIgnoreCase(treeFormat) || "JSON".equalsIgnoreCase(treeFormat)) {
+            this.treeFormat = treeFormat;
+        }
+        String treeOutputFile = step.getOption(YAML_KEY_TREE_OUTPUT_FILE);
+        if (!StringUtils.isEmpty(treeOutputFile)) {
+            try 
+            {
+                this.treeOutputFile = java.nio.file.Paths.get(treeOutputFile);
+            } catch (Exception e) {
+                LOGGER.debug("Invalid tree output file path: {}. Using default (no output file).", treeOutputFile);
+            }
+        }
+    }
+    
 
     /** main ethod to examine cartidge dependencies..<br/>
      * if not yet ecaminded 1st a carteidge is assigned to the prject.<br/>
@@ -73,11 +109,13 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
             }
 
-            // @TODO just goes to STDOUT  - so far...
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(dependencyxTree);
-
-            System.out.println(json);
+            // output the dependency tree
+            if("JSON".equals(treeFormat)){
+                printJSON(dependencyxTree, "");
+            } else {
+                printTree(rootDependencyEntry, "");
+            }
+            
         }
 
     }
@@ -94,7 +132,7 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 .forEach(dir -> analyzeBuildFile(cartridgeEntry, dir, targetFile));
         } catch (IOException e) 
         {
-            System.err.println("Error searching directories: " + e.getMessage());
+            LOGGER.error("Error searching directories: " + e.getMessage());
         }
     }
 
@@ -134,20 +172,75 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                     {
                         for(Dependency dep : denendencies) 
                         {
-                            System.out.println("Adding dependency " + dep.toString() + " to cartridge " + dependencyEntry.getValue().getName());
                             dependencyEntry.addChild(new DependencyEntry<>(dep));
                         }
                     }
                 } else {
                 }
             } catch (Exception e) {
-                System.out.println("exceptiin when searching " + targetFile + " in directory: " + dir + ": " + e.getMessage());
+                LOGGER.error("exceptiin when searching " + targetFile + " in directory: " + dir + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
         else {
-            System.out.println("File " + targetFile + " not found in directory: " + dir);
+            LOGGER.error("File " + targetFile + " not found in directory: " + dir);
         }       
+    }
+
+    // --------------------------------------------------------------
+    // print metoods
+    // --------------------------------------------------------------
+
+    public  <T> void printTree(DependencyEntry<Dependency> node, String prefix)
+    {
+        if (node == null) {
+            return;
+        }
+        String line = prefix + node.getValue().getName();
+
+        // Print the current node
+        if(null == this.treeOutputFile) {
+            // if no output file is set, print to console
+            System.out.println(line);
+        } else {
+            // if an output file is set, write to it
+            try {
+                Files.writeString(treeOutputFile,
+                     line + System.lineSeparator(), 
+                    java.nio.file.StandardOpenOption.CREATE, 
+                    java.nio.file.StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                LOGGER.error("Error writing to output file {}: {}, ",
+                treeOutputFile.getFileName().toString(),
+                e.getMessage());
+            }
+        }
+
+        // Recursively print each child with an updated prefix
+        for (DependencyEntry<Dependency> child : node.getChildren()) {
+            printTree(child, prefix + "    ");
+        }
+    }
+
+    
+    public <T> void printJSON(DependencyTree<Dependency> dependencyxTree, String prefix)
+    {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(dependencyxTree);
+
+        if(null == this.treeOutputFile) {
+            System.out.println(json);
+        } else {
+            try {
+                Files.writeString(treeOutputFile, json + System.lineSeparator(), 
+                    java.nio.file.StandardOpenOption.CREATE, 
+                    java.nio.file.StandardOpenOption.APPEND);
+            } catch (IOException e) {
+                LOGGER.error("Error writing to output file {}: {}, ",
+                treeOutputFile.getFileName().toString(),
+                e.getMessage());
+            }
+        }
     }
 
 }
