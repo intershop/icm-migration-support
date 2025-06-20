@@ -906,6 +906,16 @@ fun String.convertCopyTask(): String {
     }
 }
 
+// tasks.withType(Copy)
+// becomes
+// tasks.withType<Copy>
+fun String.convertTasksWithType(): String {
+    val copyExp = Regex("""tasks.withType\s+\((.*)\)""")
+    return this.replace(copyExp) { matchResult ->
+        """tasks.withType<${matchResult.groupValues[1]}>"""
+    }
+}
+
 // tasks.compileJava.dependsOn custom_task
 // becomes
 // tasks.named("compileJava") { dependsOn("custom_task") }
@@ -1030,6 +1040,7 @@ fun String.applyConversions() : String {
             .convertExpand() // custom
             .convertIntoSrcDir() // custom
             .convertCopyTask() // custom
+            .convertTasksWithType() // custom
             .convertDynamicTaskDependencies() // custom
 }
 
