@@ -7,6 +7,7 @@ public enum DependencyType
     ARTIFACT    ("artifact"),
     COMPONENT   ("comoonen"),
     LIBRARY     ("library"),
+    PACKAGE     ("package"),
     UNKNOWN     ("unknown");
 
     private final String value;
