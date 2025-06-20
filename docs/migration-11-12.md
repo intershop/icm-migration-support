@@ -5,9 +5,14 @@ This document outlines the migration process from ICM 11 to ICM 12. It includes 
 ## Table of Contents
 
 - [Preparation Steps](#preparation-steps)
+  - [Prepare ICM 12 Branch](#prepare-icm-12-branch)
 - [Automated Migration Steps](#automated-migration-steps)
+  - [Integrate OpenRewrite recipes](#integrate-openrewrite-recipes)
 - [Manual Migration Steps](#manual-migration-steps)
-
+  - [Run OpenRewrite on the Migration Project](#run-openrewrite-on-the-migration-project)
+    - [Applied recipes](#applied-recipes)
+  - [ISML Expression adaption](#isml-expression-adaption)
+  
 ## Preparation Steps
 
 ### Prepare ICM 12 Branch
@@ -44,12 +49,11 @@ gradlew --init-script rewrite.gradle rewriteRun
 > Intershop recommends increasing the maximum heap size for Gradle by setting the `GRADLE_OPTS` environment variable, for example:  
 > `set GRADLE_OPTS=-Xmx4G` (on Windows) or `export GRADLE_OPTS=-Xmx4G` (on Linux/macOS).
 
-
-## Applied recipes
+#### Applied recipes
 
 - Migration to Jakarta EE 10
 - Migration to Java 21
-- Migration to Gradle 8 
+- Migration to Gradle 8
 - Migration to ICM 12
   - Migration of custom SAXParserPool
   - Migration of EncryptionManager
@@ -61,3 +65,9 @@ gradlew --init-script rewrite.gradle rewriteRun
       - `setEnableJobProcessors(Collection<String>)`
       - `createJobCrontabTimeCondition(Domain, Date, String)`
     - **Note:** add implementation for method `isJobAllowedOnServer(ServerInfo, JobConfiguration)`
+
+### ISML Expression adaption
+
+      The ISML expression logic contained an evaluation failure if a conditional value was undefined. The issue was fixed in ICM 12, but requires an adaption of the ISML expressions in the project code.
+      See [Guide - 12.x.x API Changes](https://knowledge.intershop.com/kb/index.php/Display/312H13) for more details.
+
