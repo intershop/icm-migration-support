@@ -5,6 +5,13 @@ options:
   package-map:
     org.apache.commons.lang: org.apache.commons.lang3
     org.apache.commons.collections: org.apache.commons.collections4
+    com.intershop.sellside.rest.common.patch.PATCH: jakarta.ws.rs.PATCH
+    javax.ws.rs: jakarta.ws.rs
+    javax.mail: jakarta.mail
+    javax.xml.bind: jakarta.xml.bind
+    javax.validation: jakarta.validation
+    javax.servlet: jakarta.servlet
+    javax.annotation: jakarta.annotation
   file-extension:
     - java
     - isml
