@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.slf4j.LoggerFactory;
@@ -56,16 +57,22 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 cartridgeName,
                 null, 
                 DependencyType.CARTRIDGE);
-            rootDependencyEntry.addChild(new DependencyEntry<>(dependency));
+            if(DependencyTree.findElement(rootDependencyEntry, dependency) == null) {
+                // if not yet in the tree, add it
+                rootDependencyEntry.addChild(new DependencyEntry<>(dependency));
+                LOGGER.info("Adding cartridge {} to dependency tree", cartridgeName);
+            } else {
+                LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
+            }
 
             // scan build.grale.kts in first level (artridge) directories
             String fileToFind = "build.gradle.kts";
             searchFirstLevelDirs(cartridgeDir, fileToFind);
 
+            // @TODO just goes to STDOUT  - so far...
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(dependencyxTree);
 
-            // just goes to STDOUT  - so far...
             System.out.println(json);
         }
 
@@ -97,6 +104,7 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
         if(Files.exists(dir.resolve(targetFile))) {
             File buildFile = dir.resolve(targetFile).toFile();
             String cartridgName = dir.getFileName().toString();  
+            KtsDependencyAnalyzer ktsAnalyzer = new KtsDependencyAnalyzer();
 
             Dependency dependency = new Dependency(
                 cartridgName,
@@ -105,9 +113,20 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
 
             Dependency existingEntry = DependencyTree.findElement(rootDependencyEntry, dependency);
             try {
-                if(null == existingEntry) {
+                if(null == existingEntry) { 
                     DependencyEntry<Dependency> dependencyEntry = new DependencyEntry<>(dependency);
                     dependencyEntry.addChild(dependencyEntry);
+
+                    // analyze the dependencies within the build file
+                    List<Dependency> denendencies = ktsAnalyzer.parseKtsFile(buildFile.toPath());
+                    if(denendencies != null && denendencies.size() > 0) 
+                    {
+                        for(Dependency dep : denendencies) 
+                        {
+                            System.out.println("Adding dependency " + dep.toString() + " to cartridge " + dependencyEntry.getValue().getName());
+                            dependencyEntry.addChild(new DependencyEntry<>(dep));
+                        }
+                    }
                 } else {
                 }
             } catch (Exception e) {
