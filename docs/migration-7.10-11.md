@@ -201,6 +201,8 @@ Renames dependencies in `build.gradle` files:
 
 - `commons-lang:commons-lang` -> `org.apache.commons:commons-lang3`
 - `commons-collections:commons-collections` -> `org.apache.commons:commons-collections4`
+- `com.intershop.common:encryption` -> `com.intershop:encryption`
+- `javax.ws.rs:javax.ws.rs-api` -> `jakarta.ws.rs:jakarta.ws.rs-api`
 
 ### Remove Obsolete Dependencies
 
@@ -245,6 +247,13 @@ Renames packages in Java and ISML source files:
 
 - `commons-lang:commons-lang` -> `org.apache.commons:commons-lang3`
 - `commons-collections:commons-collections` -> `org.apache.commons:commons-collections4`
+- `com.intershop.sellside.rest.common.patch.PATCH` -> `jakarta.ws.rs.PATCH`
+- `javax.ws.rs` -> `jakarta.ws.rs`
+- `javax.mail` -> `jakarta.mail`
+- `javax.xml.bind` -> `jakarta.xml.bind`
+- `javax.validation` -> `jakarta.validation`
+- `javax.servlet` -> `jakarta.servlet`
+- `javax.annotation` -> `jakarta.annotation`
 
 ### Delete Obsolete Files
 
