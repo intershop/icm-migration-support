@@ -1,23 +1,23 @@
 # ICM 12 to ICM 13 Migration Steps
 
-This document describes the migration journey from ICM 12 to ICM 13. It covers both the automated processes handled by the migration tool and the necessary manual interventions required to complete the upgrade.
+This document outlines the migration process from ICM 12 to ICM 13. It covers the automated processes handled by the migration tool, as well as the manual interventions necessary to complete the upgrade.
 
 ## Table of Contents
 
 - [Preparation Steps](#preparation-steps)
   - [Prepare ICM 13 Branch](#prepare-icm-13-branch)
 - [Automated Migration Steps](#automated-migration-steps)
-  - [Integrate OpenRewrite recipes](#integrate-openrewrite-recipes)
+  - [Integrate OpenRewrite Recipes](#integrate-openrewrite-recipes)
 - [Manual Migration Steps](#manual-migration-steps)
   - [Run OpenRewrite on the Migration Project](#run-openrewrite-on-the-migration-project)
-    - [Applied recipes](#applied-recipes)
+    - [Applied Recipes](#applied-recipes)
 
 ## Preparation Steps
 
 ### Prepare ICM 13 Branch
 
 - Verify that your migration branch is properly checked out locally and synchronized with the remote repository.
-- Ensure your project builds successfully with Gradle after completing the previous migration phase (ICM 11 to 12).
+- After completing the previous migration phase (ICM 11 to 12), ensure that your project builds successfully with Gradle.
 
 ## Automated Migration Steps
 
@@ -28,11 +28,11 @@ Example command:
 gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/003_migration_12_to_13
 ```
 
-### Integrate OpenRewrite recipes
+### Integrate OpenRewrite Recipes
 
 Migrator: `ClasspathResourceFileCopier`
 
-Adds Intershops migration recipes to the root of the project for the use of OpenRewrite
+This adds Intershop's migration recipes to the root of the project for use with OpenRewrite.
 
 ## Manual Migration Steps
 
@@ -48,7 +48,7 @@ gradlew --init-script rewrite.gradle rewriteRun
 > Intershop recommends increasing the maximum heap size for Gradle by setting the `GRADLE_OPTS` environment variable, for example:  
 > `set GRADLE_OPTS=-Xmx4G` (on Windows) or `export GRADLE_OPTS=-Xmx4G` (on Linux/macOS).
 
-#### Applied recipes
+#### Applied Recipes
 
 - Migration to ICM 13
   - Migration of the EmailSendingHandler#send() to the new signature

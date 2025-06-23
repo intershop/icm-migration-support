@@ -29,11 +29,11 @@ Example command:
 gradlew migration:migrateAll -Ptarget=$ICM -Psteps=src/main/resources/migration/002_migration_11_to_12
 ```
 
-### Integrate OpenRewrite recipes
+### Integrate OpenRewrite Recipes
 
 Migrator: `ClasspathResourceFileCopier` 
 
-Adds Intershops migration recipes to the root of the project for the use of OpenRewrite
+This adds Intershop's migration recipes to the root of the project for use with OpenRewrite.
 
 ## Manual Migration Steps
 
@@ -49,7 +49,7 @@ gradlew --init-script rewrite.gradle rewriteRun
 > Intershop recommends increasing the maximum heap size for Gradle by setting the `GRADLE_OPTS` environment variable, for example:  
 > `set GRADLE_OPTS=-Xmx4G` (on Windows) or `export GRADLE_OPTS=-Xmx4G` (on Linux/macOS).
 
-#### Applied recipes
+#### Applied Recipes
 
 - Migration to Jakarta EE 10
 - Migration to Java 21
@@ -61,12 +61,12 @@ gradlew --init-script rewrite.gradle rewriteRun
   - Migration of ProductListResource
   - Migration of ProcessChain XSD
   - Migration of custom JobMgr implementation
-    - added method implementations for
+    - Added method implementations for
       - `setEnableJobProcessors(Collection<String>)`
       - `createJobCrontabTimeCondition(Domain, Date, String)`
-    - **Note:** add implementation for method `isJobAllowedOnServer(ServerInfo, JobConfiguration)`
+    - **Note:** Add implementation for method `isJobAllowedOnServer(ServerInfo, JobConfiguration)`
 
-### ISML Expression adaption
+### ISML Expression Adaption
 
       The ISML expression logic contained an evaluation failure if a conditional value was undefined. The issue was fixed in ICM 12, but requires an adaption of the ISML expressions in the project code.
       See [Guide - 12.x.x API Changes](https://knowledge.intershop.com/kb/index.php/Display/312H13) for more details.
