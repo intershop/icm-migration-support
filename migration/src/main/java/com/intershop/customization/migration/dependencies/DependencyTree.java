@@ -1,16 +1,33 @@
 package com.intershop.customization.migration.dependencies;
-
+/**
+ * * An n-ary tree structure for managing dependencies of cartridges and other components
+ *  (libraries, INTERSHOP component framwwork) of an ICM 11+ project<br/>
+ * Valuies are of type T, which can be any object representing a dependency,
+ * @see DependencyEntry obkects are referred here<br/>
+ * 
+ */
 public class DependencyTree<T> {
     DependencyEntry<T> root;
 
+    /** coinstrutor
+     * * @param rootValue the value of the root entry
+     */
     public DependencyTree(T rootValue) {
         this.root = new DependencyEntry<>(rootValue);
     }
 
+    /**
+     * Returns the root entry of the dependency tree.
+     * @return the root entry of the dependency tree.
+     */
     public DependencyEntry<T> getRoot() {
         return root;
     }
 
+    /**
+     * walks recursively through the dependency tree.
+     * @param DependencyEntry the entry to start the traversal from
+     */
     public void traverse(DependencyEntry<T> DependencyEntry) {
         if (DependencyEntry == null) return;
 
@@ -23,7 +40,12 @@ public class DependencyTree<T> {
         }
     }
 
-    // Recursive method to find an element in the n-ary tree
+    /** searches for a specific Dependency object in the tree.
+     * 
+     * @param root the root entry of the tree to start searching from
+     * @param target the Dependency object to search for
+     * @return the Dependency object if found, otherwise null
+     */
     public static <T> Dependency findElement(DependencyEntry<T> root, Dependency target) {
         if (root == null) {
             return null; // Base case: tree is empty
