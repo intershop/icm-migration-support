@@ -111,7 +111,7 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
 
             // output the dependency tree
             if("JSON".equals(treeFormat)){
-                printJSON(dependencyxTree, "");
+                printJSON(dependencyxTree);
             } else {
                 printTree(rootDependencyEntry, "");
             }
@@ -119,6 +119,12 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
         }
 
     }
+    /** walks through cartridge directories to find and analyze the build,.gradle.kts file.<br/>
+     * 
+     * @param cartridgeEntry the cartridge entry to add dependencies to
+     * @param startDir the directory to start searching from
+     * @param targetFile the name of the build file to search for
+     */
     private static void searchFirstLevelDirs(
         DependencyEntry<Dependency> cartridgeEntry, 
         Path startDir, 
@@ -136,6 +142,16 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
         }
     }
 
+    /**
+     * list of excluded cartridge directories
+     * Theys are part of the standard project setup, 
+     * the cartridte pf_configuration_fs is part of the ICM standard
+     * softwqare replacing the 7.10.x version of the pf_configuration framewortk.
+     * 
+     * @param dir the carteidge directory to check
+     * @return true of the cartridge is not a default one or pf_configuration
+     * ant this is subject to migrtion.<br/>
+     */
     private static boolean toBeExaminded(Path dir) {
         String dirName = dir.toString();
         return ! (dirName.contains("pf_configuration_fs") 
@@ -145,6 +161,14 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                 || dirName.contains("versions_test"));
     }
 
+    /** analyzes the build file in the given directory.<br/>
+     * if it exists, it is parsed and the dependencies therein are added to the
+     * cartridge entry in the dependency tree.
+     * 
+     * @param cartridgeEntry the cartridge entry to add dependencies to
+     * @param dir the directory to search for the build file
+     * @param targetFile the name of the build file to search for
+     */
     private static void analyzeBuildFile
         (DependencyEntry<Dependency> cartridgeEntry, 
         Path dir, 
@@ -191,48 +215,54 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
     // print metoods
     // --------------------------------------------------------------
 
-    public  <T> void printTree(DependencyEntry<Dependency> node, String prefix)
+    /** prints the dependency tree donwards starig from an entry
+     * 
+     * @param node the node of the dependency tree to start at
+     * @param insertion the prefix to use for each line
+     * 
+     */
+    public  <T> void printTree(DependencyEntry<Dependency> node, String insertion)
     {
         if (node == null) {
             return;
         }
-        String line = prefix + node.getValue().getName();
+        String line = insertion + node.getValue().getName();
 
-        // Print the current node
-        if(null == this.treeOutputFile) {
-            // if no output file is set, print to console
-            System.out.println(line);
-        } else {
-            // if an output file is set, write to it
-            try {
-                Files.writeString(treeOutputFile,
-                     line + System.lineSeparator(), 
-                    java.nio.file.StandardOpenOption.CREATE, 
-                    java.nio.file.StandardOpenOption.APPEND);
-            } catch (IOException e) {
-                LOGGER.error("Error writing to output file {}: {}, ",
-                treeOutputFile.getFileName().toString(),
-                e.getMessage());
-            }
-        }
+        printOut(line);
 
         // Recursively print each child with an updated prefix
         for (DependencyEntry<Dependency> child : node.getChildren()) {
-            printTree(child, prefix + "    ");
+            printTree(child, insertion + "    ");
         }
     }
 
+    /** prints the dependency tree as JSON to the output file or console.<br/>
+     * 
+     * @param dependencyxTree the dependency tree to print
+     */
     
-    public <T> void printJSON(DependencyTree<Dependency> dependencyxTree, String prefix)
+    public <T> void printJSON(DependencyTree<Dependency> dependencyxTree)
     {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(dependencyxTree);
 
+        printOut(json);
+    }
+
+    /**
+     * print the prepared tontent to the output file or console.<br/>
+     * 
+     * @param content the text or JSON content to print
+     */
+    private void printOut(String content)
+    {
         if(null == this.treeOutputFile) {
-            System.out.println(json);
+            // if no output file is set, print to console
+            System.out.println(content);
         } else {
+            // if an output file is set, write to it
             try {
-                Files.writeString(treeOutputFile, json + System.lineSeparator(), 
+                Files.writeString(treeOutputFile, content + System.lineSeparator(), 
                     java.nio.file.StandardOpenOption.CREATE, 
                     java.nio.file.StandardOpenOption.APPEND);
             } catch (IOException e) {

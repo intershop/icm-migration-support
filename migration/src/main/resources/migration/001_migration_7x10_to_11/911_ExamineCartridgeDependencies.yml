@@ -3,5 +3,6 @@ migrator: com.intershop.customization.migration.dependencies.ExamineCartridgeDep
 message: "feat: exa,ime cartriodge depemdencies"
 options:
   treeFormat: "JSON"
-  treeOutputFile: "C:\\Users\\hmordt\\Documents\\Dependencies.json"
+  treeOutputFile: ""
+#  treeOutputFile: "C:\\Users\\hmordt\\Documents\\Dependencies.json"
 

@@ -9,12 +9,19 @@ import java.util.List;
 import com.intershop.customization.migration.common.Position;
 import com.intershop.customization.migration.utils.FileUtils;
 
-
+/**
+ * * This class analyzes Kotlin script (.kts) files to extract dependencies.
+ */
 public class KtsDependencyAnalyzer {
 
 
     private static final String START_DEPENDENCIES = "dependencies";
 
+    /** * Parses a Kotlin script (.kts) file to extract dependencies.
+     * 
+     * @param buildGradle   
+     * @return List of Dependency objects representing the dependencies found in the file.
+     */
     public List<Dependency> parseKtsFile(Path buildGradle) 
     {     
         List<Dependency> delendencies = new ArrayList<>();
