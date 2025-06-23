@@ -14,6 +14,16 @@ import com.intershop.customization.migration.utils.FileUtils;
  */
 public class KtsDependencyAnalyzer {
 
+    Path startDir = null;
+
+    /**
+     * Constructor for KtsDependencyAnalyzer.
+     * 
+     * @param startDir the directory to start the analysis from
+     */
+    public KtsDependencyAnalyzer() {
+        this.startDir = null;
+    }
 
     private static final String START_DEPENDENCIES = "dependencies";
 
@@ -24,7 +34,11 @@ public class KtsDependencyAnalyzer {
      */
     public List<Dependency> parseKtsFile(Path buildGradle) 
     {     
-        List<Dependency> delendencies = new ArrayList<>();
+        if (startDir == null ) {
+            startDir = buildGradle.getParent();
+        }
+
+        List<Dependency> depndencies = new ArrayList<>();
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
@@ -78,8 +92,10 @@ public class KtsDependencyAnalyzer {
                                     dependencySSubject, 
                                     buildGradle.getFileName().toString(), 
                                     dependencyType);
-                                delendencies.add(dependency);
+
+                                depndencies.add(dependency);
                             }
+
                         }
                     }
                 }
@@ -93,9 +109,8 @@ public class KtsDependencyAnalyzer {
         {
             System.err.println("Error parsing KTS file: " + e.getMessage());
         }
-        return delendencies;
 
-
+        return depndencies;
     }
     
 }
