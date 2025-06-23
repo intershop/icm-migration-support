@@ -196,7 +196,8 @@ public class ExamineCartridgeDependencies  implements MigrationPreparer
                     {
                         for(Dependency dep : denendencies) 
                         {
-                            dependencyEntry.addChild(new DependencyEntry<>(dep));
+                            DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
+                            dependencyEntry.addChild(child);
                         }
                     }
                 } else {
