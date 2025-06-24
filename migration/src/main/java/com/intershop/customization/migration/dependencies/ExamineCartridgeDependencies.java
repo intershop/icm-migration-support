@@ -93,8 +93,8 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
             rootDependencyEntry = dependencyxTree.getRoot();
             Dependency dependency = new Dependency(cartridgeName, null, DependencyType.CARTRIDGE);
-            if (DependencyTree.findElement(rootDependencyEntry, dependency) == null)
-            {
+//            if (DependencyTree.findElement(rootDependencyEntry, dependency) == null)
+//            {
                 // if not yet in the tree, add it
                 DependencyEntry<Dependency> cartridgeEntry = new DependencyEntry<>(dependency);
                 rootDependencyEntry.addChild(cartridgeEntry);
@@ -103,11 +103,11 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 // scan build.grale.kts in first level (artridge) directories
                 String fileToFind = "build.gradle.kts";
                 searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
-            }
-            else
-            {
-                LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
-            }
+//            }
+//            else
+//            {
+//                LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
+//            }
 
             // output the dependency tree
             if ("JSON".equals(treeFormat))
@@ -194,6 +194,16 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                         for (Dependency dep : denendencies)
                         {
                             DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
+
+                            // recurse
+                            String dubCarteidgeName = child.getValue().getName();
+                            if(! dubCarteidgeName.contains(":"))
+                            {
+                                Path subDir = dir.getParent().resolve( dubCarteidgeName );
+                                Path  subbuildGradle = subDir.resolve("build.gradle.kts");
+                                analyzeBuildFile(child, subDir, subbuildGradle.toString());
+                            }
+
                             dependencyEntry.addChild(child);
                         }
                     }
