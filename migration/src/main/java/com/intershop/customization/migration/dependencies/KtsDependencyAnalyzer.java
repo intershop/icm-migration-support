@@ -12,7 +12,8 @@ import com.intershop.customization.migration.utils.FileUtils;
 /**
  * * This class analyzes Kotlin script (.kts) files to extract dependencies.
  */
-public class KtsDependencyAnalyzer {
+public class KtsDependencyAnalyzer
+{
 
     Path startDir = null;
 
@@ -21,20 +22,23 @@ public class KtsDependencyAnalyzer {
      * 
      * @param startDir the directory to start the analysis from
      */
-    public KtsDependencyAnalyzer() {
+    public KtsDependencyAnalyzer()
+    {
         this.startDir = null;
     }
 
     private static final String START_DEPENDENCIES = "dependencies";
 
-    /** * Parses a Kotlin script (.kts) file to extract dependencies.
+    /**
+     * * Parses a Kotlin script (.kts) file to extract dependencies.
      * 
-     * @param buildGradle   
+     * @param buildGradle
      * @return List of Dependency objects representing the dependencies found in the file.
      */
-    public List<Dependency> parseKtsFile(Path buildGradle) 
-    {     
-        if (startDir == null ) {
+    public List<Dependency> parseKtsFile(Path buildGradle)
+    {
+        if (startDir == null)
+        {
             startDir = buildGradle.getParent();
         }
 
@@ -43,7 +47,8 @@ public class KtsDependencyAnalyzer {
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
 
-            Position dependencyPos = Position.findBracketBlock(START_DEPENDENCIES,lines).orElse(Position.NOT_FOUND(lines));
+            Position dependencyPos = Position.findBracketBlock(START_DEPENDENCIES, lines)
+                                             .orElse(Position.NOT_FOUND(lines));
             List<String> dependencyLines = dependencyPos.matchingLines();
             if (dependencyLines.size() > 0 && !dependencyLines.isEmpty())
             {
@@ -57,41 +62,38 @@ public class KtsDependencyAnalyzer {
                 for (String line : dependencyLines)
                 {
                     line = line.trim();
-                    if(!line.isEmpty() && !line.startsWith("//"))
+                    if (!line.isEmpty() && !line.startsWith("//"))
                     {
                         String aLine[] = line.trim().split("\"");
                         if (aLine.length == 3)
                         {
                             String prefix = aLine[0].trim();
-                            String dependencySSubject = aLine[1].trim();;
-                                if(dependencySSubject.startsWith(":"))
-                                {
-                                    // cartridge(project( ... ) . remove the ":"
-                                    dependencySSubject = dependencySSubject.substring(1);
-                                }
+                            String dependencySSubject = aLine[1].trim();
+                            ;
+                            if (dependencySSubject.startsWith(":"))
+                            {
+                                // cartridge(project( ... ) . remove the ":"
+                                dependencySSubject = dependencySSubject.substring(1);
+                            }
 
-                                DependencyType dependencyType = DependencyType.UNKNOWN;
-                            if(prefix.startsWith("implementation(") 
-                            || prefix.startsWith("cartridge(")
-                            || prefix.startsWith("cartridgeRuntime(project("))
+                            DependencyType dependencyType = DependencyType.UNKNOWN;
+                            if (prefix.startsWith("implementation(") || prefix.startsWith("cartridge(")
+                                || prefix.startsWith("cartridgeRuntime(project("))
                             {
                                 // cartridge( ... ) or implementation( ... )
                                 dependencyType = DependencyType.CARTRIDGE;
                             }
-                            else if(prefix.startsWith("runtimeOnly(") ||
-                             prefix.startsWith("cartridgeRuntime("))
+                            else if (prefix.startsWith("runtimeOnly(") || prefix.startsWith("cartridgeRuntime("))
                             {
                                 // cartridgeRuntime( ... ) or runtimeOnly( ... )
                                 dependencyType = DependencyType.PACKAGE;
                             }
 
                             // Parse the dependency line and create a Dependency object
-                            if(!dependencySSubject.isEmpty())
+                            if (!dependencySSubject.isEmpty())
                             {
-                                Dependency dependency = new Dependency(
-                                    dependencySSubject, 
-                                    buildGradle.getFileName().toString(), 
-                                    dependencyType);
+                                Dependency dependency = new Dependency(dependencySSubject,
+                                                buildGradle.getFileName().toString(), dependencyType);
 
                                 depndencies.add(dependency);
                             }
@@ -105,12 +107,12 @@ public class KtsDependencyAnalyzer {
                 System.out.println("No dependencies found in the file: " + buildGradle.toString());
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             System.err.println("Error parsing KTS file: " + e.getMessage());
         }
 
         return depndencies;
     }
-    
+
 }
