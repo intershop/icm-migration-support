@@ -156,14 +156,19 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     private static boolean toBeExaminded(Path dir)
     {
         String dirName = dir.toString();
-        return !(dirName.contains("pf_configuration_fs") || dirName.contains("my_cartridge")
-                        || dirName.contains("my_geb_test") || dirName.contains("versions")
-                        || dirName.contains("versions_test"));
+        return !(dirName.contains("pf_configuration_fs") 
+                  || dirName.contains("my_cartridge")
+                  || dirName.contains("my_geb_test") 
+                  || dirName.contains("versions")
+                  || dirName.contains("versions_test"));
     }
 
     /**
      * analyzes the build file in the given directory.<br/>
-     * if it exists, it is parsed and the dependencies therein are added to the cartridge entry in the dependency tree.
+     * if it exists, it is parsed and the dependencies therein are added to 
+     * the cartridge entry in the dependency tree.<br/>
+     * Cartridges with no source code in the project
+     * e.g. &quot;com.intershop.platform:core&quot; are not recursed into.<br/>
      * 
      * @param cartridgeEntry the cartridge entry to add dependencies to
      * @param dir the directory to search for the build file
@@ -195,7 +200,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                         {
                             DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
 
-                            // recurse
+                            // recurse except carteidges with no source code in the project
+                            // e.g. "com.intershop.platform:core""
+
                             String dubCarteidgeName = child.getValue().getName();
                             if(! dubCarteidgeName.contains(":"))
                             {
