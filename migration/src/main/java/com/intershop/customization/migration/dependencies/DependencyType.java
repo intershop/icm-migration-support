@@ -3,31 +3,33 @@ package com.intershop.customization.migration.dependencies;
 /**
  * Enum representing different types of dependencies in a migration context.
  * <ul>
- *   <li></li>ROOT - Represents the root entry in the dependency tree.
- *   <li>CARTRIDGE - Represents a cartridge dependency.</li>
- *   <li>ARTIFACT  - Represents an artifact dependency, almost jar files</li>
- *   <li>COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant framework</li>
- *   <li>LIBRARY   - Represents a library dependency.</li>  
- *   <li>PACKAGE   - Represents a package dependency.</li>  
- *   <li>UNKNOWN   - Represents an unknown dependency type.</li>
+ * <li></li>ROOT - Represents the root entry in the dependency tree.
+ * <li>CARTRIDGE - Represents a cartridge dependency.</li>
+ * <li>ARTIFACT - Represents an artifact dependency, almost jar files</li>
+ * <li>COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant
+ * framework</li>
+ * <li>LIBRARY - Represents a library dependency.</li>
+ * <li>PACKAGE - Represents a package dependency.</li>
+ * <li>UNKNOWN - Represents an unknown dependency type.</li>
  * </ul>
  */
-public enum DependencyType 
+public enum DependencyType
 {
-    ROOT        ("root"),
-    CARTRIDGE   ("cartridge"),
-    ARTIFACT    ("artifact"),
-    COMPONENT   ("comonent"),
-    LIBRARY     ("library"),
-    PACKAGE     ("package"),
-    UNKNOWN     ("unknown");
+    ROOT("root"), 
+    CARTRIDGE("cartridge"),
+    ARTIFACT("artifact"), 
+    COMPONENT("comonent"), 
+    LIBRARY("library"),
+    PACKAGE("package"), 
+    UNKNOWN("unknown");
 
     private final String value;
 
     /**
      * Constructor for DependencyType enum.
+     * 
      * @param value
-     */ 
+     */
     DependencyType(String value)
     {
         this.value = value;
@@ -35,16 +37,20 @@ public enum DependencyType
 
     /**
      * Returns the string representation of the dependency type.
-     * @return  the string value of the dependency type
+     * 
+     * @return the string value of the dependency type
      */
     public String getValue()
     {
         return value;
     }
 
-    public static DependencyType fromValue(String input) {
-        for (DependencyType type : DependencyType.values()) {
-            if (type.getValue().equals(input)) {
+    public static DependencyType fromValue(String input)
+    {
+        for (DependencyType type : DependencyType.values())
+        {
+            if (type.getValue().equals(input))
+            {
                 return type;
             }
         }
