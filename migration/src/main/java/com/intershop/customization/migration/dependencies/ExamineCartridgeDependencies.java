@@ -23,6 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 public class ExamineCartridgeDependencies implements MigrationPreparer
 {
     /**
+     * Name of the build file to examine for each cartridge, declaring its dependencies.
+     */
+    private static final String BUILD_FILE_NAME = "build.gradle.kts";
+
+    /**
      * YAML key for tree format option JSON and TEXT are supported.<br/>
      */
     private static final String YAML_KEY_TREE_FORMAT = "treeFormat";
@@ -48,6 +53,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
             this.treeFormat = treeFormat;
         }
+        else
+        {
+            LOGGER.warn("Invalid tree format: {}. Using default (TEXT).", treeFormat);
+        }
         String treeOutputFile = step.getOption(YAML_KEY_TREE_OUTPUT_FILE);
         if (!StringUtils.isEmpty(treeOutputFile))
         {
@@ -63,9 +72,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     /**
-     * main ethod to examine cartidge dependencies..<br/>
-     * if not yet ecaminded 1st a carteidge is assigned to the prject.<br/>
-     * Loopuing throgh the carteidges, their dependencies are (re-)assigned as tghey depend on each other....<br/>
+     * main method to examine cartridge dependencies..<br/>
+     * if not yet examined 1st a cartridge is assigned to the project.<br/>
+     * Looping through the cartridges, their dependencies are (re-)assigned as they depend on each other....<br/>
      * 
      */
     @Override
@@ -93,21 +102,14 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
             rootDependencyEntry = dependencyxTree.getRoot();
             Dependency dependency = new Dependency(cartridgeName, null, DependencyType.CARTRIDGE);
-//            if (DependencyTree.findElement(rootDependencyEntry, dependency) == null)
-//            {
-                // if not yet in the tree, add it
-                DependencyEntry<Dependency> cartridgeEntry = new DependencyEntry<>(dependency);
-                rootDependencyEntry.addChild(cartridgeEntry);
-                LOGGER.info("Adding cartridge {} to dependency tree", cartridgeName);
+            DependencyEntry<Dependency> cartridgeEntry = new DependencyEntry<>(dependency);
 
-                // scan build.grale.kts in first level (artridge) directories
-                String fileToFind = "build.gradle.kts";
-                searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
-//            }
-//            else
-//            {
-//                LOGGER.info("Cartridge {} already in dependency tree", cartridgeName);
-//            }
+            LOGGER.info("Adding cartridge {} to dependency tree", cartridgeName);
+            rootDependencyEntry.addChild(cartridgeEntry);
+
+            // scan build.gradle.kts in first level (cartridge) directories
+            String fileToFind = "build.gradle.kts";
+            searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
 
             // output the dependency tree
             if ("JSON".equals(treeFormat))
@@ -146,12 +148,12 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     /**
-     * list of excluded cartridge directories Theys are part of the standard project setup, the cartridte
-     * pf_configuration_fs is part of the ICM standard softwqare replacing the 7.10.x version of the pf_configuration
-     * framewortk.
+     * list of excluded cartridge directories They are part of the standard project setup, the cartridge
+     * pf_configuration_fs is part of the ICM standard software replacing the 7.10.x version of the pf_configuration
+     * framework.
      * 
-     * @param dir the carteidge directory to check
-     * @return true of the cartridge is not a default one or pf_configuration ant this is subject to migrtion.<br/>
+     * @param dir the cartridge directory to check
+     * @return true of the cartridge is not a default one or pf_configuration and this is subject to migration.<br/>
      */
     private static boolean toBeExaminded(Path dir)
     {
@@ -221,9 +223,8 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
             catch(Exception e)
             {
-                LOGGER.error("exceptiin when searching " + targetFile + " in directory: " + dir + ": "
+                LOGGER.error("Exception when searching " + targetFile + " in directory: " + dir + ": "
                                 + e.getMessage());
-                e.printStackTrace();
             }
         }
         else

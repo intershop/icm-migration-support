@@ -1,15 +1,15 @@
 package com.intershop.customization.migration.dependencies;
 /**
  * * An n-ary tree structure for managing dependencies of cartridges and other components
- *  (libraries, INTERSHOP component framwwork) of an ICM 11+ project<br/>
- * Valuies are of type T, which can be any object representing a dependency,
- * @see DependencyEntry obkects are referred here<br/>
+ *  (libraries, INTERSHOP component framework) of an ICM 11+ project<br/>
+ * Values are of type T, which can be any object representing a dependency,
+ * @see DependencyEntry objects are referred here<br/>
  * 
  */
 public class DependencyTree<T> {
     DependencyEntry<T> root;
 
-    /** coinstrutor
+    /** constructor
      * * @param rootValue the value of the root entry
      */
     public DependencyTree(T rootValue) {
