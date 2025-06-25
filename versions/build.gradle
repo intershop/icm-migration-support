@@ -16,6 +16,10 @@ dependencies {
         // load resources
 		api 'io.github.classgraph:classgraph:4.8.154'
         api 'org.slf4j:slf4j-api:1.7.36'
+        // git support
+        api 'org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r'
+        // json
+        api 'com.google.code.gson:gson:2.10.1'
     }
 }
 

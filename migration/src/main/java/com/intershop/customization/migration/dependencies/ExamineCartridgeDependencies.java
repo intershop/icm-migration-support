@@ -18,7 +18,6 @@ import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigResources;
 
 // import nonapi.io.github.classgraph.utils.StringUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public class ExamineCartridgeDependencies implements MigrationPreparer
 {
@@ -58,7 +57,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             LOGGER.warn("Invalid tree format: {}. Using default (TEXT).", treeFormat);
         }
         String treeOutputFile = step.getOption(YAML_KEY_TREE_OUTPUT_FILE);
-        if (!StringUtils.isEmpty(treeOutputFile))
+        if (!treeOutputFile.isEmpty())
         {
             try
             {
