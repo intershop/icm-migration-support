@@ -12,11 +12,11 @@ tasks.test {
 
 dependencies {
     implementation("io.github.classgraph:classgraph")
-    implementation("com.google.code.gson:gson:2.10.1")
     implementation("org.slf4j:slf4j-api")
     implementation("org.yaml:snakeyaml")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit")
+    implementation("com.google.code.gson:gson")
+
     runtimeOnly("ch.qos.logback:logback-classic")
 
     testImplementation("org.junit.jupiter:junit-jupiter") {
