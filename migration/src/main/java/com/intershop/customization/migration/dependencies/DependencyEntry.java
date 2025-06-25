@@ -58,7 +58,7 @@ public class DependencyEntry<T> {
      */
     boolean equals(DependencyEntry<T> other) {
 
-        if (this != other) return false; // Check for reference equality
+        if (this == other) return true;; // Check for reference equality
         if (other == null || getClass() != other.getClass()) return false;
 
         // Compare the root values

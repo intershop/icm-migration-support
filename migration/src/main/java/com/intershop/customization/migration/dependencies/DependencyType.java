@@ -3,7 +3,7 @@ package com.intershop.customization.migration.dependencies;
 /**
  * Enum representing different types of dependencies in a migration context.
  * <ul>
- * <li></li>ROOT - Represents the root entry in the dependency tree.
+ * <li>ROOT - Represents the root entry in the dependency tree.</li>
  * <li>CARTRIDGE - Represents a cartridge dependency.</li>
  * <li>ARTIFACT - Represents an artifact dependency, almost jar files</li>
  * <li>COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant
@@ -18,7 +18,7 @@ public enum DependencyType
     ROOT("root"), 
     CARTRIDGE("cartridge"),
     ARTIFACT("artifact"), 
-    COMPONENT("comonent"), 
+    COMPONENT("component"), 
     LIBRARY("library"),
     PACKAGE("package"), 
     UNKNOWN("unknown");

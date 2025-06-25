@@ -50,7 +50,7 @@ public class KtsDependencyAnalyzer
             Position dependencyPos = Position.findBracketBlock(START_DEPENDENCIES, lines)
                                              .orElse(Position.NOT_FOUND(lines));
             List<String> dependencyLines = dependencyPos.matchingLines();
-            if (dependencyLines.size() > 0 && !dependencyLines.isEmpty())
+            if (!dependencyLines.isEmpty())
             {
                 // Remove the first line which is the "dependencies" declaration
                 dependencyLines.remove(0);
