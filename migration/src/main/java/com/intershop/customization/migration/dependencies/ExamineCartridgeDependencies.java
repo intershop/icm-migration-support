@@ -39,6 +39,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     private static final String YAML_KEY_TREE_OUTPUT_FILE = "treeOutputFile";
     private Path treeOutputFile = null; // default is no output file
 
+    /* ------------------------------------------------------------ */
+    /* analysis                                                     */
+    /* ------------------------------------------------------------ */
+
     static DependencyTree<Dependency> dependencyxTree;
     static DependencyEntry<Dependency> rootDependencyEntry;
 
@@ -131,14 +135,16 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * @param startDir the directory to start searching from
      * @param targetFile the name of the build file to search for
      */
-    private static void searchFirstLevelDirs(DependencyEntry<Dependency> cartridgeEntry, Path startDir,
-                    String targetFile)
+    private static void searchFirstLevelDirs(
+        DependencyEntry<Dependency> cartridgeEntry, 
+        Path startDir,
+        String targetFile)
     {
         try (Stream<Path> stream = Files.walk(startDir, 0, FileVisitOption.FOLLOW_LINKS))
         {
             stream.filter(Files::isDirectory)
                   .filter(dir -> toBeExaminded(dir)) // Exclude the start directory itself
-                  .forEach(dir -> analyzeBuildFile(cartridgeEntry, dir, targetFile));
+                  .forEach(dir -> analyzeBuildFile(cartridgeEntry, dir, targetFile, ""));
         }
         catch(IOException e)
         {
@@ -174,50 +180,57 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * @param cartridgeEntry the cartridge entry to add dependencies to
      * @param dir the directory to search for the build file
      * @param targetFile the name of the build file to search for
+     * @param cartridgeCrumbs the cartridge names are getting added down the recursion to detect
+     *  a double ond - This way circular references are to be detected.
      */
-    private static void analyzeBuildFile(DependencyEntry<Dependency> cartridgeEntry, Path dir, String targetFile)
+    private static void analyzeBuildFile(
+        DependencyEntry<Dependency> cartridgeEntry, 
+        Path dir, 
+        String targetFile,
+        String cartridgeCrumbs)
     {
         if (Files.exists(dir.resolve(targetFile)))
         {
             File buildFile = dir.resolve(targetFile).toFile();
             String cartridgName = dir.getFileName().toString();
+            if(cartridgeCrumbs.contains(cartridgName + " > "))
+            {
+                // if the cartridge is already in the crumbs, it is a circular reference
+                LOGGER.error("Circular reference detected for cartridge: {} in the dependency path: {}"
+                , cartridgName, cartridgeCrumbs);
+                return;
+            }
+            else
+            {
+                cartridgeCrumbs += cartridgName + " > ";
+            }
+
             KtsDependencyAnalyzer ktsAnalyzer = new KtsDependencyAnalyzer();
 
             Dependency dependency = new Dependency(cartridgName, buildFile.getName(), DependencyType.CARTRIDGE);
-
-            Dependency existingEntry = DependencyTree.findElement(rootDependencyEntry, dependency);
             try
             {
-                if (null == existingEntry)
+                // analyze the dependencies within the build file
+                List<Dependency> denendencies = ktsAnalyzer.parseKtsFile(buildFile.toPath());
+                if (denendencies != null && denendencies.size() > 0)
                 {
-                    DependencyEntry<Dependency> dependencyEntry = new DependencyEntry<>(dependency);
-                    cartridgeEntry.addChild(dependencyEntry);
-
-                    // analyze the dependencies within the build file
-                    List<Dependency> denendencies = ktsAnalyzer.parseKtsFile(buildFile.toPath());
-                    if (denendencies != null && denendencies.size() > 0)
+                    for (Dependency dep : denendencies)
                     {
-                        for (Dependency dep : denendencies)
+                        DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
+
+                        // recurse except carteidges with no source code in the project
+                        // e.g. "com.intershop.platform:core""
+
+                        String dubCarteidgeName = child.getValue().getName();
+                        if(! dubCarteidgeName.contains(":"))
                         {
-                            DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
-
-                            // recurse except carteidges with no source code in the project
-                            // e.g. "com.intershop.platform:core""
-
-                            String dubCarteidgeName = child.getValue().getName();
-                            if(! dubCarteidgeName.contains(":"))
-                            {
-                                Path subDir = dir.getParent().resolve( dubCarteidgeName );
-                                Path  subbuildGradle = subDir.resolve("build.gradle.kts");
-                                analyzeBuildFile(child, subDir, subbuildGradle.toString());
-                            }
-
-                            dependencyEntry.addChild(child);
+                            Path subDir = dir.getParent().resolve( dubCarteidgeName );
+                            Path  subbuildGradle = subDir.resolve("build.gradle.kts");
+                            analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
                         }
+
+                        cartridgeEntry.addChild(child);
                     }
-                }
-                else
-                {
                 }
             }
             catch(Exception e)
@@ -302,5 +315,4 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
         }
     }
-
 }
