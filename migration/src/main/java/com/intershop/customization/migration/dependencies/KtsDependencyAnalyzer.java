@@ -70,12 +70,6 @@ public class KtsDependencyAnalyzer
                             String prefix = aLine[0].trim();
                             String dependencySSubject = aLine[1].trim();
                             ;
-                            if (dependencySSubject.startsWith(":"))
-                            {
-                                // cartridge(project( ... ) . remove the ":"
-                                dependencySSubject = dependencySSubject.substring(1);
-                            }
-
                             DependencyType dependencyType = DependencyType.UNKNOWN;
                             if (prefix.startsWith("implementation(") || prefix.startsWith("cartridge(")
                                 || prefix.startsWith("cartridgeRuntime(project("))

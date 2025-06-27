@@ -217,19 +217,15 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                     for (Dependency dep : denendencies)
                     {
                         DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
-
-                        // recurse except carteidges with no source code in the project
-                        // e.g. "com.intershop.platform:core""
-
-                        String dubCarteidgeName = child.getValue().getName();
-                        if(! dubCarteidgeName.contains(":"))
+                        String subCarteidgeName = child.getValue().getName();
+                        if(isProjectCartridge(subCarteidgeName))
                         {
-                            Path subDir = dir.getParent().resolve( dubCarteidgeName );
+                            Path subDir = dir.getParent().resolve( subCarteidgeName );
                             Path  subbuildGradle = subDir.resolve("build.gradle.kts");
                             analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
                         }
-
-                        cartridgeEntry.addChild(child)  ;               }
+                        cartridgeEntry.addChild(child);
+                    }
                 }
             }
             catch(Exception e)
@@ -244,9 +240,27 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         }
     }
 
-    // --------------------------------------------------------------
-    // print metoods
-    // --------------------------------------------------------------
+    /**
+     * checks if the referende is a project cartridge.<br/>
+     * A project cartridge is a cartridge that is not part of the ICM standard software and
+     * has no package name in its reference name. 
+     * The format of these depenencies is <packageName>:<cartridgeName>:<version>
+     * 
+     * @param referenceName the reference name of the cartridge
+     * @return true if it is a project cartridge, false otherwise
+     */
+    private static boolean isProjectCartridge(String referenceName) 
+    {
+        String cartridgeName = referenceName;
+
+        String reference[] = referenceName.split(":");
+        if (reference.length > 1)
+        {
+            // <packageName>:<cartridgeName>:<version>
+            return  false; // this is not a project cartridge
+        }
+        return  true;
+    }
 
     /**
      * prints the dependency tree donwards starig from an entry
