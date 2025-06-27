@@ -69,12 +69,21 @@ public class KtsDependencyAnalyzer
                         {
                             String prefix = aLine[0].trim();
                             String dependencySSubject = aLine[1].trim();
-                            ;
                             DependencyType dependencyType = DependencyType.UNKNOWN;
-                            if (prefix.startsWith("implementation(") || prefix.startsWith("cartridge(")
+
+                            if(prefix.startsWith("exclude"))
+                            {
+                                dependencySSubject = "    (excl.) " + dependencySSubject;
+                                dependencyType = DependencyType.CARTRIDGE;
+                            }   
+                            else if (line.startsWith("implementation(\"") && line.endsWith("{"))
+                            {   
+                                dependencySSubject = aLine[1].trim();
+                                dependencyType = DependencyType.CARTRIDGE;
+                            }
+                            else if (prefix.startsWith("implementation(") || prefix.startsWith("cartridge(")
                                 || prefix.startsWith("cartridgeRuntime(project("))
                             {
-                                // cartridge( ... ) or implementation( ... )
                                 dependencyType = DependencyType.CARTRIDGE;
                             }
                             else if (prefix.startsWith("runtimeOnly(") || prefix.startsWith("cartridgeRuntime("))

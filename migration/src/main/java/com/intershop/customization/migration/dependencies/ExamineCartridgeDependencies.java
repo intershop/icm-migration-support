@@ -253,10 +253,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     {
         String cartridgeName = referenceName;
 
+        // <packageName>:<cartridgeName>:<version>
         String reference[] = referenceName.split(":");
         if (reference.length > 1)
         {
-            // <packageName>:<cartridgeName>:<version>
             return  false; // this is not a project cartridge
         }
         return  true;
