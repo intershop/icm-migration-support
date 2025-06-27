@@ -229,8 +229,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                             analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
                         }
 
-                        cartridgeEntry.addChild(child);
-                    }
+                        cartridgeEntry.addChild(child)  ;               }
                 }
             }
             catch(Exception e)
@@ -315,4 +314,5 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
         }
     }
+
 }
