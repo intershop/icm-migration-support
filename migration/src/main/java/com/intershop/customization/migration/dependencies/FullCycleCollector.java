@@ -54,14 +54,14 @@ public class FullCycleCollector
 
         if (cycles.isEmpty()) 
 		{
-            LOGGER.debug("No cycles found.");
+            LOGGER.info("No cycles found.");
         } 
 		else 
 		{
-            LOGGER.debug("Cycles found:");
+            LOGGER.info("Cycles found:");
             for (List<String> cycle : cycles) 
 			{
-                LOGGER.debug(String.join(" -> ", cycle));
+                LOGGER.info(String.join(" -> ", cycle));
             }
         }
 

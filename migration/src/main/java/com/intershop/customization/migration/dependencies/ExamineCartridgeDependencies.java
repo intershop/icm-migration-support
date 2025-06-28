@@ -46,6 +46,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
     static DependencyTree<Dependency> dependencyxTree;
     static DependencyEntry<Dependency> rootDependencyEntry;
+    static List<String> rootCartridgeCrumbs;
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
@@ -104,6 +105,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 Dependency rootDependency = new Dependency(projectPath.getFileName().toString(), null,
                                 DependencyType.ROOT);
                 dependencyxTree = new DependencyTree<Dependency>(rootDependency);
+                rootCartridgeCrumbs = new ArrayList<>();
             }
             rootDependencyEntry = dependencyxTree.getRoot();
             Dependency dependency = new Dependency(cartridgeName, null, DependencyType.CARTRIDGE);
@@ -114,10 +116,15 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             // scan build.gradle.kts in first level (cartridge) directories
             String fileToFind = "build.gradle.kts";
-            boolean hasCyvles = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
-            if(hasCyvles)
+            List<String> cartridgeCrumbs = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
+            if(cartridgeCrumbs.size() > 0)
             {
-                return; // if cycles are detected, do not continue
+                
+                // TODO verify geting the dependencies for one cartridge, only
+                // menas: need to log the m as well in create and append mode for analysis
+
+                rootCartridgeCrumbs.addAll(cartridgeCrumbs);
+                FullCycleCollector.hasCycles(rootCartridgeCrumbs);
             }
 
             // output the dependency tree
@@ -129,9 +136,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             {
                 printTree(rootDependencyEntry, "");
             }
-
         }
-
     }
 
     /**
@@ -141,7 +146,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * @param startDir the directory to start searching from
      * @param targetFile the name of the build file to search for
      */
-    private static boolean searchFirstLevelDirs(
+    private static List<String> searchFirstLevelDirs(
         DependencyEntry<Dependency> cartridgeEntry, 
         Path startDir,
         String targetFile)
@@ -157,7 +162,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
             LOGGER.error("Error searching directories: " + e.getMessage());
         }
-        return FullCycleCollector.hasCycles(cartridgeCrumbs);
+        return cartridgeCrumbs;
     }
 
     /**
@@ -204,18 +209,18 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             String cartridgName = dir.getFileName().toString();
             if(cartridgName.startsWith(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY))
             {
-                // cartridge is excluded, do not analyze it
-                // LOGGER.debug("Cartridge {} is excluded from analysis.", cartridgName);
-                List<String> cartridgeCrumbsList = new ArrayList<>();
-                cartridgeCrumbsList.add(cartridgName);
-                boolean check = FullCycleCollector.hasCycles(cartridgeCrumbsList);
-
-                return cartridgeCrumbs; // return the current crumbs without adding the cartridge
+                // return the current crumbs without adding the cartridge
+                // just to be listed
+                cartridgeCrumbs += " > " + cartridgName;
+                return cartridgeCrumbs; 
             }
 
             if(cartridgeCrumbs.contains(cartridgName))
             {
-                return cartridgeCrumbs; // return the current crumbs without adding the cartridge
+                // return the current crumbs without adding the cartridge
+                // needed to check for that cycle
+                cartridgeCrumbs += " > " + cartridgName;
+                return cartridgeCrumbs; 
             }
             else
             {
@@ -259,7 +264,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         }
         else
         {
-            LOGGER.error("File " + targetFile + " not found in directory: " + dir);
+            if(! dir.getFileName().toString().contains(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY))
+            {
+                LOGGER.error("File " + targetFile + " not found in directory: " + dir);
+            }
         }
         return cartridgeCrumbs;
     }
