@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -47,6 +48,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     static DependencyEntry<Dependency> rootDependencyEntry;
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+
 
     @Override
     public void setStep(MigrationStep step)
@@ -112,7 +114,11 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             // scan build.gradle.kts in first level (cartridge) directories
             String fileToFind = "build.gradle.kts";
-            searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
+            boolean hasCyvles = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
+            if(hasCyvles)
+            {
+                return; // if cycles are detected, do not continue
+            }
 
             // output the dependency tree
             if ("JSON".equals(treeFormat))
@@ -135,21 +141,23 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * @param startDir the directory to start searching from
      * @param targetFile the name of the build file to search for
      */
-    private static void searchFirstLevelDirs(
+    private static boolean searchFirstLevelDirs(
         DependencyEntry<Dependency> cartridgeEntry, 
         Path startDir,
         String targetFile)
     {
+        List<String> cartridgeCrumbs = new ArrayList<>();
         try (Stream<Path> stream = Files.walk(startDir, 0, FileVisitOption.FOLLOW_LINKS))
         {
             stream.filter(Files::isDirectory)
                   .filter(dir -> toBeExaminded(dir)) // Exclude the start directory itself
-                  .forEach(dir -> analyzeBuildFile(cartridgeEntry, dir, targetFile, ""));
+                  .forEach(dir -> cartridgeCrumbs.add( analyzeBuildFile(cartridgeEntry, dir, targetFile, "")));
         }
         catch(IOException e)
         {
             LOGGER.error("Error searching directories: " + e.getMessage());
         }
+        return FullCycleCollector.hasCycles(cartridgeCrumbs);
     }
 
     /**
@@ -182,8 +190,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * @param targetFile the name of the build file to search for
      * @param cartridgeCrumbs the cartridge names are getting added down the recursion to detect
      *  a double ond - This way circular references are to be detected.
+     * @return the cartridge crumbs, which are the names of the cartridges in the dependency path.<br/>
      */
-    private static void analyzeBuildFile(
+    private static String analyzeBuildFile(
         DependencyEntry<Dependency> cartridgeEntry, 
         Path dir, 
         String targetFile,
@@ -193,18 +202,31 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
             File buildFile = dir.resolve(targetFile).toFile();
             String cartridgName = dir.getFileName().toString();
-            if(cartridgeCrumbs.contains(cartridgName + " > "))
+            if(cartridgName.startsWith(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY))
             {
-                // if the cartridge is already in the crumbs, it is a circular reference
-                LOGGER.error("Circular reference detected for cartridge: {} in the dependency path: {}"
-                , cartridgName, cartridgeCrumbs);
-                return;
+                // cartridge is excluded, do not analyze it
+                // LOGGER.debug("Cartridge {} is excluded from analysis.", cartridgName);
+                List<String> cartridgeCrumbsList = new ArrayList<>();
+                cartridgeCrumbsList.add(cartridgName);
+                boolean check = FullCycleCollector.hasCycles(cartridgeCrumbsList);
+
+                return cartridgeCrumbs; // return the current crumbs without adding the cartridge
+            }
+
+            if(cartridgeCrumbs.contains(cartridgName))
+            {
+                return cartridgeCrumbs; // return the current crumbs without adding the cartridge
             }
             else
             {
-                cartridgeCrumbs += cartridgName + " > ";
+                if("".equals(cartridgeCrumbs))
+                {
+                    cartridgeCrumbs = cartridgName;
+                }
+                 else {
+                    cartridgeCrumbs += " > " + cartridgName;
+                }
             }
-
             KtsDependencyAnalyzer ktsAnalyzer = new KtsDependencyAnalyzer();
 
             Dependency dependency = new Dependency(cartridgName, buildFile.getName(), DependencyType.CARTRIDGE);
@@ -218,11 +240,12 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                     {
                         DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
                         String subCarteidgeName = child.getValue().getName();
-                        if(isProjectCartridge(subCarteidgeName))
+                        if(!subCarteidgeName.startsWith(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY) 
+                        && isProjectCartridge(subCarteidgeName))
                         {
                             Path subDir = dir.getParent().resolve( subCarteidgeName );
                             Path  subbuildGradle = subDir.resolve("build.gradle.kts");
-                            analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
+                            cartridgeCrumbs = analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
                         }
                         cartridgeEntry.addChild(child);
                     }
@@ -238,6 +261,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
             LOGGER.error("File " + targetFile + " not found in directory: " + dir);
         }
+        return cartridgeCrumbs;
     }
 
     /**

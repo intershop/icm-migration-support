@@ -15,6 +15,8 @@ import com.intershop.customization.migration.utils.FileUtils;
 public class KtsDependencyAnalyzer
 {
 
+    public static final String MARK_EXCLUDED_DEPENDENCY = "(excl.)";
+
     Path startDir = null;
 
     /**
@@ -73,7 +75,8 @@ public class KtsDependencyAnalyzer
 
                             if(prefix.startsWith("exclude"))
                             {
-                                dependencySSubject = "    (excl.) " + dependencySSubject;
+                                dependencySSubject = "    " 
+                                + MARK_EXCLUDED_DEPENDENCY + dependencySSubject;
                                 dependencyType = DependencyType.CARTRIDGE;
                             }   
                             else if (line.startsWith("implementation(\"") && line.endsWith("{"))
@@ -95,8 +98,10 @@ public class KtsDependencyAnalyzer
                             // Parse the dependency line and create a Dependency object
                             if (!dependencySSubject.isEmpty())
                             {
-                                Dependency dependency = new Dependency(dependencySSubject,
-                                                buildGradle.getFileName().toString(), dependencyType);
+                                Dependency dependency = new Dependency(
+                                    chopCartridgeName(dependencySSubject),
+                                    buildGradle.getFileName().toString(),
+                                    dependencyType);
 
                                 depndencies.add(dependency);
                             }
@@ -116,6 +121,22 @@ public class KtsDependencyAnalyzer
         }
 
         return depndencies;
+    }
+
+    /**
+     * If the cartridge name starts with a ":" it is removed,
+     * because it is not part of the directory name.<br/>
+     *  
+     * @param cartridgeName the cartridge name to check
+     * @return the cartridge name without leading ":" if it exists
+     */
+    private static String chopCartridgeName(String cartridgeName)
+    {
+        if( cartridgeName.startsWith(":") && cartridgeName.length() > 2)
+        {
+            cartridgeName = cartridgeName.substring(1);
+        }
+        return cartridgeName;
     }
 
 }
