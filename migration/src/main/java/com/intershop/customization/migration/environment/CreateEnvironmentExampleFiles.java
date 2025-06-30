@@ -19,14 +19,15 @@ import com.intershop.customization.migration.utils.FileUtils;
 /**
  * This class creates example files in the project root with content specific for this environment.
  * <ul>
- *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry in gradle.properties
+ *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry as well as adoOrganizationName in gradle.properties
  *   <ul>
- *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
- *     <li>Placeholder <ishprjxxacr> will be replaced by e.g. "ishprjzzacr.azurecr.io"
+ *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
+ *     <li>Placeholder &lt;ishprjxxacr&gt; will be replaced by e.g. "ishprjzzacr.azurecr.io"
+ *     <li>Placeholder &lt;adoOrganizationName&gt; will be replaced by e.g. "ish-prjzz"
  *   </ul>
  *   <li>icm.properties.example created in project root from icm.properties.example.template, using rootProject.name in settings.gradle.kts
  *   <ul>
- *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
+ *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
  *   </ul>
  *   <li>clean.bat created in project root from clean.bat.template, using all cartridges existing in project root
  *   <ul>
@@ -50,6 +51,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     public static final String GRADLE_PROPERTIES = "gradle.properties";  // gradle.properties file in project root
     public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishprjzzacr.azurecr.io"
     protected String dockerRegistry = null;
+    public static final String ADO_ORGANIZATION  = "adoOrganizationName";  // adoOrganizationName key in gradle.properties, with value e.g. "ish-prjzz"
+    protected String adoOrganizationName = null;
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
     public static final String ENVIRONMENT_BAT_EXAMPLE          = "environment.bat.example";
@@ -57,6 +60,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     public static final String ICM_PROPERTIES_EXAMPLE           = "icm.properties.example";
     public static final String TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME = "<rootProject.name in settings.gradle.kts>";
     public static final String TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY   = "<ishprjxxacr>";
+    public static final String TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION  = "<adoOrganizationName>";
 
     public static final String CLEAN_BAT_TEMPLATE               = "clean.bat.template";
     public static final String CLEAN_BAT                        = "clean.bat";
@@ -121,6 +125,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     LOGGER.debug("Found {}", name);
                     dockerRegistry = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, DOCKER_REGISTRY);
                     LOGGER.info("{} read from {}: '{}'", DOCKER_REGISTRY, name, dockerRegistry);
+                    adoOrganizationName = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, ADO_ORGANIZATION);
+                    LOGGER.info("{} read from {}: '{}'", ADO_ORGANIZATION, name, dockerRegistry);
                 }
 
                 if (name.equalsIgnoreCase(ENVIRONMENT_BAT_EXAMPLE))
@@ -155,7 +161,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     environmentBatExample = projectDir.resolve(ENVIRONMENT_BAT_EXAMPLE);
                 }
 
-                createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, rootProjectName, dockerRegistry);
+                createOrReplaceEnvironmentBatExample(environmentBatExampleTemplate, environmentBatExample, rootProjectName, dockerRegistry, adoOrganizationName);
                 context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, environmentBatExampleTemplate.toPath(), environmentBatExample);
             }
             else
@@ -309,12 +315,14 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * @param environmentBatExampleTemplate The template file containing placeholders.
      * @param environmentBatExample         The path to the output file where the processed content will be written.
      *                                      If the file already exists, its content will be replaced.
-     * @param rootProjectName               rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
-     *                                      If null, the placeholder will remain in the output file.
-     * @param dockerRegistry                dockerRegistry configured in gradle.properties, used to replace placeholders <ishprjxxacr>.
-     *                                      If null, the placeholder will remain in the output file.
+     * @param rootProjectName               rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
+     * @param dockerRegistry                dockerRegistry configured in gradle.properties, used to replace placeholders &lt;ishprjxxacr&gt;.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
+     * @param adoOrganizationName           adoOrganizationName configured in gradle.properties, used to replace placeholders &lt;adoOrganizationName&gt; in gradle.properties.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
      */
-    protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, String rootProjectName, String dockerRegistry)
+    protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, String rootProjectName, String dockerRegistry, String adoOrganizationName)
     {
         LOGGER.debug("START executing method  createOrReplaceEnvironmentBatExample");
 
@@ -327,6 +335,11 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             if (dockerRegistry == null)
             {
                 LOGGER.warn("No {} found. {} will contain placeholders {}.", DOCKER_REGISTRY, environmentBatExample.getFileName(), TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY);
+            }
+
+            if (adoOrganizationName == null)
+            {
+                LOGGER.warn("No {} found. {} will contain placeholders {}.", ADO_ORGANIZATION, environmentBatExample.getFileName(), TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION);
             }
 
             String resultingFileContent = "";
@@ -344,6 +357,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 {
                     // replace all occurrences in line
                     line = line.replace(TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY, dockerRegistry);
+                }
+
+                if (adoOrganizationName != null)
+                {
+                    // replace all occurrences in line
+                    line = line.replace(TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION, adoOrganizationName);
                 }
 
                 resultingFileContent += line + LINE_SEP;
@@ -365,8 +384,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * @param icmPropertiesExampleTemplate The template file containing placeholders.
      * @param icmPropertiesExample         The path to the output file where the processed content will be written.
      *                                     If the file already exists, its content will be replaced.
-     * @param rootProjectName              rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
-     *                                     If null, the placeholder will remain in the output file.
+     * @param rootProjectName              rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
+     *                                     If <code>null</code>, the placeholder will remain in the output file.
      */
     protected void createOrReplaceIcmPropertiesExample(File icmPropertiesExampleTemplate, Path icmPropertiesExample, String rootProjectName)
     {
