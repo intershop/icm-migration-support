@@ -21,13 +21,13 @@ import com.intershop.customization.migration.utils.FileUtils;
  * <ul>
  *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry as well as adoOrganizationName in gradle.properties
  *   <ul>
- *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
- *     <li>Placeholder <ishprjxxacr> will be replaced by e.g. "ishprjzzacr.azurecr.io"
- *     <li>Placeholder <adoOrganizationName> will be replaced by e.g. "ish-prjzz"
+ *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
+ *     <li>Placeholder &lt;ishprjxxacr&gt; will be replaced by e.g. "ishprjzzacr.azurecr.io"
+ *     <li>Placeholder &lt;adoOrganizationName&gt; will be replaced by e.g. "ish-prjzz"
  *   </ul>
  *   <li>icm.properties.example created in project root from icm.properties.example.template, using rootProject.name in settings.gradle.kts
  *   <ul>
- *     <li>Placeholder <rootProject.name in settings.gradle.kts> will be replaced by e.g. "prjzz-icm"
+ *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
  *   </ul>
  *   <li>clean.bat created in project root from clean.bat.template, using all cartridges existing in project root
  *   <ul>
@@ -315,12 +315,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * @param environmentBatExampleTemplate The template file containing placeholders.
      * @param environmentBatExample         The path to the output file where the processed content will be written.
      *                                      If the file already exists, its content will be replaced.
-     * @param rootProjectName               rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
-     *                                      If null, the placeholder will remain in the output file.
-     * @param dockerRegistry                dockerRegistry configured in gradle.properties, used to replace placeholders <ishprjxxacr>.
-     *                                      If null, the placeholder will remain in the output file.
-     * @param adoOrganizationName           adoOrganizationName configured in gradle.properties, used to replace placeholders <adoOrganizationName in gradle.properties>.
-     *                                      If null, the placeholder will remain in the output file.
+     * @param rootProjectName               rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
+     * @param dockerRegistry                dockerRegistry configured in gradle.properties, used to replace placeholders &lt;ishprjxxacr&gt;.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
+     * @param adoOrganizationName           adoOrganizationName configured in gradle.properties, used to replace placeholders &lt;adoOrganizationName&gt; in gradle.properties.
+     *                                      If <code>null</code>, the placeholder will remain in the output file.
      */
     protected void createOrReplaceEnvironmentBatExample(File environmentBatExampleTemplate, Path environmentBatExample, String rootProjectName, String dockerRegistry, String adoOrganizationName)
     {
@@ -384,8 +384,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * @param icmPropertiesExampleTemplate The template file containing placeholders.
      * @param icmPropertiesExample         The path to the output file where the processed content will be written.
      *                                     If the file already exists, its content will be replaced.
-     * @param rootProjectName              rootProject.name from settings.gradle.kts, used to replace placeholders <rootProject.name in settings.gradle.kts>.
-     *                                     If null, the placeholder will remain in the output file.
+     * @param rootProjectName              rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
+     *                                     If <code>null</code>, the placeholder will remain in the output file.
      */
     protected void createOrReplaceIcmPropertiesExample(File icmPropertiesExampleTemplate, Path icmPropertiesExample, String rootProjectName)
     {
