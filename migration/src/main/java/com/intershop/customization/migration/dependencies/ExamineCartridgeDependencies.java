@@ -1,13 +1,21 @@
 package com.intershop.customization.migration.dependencies;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
+import java.io.InputStream;
+import java.util.*;
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +55,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     static DependencyTree<Dependency> dependencyxTree;
     static DependencyEntry<Dependency> rootDependencyEntry;
     static List<String> rootCartridgeCrumbs;
+
+    static Map<String, List<String>> appCartridgeMap;
+    static DependencyTree<Dependency> appDependencyTree;
+    static DependencyEntry<Dependency> appRootDependencyEntry;
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
@@ -98,6 +110,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
         if (toBeExaminded(cartridgePath))
         {
+
+            // -------------------------------------------------------
+            // 1. build the dependency tree by build.grtadle.kts
+            // -------------------------------------------------------
             if (null == rootDependencyEntry)
             {
                 // if not yet initialized, create a new root entry
@@ -120,8 +136,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             if(cartridgeCrumbs.size() > 0)
             {
                 
-                // TODO verify geting the dependencies for one cartridge, only
-                // menas: need to log the m as well in create and append mode for analysis
+                // TODO verify undirect dependencies
+                // verify geting the dependencies accross all cartridges 
+                // otherise: need to log the m as well in create and append mode for analysis
 
                 rootCartridgeCrumbs.addAll(cartridgeCrumbs);
                 FullCycleCollector.hasCycles(rootCartridgeCrumbs);
@@ -135,6 +152,85 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             else
             {
                 printTree(rootDependencyEntry, "");
+            }
+
+            // -------------------------------------------------------
+            // check applications for cartridge dependencies
+            // -------------------------------------------------------
+
+            Path appExtensionPath = cartridgeDir
+            .resolve("src/main/resources/resources")
+            .resolve(cartridgeName).resolve("components")
+            .resolve("app-extension.component");
+            String appExtensionFileName = appExtensionPath.toString() ;
+
+            LOGGER.info("application dependency tree - scanning {} ", appExtensionFileName);
+            if(Files.exists(appExtensionPath, LinkOption.NOFOLLOW_LINKS))
+            {
+                try (InputStream xmlInput = new FileInputStream(appExtensionFileName)) 
+                {
+                    LOGGER.info("Scanning {} ...", appExtensionFileName);
+                    appCartridgeMap = parseAppextensionXML(xmlInput);
+                }
+                catch(Exception e)
+                {
+                    appCartridgeMap = new HashMap<>();
+                    LOGGER.error("Exception when scanning {} - ", appExtensionFileName
+                                    + e.getMessage());
+                }
+            }
+            else
+            {
+                appCartridgeMap = new HashMap<>();
+            }
+
+            if (null == appDependencyTree)
+            {
+                // if not yet initialized, create a new root entry
+                // for the dependency tree
+                Dependency appRootDependency = new Dependency(projectPath.getFileName().toString(), null,
+                                DependencyType.APPLICATION);
+                appDependencyTree = new DependencyTree<Dependency>(appRootDependency);
+            }
+            appRootDependencyEntry = appDependencyTree.getRoot();
+
+            LOGGER.info("application dependency tree - adding cartridge {} ", cartridgeName);
+
+            appCartridgeMap.forEach((app, cartridges) -> 
+            {
+                Dependency apDependency = null;;
+                DependencyEntry<Dependency> apDependencyEntry = null;
+                for(DependencyEntry<Dependency> entry: appRootDependencyEntry.getChildren())
+                {
+                    if(entry.getValue().getName().equals(app))
+                    {
+                        apDependency = entry.getValue();
+                        apDependencyEntry = entry;
+                        break;
+                    }
+                }
+                if(null == apDependency)
+                {
+                    apDependency = new Dependency(app, "epp-extensiom.properties", DependencyType.APPLICATION);
+                    apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
+                    appRootDependencyEntry.addChild(apDependencyEntry);
+                }
+
+                for(String cartridge: cartridges)
+                {
+                    Dependency cartridgeDependency = new Dependency(cartridge, "epp-extensiom.properties", DependencyType.CARTRIDGE);
+                    apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
+               }
+            });
+
+            // output the dependency tree
+            if ("JSON".equals(treeFormat))
+            {
+                printJSON(appDependencyTree);
+            }
+            else
+            {
+                printTree(appRootDependencyEntry, "");
             }
         }
     }
@@ -177,6 +273,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     {
         String dirName = dir.toString();
         return !(dirName.contains("pf_configuration_fs") 
+                  || dirName.contains("migration")
                   || dirName.contains("my_cartridge")
                   || dirName.contains("my_geb_test") 
                   || dirName.contains("versions")
@@ -360,5 +457,51 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
         }
     }
+
+    // ---------------------------------------------------------------
+    // scann app-extension.componnt 
+    // ---------------------------------------------------------------
+
+    /**
+     * Reads all <fulfill> tags with requirement="selectedCartridge".
+     * For each, if of starts with "intershop.", adds the value to 
+     * the application's cartridge list.
+     * Returns a map: {application, [cartridge, cartridge, ...]}.
+    *
+     * @param xmlInput xontent of the app-extension.componnt 
+     * @return a map of applications with a list of their cartridges
+     * @throws Exception
+     */
+    private static Map<String, List<String>> parseAppextensionXML(
+    InputStream xmlInput) 
+    throws Exception 
+    {
+        Map<String, List<String>> appCartridgeMap = new HashMap<>();
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        dbFactory.setNamespaceAware(true);
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(xmlInput);
+
+        NodeList fulfillNodes = doc.getElementsByTagNameNS("*", "fulfill");
+        for (int i = 0; i < fulfillNodes.getLength(); i++) 
+        {
+            Element fulfill = (Element) fulfillNodes.item(i);
+            String requirement = fulfill.getAttribute("requirement");
+            if (!"selectedCartridge".equals(requirement)) continue;
+
+            String application = fulfill.getAttribute("of");
+            String cartridge = fulfill.getAttribute("value");
+            if (application != null 
+            && application.startsWith("intershop.") 
+            && cartridge != null && !cartridge.isEmpty()) 
+            {
+                appCartridgeMap.computeIfAbsent(application, k -> new ArrayList<>()).add(cartridge);
+            }
+        }
+        return appCartridgeMap;
+    }
+
+
 
 }

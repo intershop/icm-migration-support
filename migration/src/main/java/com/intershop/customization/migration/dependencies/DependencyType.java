@@ -21,6 +21,7 @@ public enum DependencyType
     COMPONENT("component"), 
     LIBRARY("library"),
     PACKAGE("package"), 
+    APPLICATION("application"), 
     UNKNOWN("unknown");
 
     private final String value;
