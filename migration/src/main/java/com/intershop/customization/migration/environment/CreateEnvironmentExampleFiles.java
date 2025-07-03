@@ -47,12 +47,9 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
 
     public static final String SETTINGS_GRADLE_KTS = "settings.gradle.kts";  // settings.gradle.kts file in project root
     public static final String ROOT_PROJECT_NAME   = "rootProject.name";     // rootProject.name key in settings.gradle.kts, with value e.g. "prjzz-icm"
-    protected String rootProjectName = null;
     public static final String GRADLE_PROPERTIES = "gradle.properties";  // gradle.properties file in project root
     public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishprjzzacr.azurecr.io"
-    protected String dockerRegistry = null;
     public static final String ADO_ORGANIZATION  = "adoOrganizationName";  // adoOrganizationName key in gradle.properties, with value e.g. "ish-prjzz"
-    protected String adoOrganizationName = null;
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
     public static final String ENVIRONMENT_BAT_EXAMPLE          = "environment.bat.example";
@@ -88,6 +85,10 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         try
         {
             List<String> cartridgeNames = new ArrayList<>(100);
+
+            String rootProjectName     = null;
+            String dockerRegistry      = null;
+            String adoOrganizationName = null;
 
             Path environmentBatExample = null;
             Path icmPropertiesExample  = null;
@@ -126,7 +127,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     dockerRegistry = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, DOCKER_REGISTRY);
                     LOGGER.info("{} read from {}: '{}'", DOCKER_REGISTRY, name, dockerRegistry);
                     adoOrganizationName = getValueFromPropertiesOrKTSFile(dirOrFileInICMProjectRoot, ADO_ORGANIZATION);
-                    LOGGER.info("{} read from {}: '{}'", ADO_ORGANIZATION, name, dockerRegistry);
+                    LOGGER.info("{} read from {}: '{}'", ADO_ORGANIZATION, name, adoOrganizationName);
                 }
 
                 if (name.equalsIgnoreCase(ENVIRONMENT_BAT_EXAMPLE))
@@ -152,7 +153,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             // environment.bat.example
             //
 
-            File environmentBatExampleTemplate = new File(fileTemplatesDir.toFile(), ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
+            File environmentBatExampleTemplate = new File(this.fileTemplatesDir.toFile(), ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
             if (environmentBatExampleTemplate.exists() && environmentBatExampleTemplate.isFile())
             {
                 if (environmentBatExample == null)
@@ -166,15 +167,15 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
             else
             {
-                LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, fileTemplatesDir);
-                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
+                LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, this.fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
             }
 
             //
             // icm.properties.example
             //
 
-            File icmPropertiesExampleTemplate = new File(fileTemplatesDir.toFile(), ICM_PROPERTIES_EXAMPLE_TEMPLATE);
+            File icmPropertiesExampleTemplate = new File(this.fileTemplatesDir.toFile(), ICM_PROPERTIES_EXAMPLE_TEMPLATE);
             if (icmPropertiesExampleTemplate.exists() && icmPropertiesExampleTemplate.isFile())
             {
                 if (icmPropertiesExample == null)
@@ -188,15 +189,15 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
             else
             {
-                LOGGER.error("File '{}' not found in '{}'.", ICM_PROPERTIES_EXAMPLE_TEMPLATE, fileTemplatesDir);
-                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + ICM_PROPERTIES_EXAMPLE_TEMPLATE);
+                LOGGER.error("File '{}' not found in '{}'.", ICM_PROPERTIES_EXAMPLE_TEMPLATE, this.fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + ICM_PROPERTIES_EXAMPLE_TEMPLATE);
             }
 
             //
             // clean.bat
             //
 
-            File cleanBatTemplate = new File(fileTemplatesDir.toFile(), CLEAN_BAT_TEMPLATE);
+            File cleanBatTemplate = new File(this.fileTemplatesDir.toFile(), CLEAN_BAT_TEMPLATE);
             if (cleanBatTemplate.exists() && cleanBatTemplate.isFile())
             {
                 if (cleanBat == null)
@@ -210,8 +211,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             }
             else
             {
-                LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, fileTemplatesDir);
-                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + CLEAN_BAT_TEMPLATE);
+                LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, this.fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + CLEAN_BAT_TEMPLATE);
             }
         } catch (IOException e) {
             LOGGER.error("Exception reading project root " + projectDir.toString(), e);
