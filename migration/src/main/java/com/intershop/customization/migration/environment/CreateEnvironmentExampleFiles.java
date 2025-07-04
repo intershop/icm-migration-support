@@ -19,7 +19,7 @@ import com.intershop.customization.migration.utils.FileUtils;
 /**
  * This class creates example files in the project root with content specific for this environment.
  * <ul>
- *   <li>environment.bat.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry as well as adoOrganizationName in gradle.properties
+ *   <li>environment.bat.example and environment.sh.example created in project root from environment.bat.example.template, using rootProject.name in settings.gradle.kts and dockerRegistry as well as adoOrganizationName in gradle.properties
  *   <ul>
  *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
  *     <li>Placeholder &lt;ishprjxxacr&gt; will be replaced by e.g. "ishprjzzacr.azurecr.io"
@@ -29,7 +29,7 @@ import com.intershop.customization.migration.utils.FileUtils;
  *   <ul>
  *     <li>Placeholder &lt;rootProject.name in settings.gradle.kts&gt; will be replaced by e.g. "prjzz-icm"
  *   </ul>
- *   <li>clean.bat created in project root from clean.bat.template, using all cartridges existing in project root
+ *   <li>clean.bat and clean.sh created in project root from clean.bat.template, using all cartridges existing in project root
  *   <ul>
  *     <li>{cartridgeName} will be replaced by one line per cartridge
  *     <li>{cartridgeName.last} will be replaced by the last cartridge in the list
@@ -53,17 +53,20 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
     public static final String ENVIRONMENT_BAT_EXAMPLE          = "environment.bat.example";
+    public static final String ENVIRONMENT_SH_EXAMPLE_TEMPLATE  = "environment.sh.example.template";
+    public static final String ENVIRONMENT_SH_EXAMPLE           = "environment.sh.example";
     public static final String ICM_PROPERTIES_EXAMPLE_TEMPLATE  = "icm.properties.example.template";
     public static final String ICM_PROPERTIES_EXAMPLE           = "icm.properties.example";
-    public static final String TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME = "<rootProject.name in settings.gradle.kts>";
-    public static final String TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY   = "<ishprjxxacr>";
-    public static final String TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION  = "<adoOrganizationName>";
-
     public static final String CLEAN_BAT_TEMPLATE               = "clean.bat.template";
     public static final String CLEAN_BAT                        = "clean.bat";
-    public static final String CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME          = "{cartridgeName}";
-    public static final String CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST     = "{cartridgeName.last}";
-    public static final String CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST = "{cartridgeName.!last}";
+    public static final String CLEAN_SH_TEMPLATE                = "clean.sh.template";
+    public static final String CLEAN_SH                         = "clean.sh";
+    public static final String TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME      = "<rootProject.name in settings.gradle.kts>";
+    public static final String TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY        = "<ishprjxxacr>";
+    public static final String TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION       = "<adoOrganizationName>";
+    public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME          = "{cartridgeName}";
+    public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST     = "{cartridgeName.last}";
+    public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST = "{cartridgeName.!last}";
 
     @Override
     public void setStep(MigrationStep step)
@@ -91,8 +94,10 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             String adoOrganizationName = null;
 
             Path environmentBatExample = null;
+            Path environmentShExample  = null;
             Path icmPropertiesExample  = null;
             Path cleanBat              = null;
+            Path cleanSh               = null;
 
             List<Path> files = FileUtils.listTopLevelFiles(projectDir, null, null);
             for (Path path : files)
@@ -105,10 +110,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 //     1. It is a directory
                 //     2. Does not start with a dot
                 //     3. Contains a build.gradle or build.gradle.kts file
+                //     4. Is not "bin" (sometimes created by IStudio, containing a build.gradle.kts file)
                 // A "src" folder is not required!
                 if (dirOrFileInICMProjectRoot.isDirectory()
                     && !name.startsWith(".")
-                    && ((new File(dirOrFileInICMProjectRoot, "build.gradle")).exists() || (new File(dirOrFileInICMProjectRoot, "build.gradle.kts")).exists()))
+                    && ((new File(dirOrFileInICMProjectRoot, "build.gradle")).exists() || (new File(dirOrFileInICMProjectRoot, "build.gradle.kts")).exists())
+                    && !name.equals("bin"))
                 {
                     cartridgeNames.add(name);
                     LOGGER.debug("Found cartridge: '{}'", name);
@@ -136,6 +143,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
 
+                if (name.equalsIgnoreCase(ENVIRONMENT_SH_EXAMPLE))
+                {
+                    environmentShExample = dirOrFileInICMProjectRoot.toPath();
+                    LOGGER.warn("File '{}' already exists, content will be replaced.", name);
+                }
+
                 if (name.equalsIgnoreCase(ICM_PROPERTIES_EXAMPLE))
                 {
                     icmPropertiesExample = dirOrFileInICMProjectRoot.toPath();
@@ -145,6 +158,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 if (name.equalsIgnoreCase(CLEAN_BAT))
                 {
                     cleanBat = dirOrFileInICMProjectRoot.toPath();
+                    LOGGER.warn("File '{}' already exists, content will be replaced.", name);
+                }
+
+                if (name.equalsIgnoreCase(CLEAN_SH))
+                {
+                    cleanSh = dirOrFileInICMProjectRoot.toPath();
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
             }
@@ -169,6 +188,28 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             {
                 LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, this.fileTemplatesDir);
                 context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + ENVIRONMENT_BAT_EXAMPLE_TEMPLATE);
+            }
+
+            //
+            // environment.sh.example
+            //
+
+            File environmentShExampleTemplate = new File(this.fileTemplatesDir.toFile(), ENVIRONMENT_SH_EXAMPLE_TEMPLATE);
+            if (environmentShExampleTemplate.exists() && environmentShExampleTemplate.isFile())
+            {
+                if (environmentShExample == null)
+                {
+                    // In this case the file does not exist yet.
+                    environmentShExample = projectDir.resolve(ENVIRONMENT_SH_EXAMPLE);
+                }
+
+                createOrReplaceEnvironmentBatExample(environmentShExampleTemplate, environmentShExample, rootProjectName, dockerRegistry, adoOrganizationName);
+                context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, environmentShExampleTemplate.toPath(), environmentShExample);
+            }
+            else
+            {
+                LOGGER.error("File '{}' not found in '{}'.", ENVIRONMENT_SH_EXAMPLE_TEMPLATE, this.fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + ENVIRONMENT_SH_EXAMPLE_TEMPLATE);
             }
 
             //
@@ -213,6 +254,28 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             {
                 LOGGER.error("File '{}' not found in '{}'.", CLEAN_BAT_TEMPLATE, this.fileTemplatesDir);
                 context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + CLEAN_BAT_TEMPLATE);
+            }
+
+            //
+            // clean.sh
+            //
+
+            File cleanShTemplate = new File(this.fileTemplatesDir.toFile(), CLEAN_SH_TEMPLATE);
+            if (cleanShTemplate.exists() && cleanShTemplate.isFile())
+            {
+                if (cleanSh == null)
+                {
+                    // In this case the file does not exist yet.
+                    cleanSh = projectDir.resolve(CLEAN_SH);
+                }
+
+                createOrReplaceCleanBAT(cleanShTemplate, cleanSh, cartridgeNames);
+                context.recordSuccess(projectName, MigrationContext.OperationType.MOVE, cleanShTemplate.toPath(), cleanSh);
+            }
+            else
+            {
+                LOGGER.error("File '{}' not found in '{}'.", CLEAN_SH_TEMPLATE, this.fileTemplatesDir);
+                context.recordFailure(projectName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + CLEAN_SH_TEMPLATE);
             }
         } catch (IOException e) {
             LOGGER.error("Exception reading project root " + projectDir.toString(), e);
@@ -437,7 +500,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         try {
             if (cartridgeNames.isEmpty())
             {
-                LOGGER.warn("No cartridges found in the project. {} will contain placeholders like {}.", cleanBat.getFileName(), CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME);
+                LOGGER.warn("No cartridges found in the project. {} will contain placeholders like {}.", cleanBat.getFileName(), TEMPLATE_PLACEHOLDER_CARTRIDGENAME);
             }
 
             String resultingFileContent = "";
@@ -482,25 +545,25 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     {
         String result = "";
 
-        if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME))
+        if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME))
         {
             // line contains one or more occurrences of "{cartridgeName}",
             // create one line per cartridge
             for (String cartridgeName : cartridgeNames)
             {
-                String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME, cartridgeName);
+                String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME, cartridgeName);
                 result += replacedLine + LINE_SEP;
             }
         }
-        else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST))
+        else if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST))
         {
             // line contains one or more occurrences of "{cartridgeName.last}",
             // create one line for the last cartridge
             String cartridgeName = cartridgeNames.getLast();
-            String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST, cartridgeName);
+            String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST, cartridgeName);
             result += replacedLine + LINE_SEP;
         }
-        else if (line.contains(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST))
+        else if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST))
         {
             // line contains one or more occurrences of "{cartridgeName.!last}",
             // create one line per cartridge, except for the last cartridge
@@ -511,7 +574,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 number++;
                 if (number < size)
                 {
-                    String replacedLine = line.replace(CLEAN_BAT_TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST, cartridgeName);
+                    String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST, cartridgeName);
                     result += replacedLine + LINE_SEP;
                 }
             }
