@@ -51,7 +51,7 @@ export WORKSPACE=~/dev/<rootProject.name in settings.gradle.kts>/workspace
 #
 # IStudio - set alias openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
 alias     openStudio='~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0'
-alias openStudio4350='~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0'
+alias openStudio4360='~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0'
 alias openStudio4350='~/dev/apps/IntershopStudio_4.35.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.35.0'
 alias openStudio4302='~/dev/apps/IntershopStudio_4.30.2/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.30.2'
 
