@@ -161,7 +161,10 @@ public class Migrator
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
 
-        LOGGER.info(context.generateSummaryReport());
+        if (LOGGER.isInfoEnabled())
+        {
+            LOGGER.info(context.generateSummaryReport());
+        }
     }
 
     /**
@@ -178,7 +181,7 @@ public class Migrator
             return;
         }
 
-        for(MigrationStep step : allSteps)
+        for (MigrationStep step : allSteps)
         {
             MigrationPreparer migrator = step.getMigrator();
 
@@ -186,7 +189,10 @@ public class Migrator
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
 
-        LOGGER.info(context.generateSummaryReport());
+        if (LOGGER.isInfoEnabled())
+        {
+            LOGGER.info(context.generateSummaryReport());
+        }
     }
 
     /**

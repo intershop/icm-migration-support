@@ -23,6 +23,10 @@ public class MigrationContext
 {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
     private final List<String> criticalErrors = new ArrayList<>();
+    private final Map<String, Set<Operation>> operationsByProject = new TreeMap<>();
+    private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new HashMap<>();
+    private final Map<String, Object> additionalAttributes = new HashMap<>();
+
 
     public enum OperationType
     {
@@ -58,10 +62,6 @@ public class MigrationContext
                     && status() == operation.status();
         }
     }
-
-    // Store operations by cartridge/project
-    private final Map<String, Set<Operation>> operationsByProject = new TreeMap<>();
-    private final Map<String, Map<OperationStatus, Integer>> statisticsByProject = new HashMap<>();
 
     /**
      * Record a file/folder operation
@@ -215,5 +215,40 @@ public class MigrationContext
         }
 
         return report.toString();
+    }
+
+    /**
+     * Gets all additional attributes stored in the context.
+     *
+     * @return map of additional attributes
+     */
+    public Map<String, Object> getAdditionalAttributes()
+    {
+        return additionalAttributes;
+    }
+
+    /**
+     * Adds an attribute to the context.
+     * @param key the key for the attribute, must not be null
+     * @param value the value of the attribute to be stored in the context, must not be null
+     * @return the previous value associated with the key, or null if there was no mapping for the key
+     */
+    public Object addAdditionalAttribute(String key, Object value)
+    {
+        Objects.requireNonNull(key, "Key must not be null");
+        Objects.requireNonNull(value, "Value must not be null");
+
+        return additionalAttributes.put(key, value);
+    }
+
+    /**
+     * Removes an additional attribute from the context.
+     * @param key the key of the attribute to be removed, must not be null
+     * @return the value associated with the key when it was deleted, or null if there was no mapping for the key
+     */
+    public Object removeAdditionalAttribute(String key)
+    {
+        Objects.requireNonNull(key, "Key must not be null");
+        return additionalAttributes.remove(key);
     }
 }
