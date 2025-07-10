@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.intershop.customization.migration.common.MigrationContext;
 import com.intershop.customization.migration.common.MigrationPreparer;
-import com.intershop.customization.migration.common.MigrationStep;
 import com.intershop.customization.migration.utils.FileUtils;
 
 /**
@@ -189,19 +188,19 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
         }
 
         // Generate environment.bat.example
-        generateExampleFile(this.fileTemplatesDir, ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, this.environmentBatExample, ENVIRONMENT_BAT_EXAMPLE, this.rootProjectName, true, this.dockerRegistry, true, this.adoOrganizationName, true);
+        generateExampleFile(ENVIRONMENT_BAT_EXAMPLE_TEMPLATE, this.environmentBatExample, ENVIRONMENT_BAT_EXAMPLE);
 
         // Generate environment.sh.example
-        generateExampleFile(this.fileTemplatesDir, ENVIRONMENT_SH_EXAMPLE_TEMPLATE, this.environmentShExample, ENVIRONMENT_SH_EXAMPLE, this.rootProjectName, true, this.dockerRegistry, true, this.adoOrganizationName, true);
+        generateExampleFile(ENVIRONMENT_SH_EXAMPLE_TEMPLATE, this.environmentShExample, ENVIRONMENT_SH_EXAMPLE);
 
         // Generate icm.properties.example
-        generateExampleFile(this.fileTemplatesDir, ICM_PROPERTIES_EXAMPLE_TEMPLATE, this.icmPropertiesExample, ICM_PROPERTIES_EXAMPLE, this.rootProjectName, true, this.dockerRegistry, true, this.adoOrganizationName, true);
+        generateExampleFile(ICM_PROPERTIES_EXAMPLE_TEMPLATE, this.icmPropertiesExample, ICM_PROPERTIES_EXAMPLE);
 
         // Generate clean.bat
-        generateCleanFile(this.fileTemplatesDir, CLEAN_BAT_TEMPLATE, this.cleanBat, CLEAN_BAT, this.cartridgeNames);
+        generateCleanFile(CLEAN_BAT_TEMPLATE, this.cleanBat, CLEAN_BAT);
 
         // Generate clean.sh
-        generateCleanFile(this.fileTemplatesDir, CLEAN_SH_TEMPLATE, this.cleanSh, CLEAN_SH, this.cartridgeNames);
+        generateCleanFile(CLEAN_SH_TEMPLATE, this.cleanSh, CLEAN_SH);
 
         LOGGER.debug("END   executing method  migrateRoot");
     }
@@ -297,27 +296,14 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * Creates or replaces the *.example file in project root, based on a file template *.example.template.
      * Records the result of the operation in the migration context.
      *
-     * @param fileTemplatesDir        The directory containing the template files.
      * @param exampleFileTemplateName The file name of the tmeplate file.
      * @param exampleFile             The path to the output file where the processed content will be written into.
      *                                If the file already exists, its content will be replaced.
      * @param exampleFileName         The file name of the output file.
-     * @param rootProjectName         rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
-     *                                If <code>null</code>, the placeholder will remain in the output file.
-     * @param useRootProjectName      <code>true</code> if param rootProjectName should be used and placeholders &lt;rootProject.name in settings.gradle.kts&gt; be replaced,
-     *                                <code>false</code> if not (in case this placeholder usually does not occur in this file template).
-     * @param dockerRegistry          dockerRegistry configured in gradle.properties, used to replace placeholders &lt;ishprjxxacr&gt;.
-     *                                If <code>null</code>, the placeholder will remain in the output file.
-     * @param useDockerRegistry       <code>true</code> if param dockerRegistry should be used and placeholders &lt;ishprjxxacr&gt; be replaced,
-     *                                <code>false</code> if not (in case this placeholder usually does not occur in this file template).
-     * @param adoOrganizationName     adoOrganizationName configured in gradle.properties, used to replace placeholders &lt;adoOrganizationName&gt;.
-     *                                If <code>null</code>, the placeholder will remain in the output file.
-     * @param useAdoOrganizationName  <code>true</code> if param adoOrganizationName should be used and placeholders &lt;adoOrganizationName&gt; be replaced,
-     *                                <code>false</code> if not (in case this placeholder usually does not occur in this file template).
      */
-    protected void generateExampleFile(Path fileTemplatesDir, String exampleFileTemplateName, Path exampleFile, String exampleFileName, String rootProjectName, boolean useRootProjectName, String dockerRegistry, boolean useDockerRegistry, String adoOrganizationName, boolean useAdoOrganizationName)
+    protected void generateExampleFile(String exampleFileTemplateName, Path exampleFile, String exampleFileName)
     {
-        File exampleTemplate = new File(fileTemplatesDir.toFile(), exampleFileTemplateName);
+        File exampleTemplate = new File(this.fileTemplatesDir.toFile(), exampleFileTemplateName);
         if (exampleTemplate.exists() && exampleTemplate.isFile())
         {
             if (exampleFile == null)
@@ -326,13 +312,13 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 exampleFile = this.resource.resolve(exampleFileName);
             }
 
-            createOrReplaceExampleFile(exampleTemplate, exampleFile, rootProjectName, useRootProjectName, dockerRegistry, useDockerRegistry, adoOrganizationName, useAdoOrganizationName);
+            createOrReplaceExampleFile(exampleTemplate, exampleFile, this.rootProjectName, this.dockerRegistry, this.adoOrganizationName);
             this.context.recordSuccess(this.resourceName, MigrationContext.OperationType.MOVE, exampleTemplate.toPath(), exampleFile);
         }
         else
         {
-            LOGGER.error("File '{}' not found in '{}'.", exampleFileTemplateName, fileTemplatesDir);
-            this.context.recordFailure(this.resourceName, MigrationContext.OperationType.MOVE, fileTemplatesDir, null, "Source/template file not found: " + exampleFileTemplateName);
+            LOGGER.error("File '{}' not found in '{}'.", exampleFileTemplateName, this.fileTemplatesDir);
+            this.context.recordFailure(this.resourceName, MigrationContext.OperationType.MOVE, this.fileTemplatesDir, null, "Source/template file not found: " + exampleFileTemplateName);
         }
     }
 
@@ -340,14 +326,12 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      * Creates or replaces the clean.bat/.sh file in project root, based on a file template clean.bat/.sh.template.
      * Records the result of the operation in the migration context.
      *
-     * @param fileTemplatesDir      The directory containing the template files.
      * @param cleanFileTemplateName The file name of the tmeplate file.
      * @param cleanFile             The path to the output file where the processed content will be written into.
      *                              If the file already exists, its content will be replaced.
      * @param cleanFileName         The file name of the output file.
-     * @param cartridgeNames        List of all cartridge directory names that should be cleaned by clean.bat.
      */
-    protected void generateCleanFile(Path fileTemplatesDir, String cleanFileTemplateName, Path cleanFile, String cleanFileName, List<String> cartridgeNames)
+    protected void generateCleanFile(String cleanFileTemplateName, Path cleanFile, String cleanFileName)
     {
         File cleanTemplate = new File(this.fileTemplatesDir.toFile(), cleanFileTemplateName);
         if (cleanTemplate.exists() && cleanTemplate.isFile())
@@ -355,7 +339,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             if (cleanFile == null)
             {
                 // In this case the file does not exist yet.
-                cleanFile = this.resource.resolve(CLEAN_BAT);
+                cleanFile = this.resource.resolve(cleanFileName);
             }
 
             createOrReplaceCleanFile(cleanTemplate, cleanFile, this.cartridgeNames);
@@ -376,35 +360,29 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      *                               If the file already exists, its content will be replaced.
      * @param rootProjectName        rootProject.name from settings.gradle.kts, used to replace placeholders &lt;rootProject.name in settings.gradle.kts&gt;.
      *                               If <code>null</code>, the placeholder will remain in the output file.
-     * @param useRootProjectName     <code>true</code> if param rootProjectName should be used and placeholders &lt;rootProject.name in settings.gradle.kts&gt; be replaced,
-     *                               <code>false</code> if not (in case this placeholder usually does not occur in this file template).
      * @param dockerRegistry         dockerRegistry configured in gradle.properties, used to replace placeholders &lt;ishprjxxacr&gt;.
      *                               If <code>null</code>, the placeholder will remain in the output file.
-     * @param useDockerRegistry      <code>true</code> if param dockerRegistry should be used and placeholders &lt;ishprjxxacr&gt; be replaced,
-     *                               <code>false</code> if not (in case this placeholder usually does not occur in this file template).
      * @param adoOrganizationName    adoOrganizationName configured in gradle.properties, used to replace placeholders &lt;adoOrganizationName&gt;.
      *                               If <code>null</code>, the placeholder will remain in the output file.
-     * @param useAdoOrganizationName <code>true</code> if param adoOrganizationName should be used and placeholders &lt;adoOrganizationName&gt; be replaced,
-     *                               <code>false</code> if not (in case this placeholder usually does not occur in this file template).
      */
-    protected static void createOrReplaceExampleFile(File exampleFileTemplate, Path exampleFile, String rootProjectName, boolean useRootProjectName, String dockerRegistry, boolean useDockerRegistry, String adoOrganizationName, boolean useAdoOrganizationName)
+    protected static void createOrReplaceExampleFile(File exampleFileTemplate, Path exampleFile, String rootProjectName, String dockerRegistry, String adoOrganizationName)
     {
         LOGGER.debug("START executing method  createOrReplaceExampleFile  ({})", exampleFile.getFileName());
 
         try {
-            if (useRootProjectName && rootProjectName == null)
+            if (rootProjectName == null)
             {
-                LOGGER.warn("No {} found. {} will contain placeholders {}.", ROOT_PROJECT_NAME, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME);
+                LOGGER.warn("No {} found. {} might still contain placeholders {}.", ROOT_PROJECT_NAME, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME);
             }
 
-            if (useDockerRegistry && dockerRegistry == null)
+            if (dockerRegistry == null)
             {
-                LOGGER.warn("No {} found. {} will contain placeholders {}.", DOCKER_REGISTRY, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY);
+                LOGGER.warn("No {} found. {} might still contain placeholders {}.", DOCKER_REGISTRY, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY);
             }
 
-            if (useAdoOrganizationName && adoOrganizationName == null)
+            if (adoOrganizationName == null)
             {
-                LOGGER.warn("No {} found. {} will contain placeholders {}.", ADO_ORGANIZATION, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION);
+                LOGGER.warn("No {} found. {} might still contain placeholders {}.", ADO_ORGANIZATION, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION);
             }
 
             StringBuilder resultingFileContent = new StringBuilder(20000);
@@ -412,17 +390,17 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             List<String> lines = FileUtils.readAllLines(exampleFileTemplate.toPath());
             for (String line : lines)
             {
-                if (useRootProjectName && rootProjectName != null)
+                if (rootProjectName != null)
                 {
                     line = line.replace(TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME, rootProjectName);  // replaces all occurrences in line
                 }
 
-                if (useDockerRegistry && dockerRegistry != null)
+                if (dockerRegistry != null)
                 {
                     line = line.replace(TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY, dockerRegistry);  // replaces all occurrences in line
                 }
 
-                if (useAdoOrganizationName && adoOrganizationName != null)
+                if (adoOrganizationName != null)
                 {
                     line = line.replace(TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION, adoOrganizationName);  // replaces all occurrences in line
                 }
@@ -500,7 +478,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      */
     protected static String replacePlaceholderWithOneLinePerCartridge(String line, List<String> cartridgeNames)
     {
-        String result = "";
+        StringBuilder result = new StringBuilder(20000);
 
         if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME))
         {
@@ -509,7 +487,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             for (String cartridgeName : cartridgeNames)
             {
                 String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME, cartridgeName);
-                result += replacedLine + LINE_SEP;
+                result.append(replacedLine).append(LINE_SEP);
             }
         }
         else if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST))
@@ -518,7 +496,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             // create one line for the last cartridge
             String cartridgeName = cartridgeNames.getLast();
             String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST, cartridgeName);
-            result += replacedLine + LINE_SEP;
+            result.append(replacedLine).append(LINE_SEP);
         }
         else if (line.contains(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST))
         {
@@ -532,15 +510,16 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 if (number < size)
                 {
                     String replacedLine = line.replace(TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST, cartridgeName);
-                    result += replacedLine + LINE_SEP;
+                    result.append(replacedLine).append(LINE_SEP);
                 }
             }
         }
         else
         {
-            result += line + LINE_SEP;
+            result.append(line).append(LINE_SEP);
         }
 
-        return result;
+        String resultString = result.toString();
+        return resultString;
     }
 }
