@@ -8,7 +8,7 @@
 # rootProject.name = "<rootProject.name in settings.gradle.kts>"
 #containerProjectPrefix = <rootProject.name in settings.gradle.kts>
 
-# database connection configuration, in case you use your own MS SQL server
+# Database connection configuration, in case you use your own MS SQL server
 # In case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL), comment out below lines and see next section
 # For analysis of issues please check:
 # Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_URL, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
@@ -20,19 +20,19 @@ intershop.jdbc.url = jdbc:sqlserver://host.docker.internal:1433;databaseName=ish
 intershop.jdbc.user = intershop1
 intershop.jdbc.password = !InterShop00!
 
-# database container configuration in case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL)
-#intershop.db.mssql.dbname = icmtestdb
-# the host port to be used for the MS SQL server database in Docker container (default: 1433)
+# Database container configuration in case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL)
+# The host port to be used for the MS SQL server database Docker container, which needs to be free on you local/host machine! (default: 1433)
 #intershop.db.container.mssql.hostport = 1433
-# folder for DB data files (default: <project home>/build/data_folder)
+# Folder for DB data files (default: <project root folder>/build/data_folder)
 #data.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\data_folder
+# For more options see section "MSSQL": https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#mssql
 # The following keys are required (no defaults!) for the app server to connect to the database.
 #intershop.databaseType = mssql
 #intershop.jdbc.url = jdbc:sqlserver://<rootProject.name in settings.gradle.kts>-mssql:1433;databaseName=icmtestdb
 #intershop.jdbc.user = intershop
 #intershop.jdbc.password = intershop
 
-# folder for sites (default: <project root>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
+# folder for sites (default: <project root folder>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
 # Since important configuration is stored here (e.g. in root/1/solrcloud/default/conf/), created during DBPrepare only,
 # deleting it can cause the app server to fail. Thus, storing it outside the project directory might be a good idea.
 # Attention: "gradlew clean" deletes (in addition to the cartridge build folders) the sites_folder, regardless of its location!
