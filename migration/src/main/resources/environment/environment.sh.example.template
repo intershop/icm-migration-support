@@ -38,7 +38,7 @@ export LICENSEDIR=~/dev/<rootProject.name in settings.gradle.kts>
 # Configure the directory containing the icm.properties (CONFIGDIR)
 #
 # The default path to icm.properties is: CONFIGDIR=$GRADLE_USER_HOME/icm-default/conf
-# But since you can have more than one ICM 11 project on your computer and more than one app server per project,
+# But since you can have more than one ICM11+ project on your computer and more than one app server per project,
 # it is recommended to use project / Docker container specific icm.properties file locations!
 # You should use the rootProject.name defined in settings.gradle.kts (also used as containerProjectPrefix for the Docker containers).
 export CONFIGDIR=$GRADLE_USER_HOME/<rootProject.name in settings.gradle.kts>/conf
@@ -69,7 +69,7 @@ alias dozzle='docker run --name dozzle --detach --volume=/var/run/docker.sock:/v
 #desktop-linux   Docker Desktop                            unix:///home/johndoe/.docker/desktop/docker.sock   
 #Warning: DOCKER_HOST environment variable overrides the active context. To use a context, either set the global --context flag, or unset DOCKER_HOST environment variable.
 #
-export DOCKER_HOST='unix:///home/johndoe/.docker/desktop/docker.sock'
+export DOCKER_HOST="unix://$HOME/.docker/desktop/docker.sock"
 
 # start docker desktop, if not already running
 docker desktop start
