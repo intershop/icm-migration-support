@@ -522,17 +522,28 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     private void printMarkerCartridgeAssignments(
-        HashSet<String> checkMarkerCartridgesResult
+        HashSet<String> recentMarkerCartridgesResult
     ) 
     {
-        if (checkMarkerCartridgesResult.size() > 0)
+         HashSet<String>  formerMarkerCartridgesResult = new HashSet<>()
+        if(Files.exists(cartridgeAssignmentResultsFile, null))
+        {
+            
+             = (HashSet<String>) Files.readAllLines(cartridgeAssignmentResultsFile, null);
+        }
+        if (recentMarkerCartridgesResult.size() > 0)
         {
             LOGGER.info("Wring marker cartridge assignments:");
-            for (String message : checkMarkerCartridgesResult)
+            for (String message : recentMarkerCartridgesResult)
             {
-                LOGGER.info(message);
+                if(!formerMarkerCartridgesResult.contains(message))
+                {
+                    formerMarkerCartridgesResult.add(message);
+                    //LOGGER.info(message);
+                }
             }
         }
+        Files.write(cartridgeAssignmentResultsFile, formerMarkerCartridgesResult, CREATE);
     }
 
 }
