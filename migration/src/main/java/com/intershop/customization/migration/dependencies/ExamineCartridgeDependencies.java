@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 import java.io.InputStream;
 import java.util.*;
@@ -47,6 +48,12 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      */
     private static final String YAML_KEY_TREE_OUTPUT_FILE = "treeOutputFile";
     private Path treeOutputFile = null; // default is no output file
+
+    /**
+     * file to keep the cartridge top level assignment results.<br/>
+     */
+    private static Path cartridgeAssignmentResultsFile = 
+        Paths.get(System.getProperty("TEMP")+"/cartridgeAssignmentResults.txt");
 
     /* ------------------------------------------------------------ */
     /* analysis                                                     */
@@ -232,6 +239,14 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             {
                 printTree(appRootDependencyEntry, "");
             }
+
+            // -------------------------------------------------------
+            // check applications for wrong asigned marker cartridges
+            // -------------------------------------------------------
+            HashSet<String> checkMarkerCartridgesResult =
+            MarkerCartridgeAnalyzer.analyzeMarkerCartridges(rootCartridgeCrumbs);
+            printMarkerCartridgeAssignments(checkMarkerCartridgesResult);
+
         }
     }
 
@@ -391,6 +406,54 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         return  true;
     }
 
+    // ---------------------------------------------------------------
+    // scann app-extension.componnt 
+    // ---------------------------------------------------------------
+
+    /**
+     * Reads all <fulfill> tags with requirement="selectedCartridge".
+     * For each, if of starts with "intershop.", adds the value to 
+     * the application's cartridge list.
+     * Returns a map: {application, [cartridge, cartridge, ...]}.
+    *
+     * @param xmlInput xontent of the app-extension.componnt 
+     * @return a map of applications with a list of their cartridges
+     * @throws Exception
+     */
+    private static Map<String, List<String>> parseAppextensionXML(
+    InputStream xmlInput) 
+    throws Exception 
+    {
+        Map<String, List<String>> appCartridgeMap = new HashMap<>();
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        dbFactory.setNamespaceAware(true);
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(xmlInput);
+
+        NodeList fulfillNodes = doc.getElementsByTagNameNS("*", "fulfill");
+        for (int i = 0; i < fulfillNodes.getLength(); i++) 
+        {
+            Element fulfill = (Element) fulfillNodes.item(i);
+            String requirement = fulfill.getAttribute("requirement");
+            if (!"selectedCartridge".equals(requirement)) continue;
+
+            String application = fulfill.getAttribute("of");
+            String cartridge = fulfill.getAttribute("value");
+            if (application != null 
+            && application.startsWith("intershop.") 
+            && cartridge != null && !cartridge.isEmpty()) 
+            {
+                appCartridgeMap.computeIfAbsent(application, k -> new ArrayList<>()).add(cartridge);
+            }
+        }
+        return appCartridgeMap;
+    }
+
+    // ---------------------------------------------------------------
+    // print/ handle results
+    // ---------------------------------------------------------------
+
     /**
      * prints the dependency tree donwards starig from an entry
      * 
@@ -458,50 +521,18 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         }
     }
 
-    // ---------------------------------------------------------------
-    // scann app-extension.componnt 
-    // ---------------------------------------------------------------
-
-    /**
-     * Reads all <fulfill> tags with requirement="selectedCartridge".
-     * For each, if of starts with "intershop.", adds the value to 
-     * the application's cartridge list.
-     * Returns a map: {application, [cartridge, cartridge, ...]}.
-    *
-     * @param xmlInput xontent of the app-extension.componnt 
-     * @return a map of applications with a list of their cartridges
-     * @throws Exception
-     */
-    private static Map<String, List<String>> parseAppextensionXML(
-    InputStream xmlInput) 
-    throws Exception 
+    private void printMarkerCartridgeAssignments(
+        HashSet<String> checkMarkerCartridgesResult
+    ) 
     {
-        Map<String, List<String>> appCartridgeMap = new HashMap<>();
-
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        dbFactory.setNamespaceAware(true);
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(xmlInput);
-
-        NodeList fulfillNodes = doc.getElementsByTagNameNS("*", "fulfill");
-        for (int i = 0; i < fulfillNodes.getLength(); i++) 
+        if (checkMarkerCartridgesResult.size() > 0)
         {
-            Element fulfill = (Element) fulfillNodes.item(i);
-            String requirement = fulfill.getAttribute("requirement");
-            if (!"selectedCartridge".equals(requirement)) continue;
-
-            String application = fulfill.getAttribute("of");
-            String cartridge = fulfill.getAttribute("value");
-            if (application != null 
-            && application.startsWith("intershop.") 
-            && cartridge != null && !cartridge.isEmpty()) 
+            LOGGER.info("Wring marker cartridge assignments:");
+            for (String message : checkMarkerCartridgesResult)
             {
-                appCartridgeMap.computeIfAbsent(application, k -> new ArrayList<>()).add(cartridge);
+                LOGGER.info(message);
             }
         }
-        return appCartridgeMap;
     }
-
-
 
 }
