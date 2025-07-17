@@ -53,7 +53,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * file to keep the cartridge top level assignment results.<br/>
      */
     private static Path cartridgeAssignmentResultsFile = 
-        Paths.get(System.getProperty("TEMP")+"/cartridgeAssignmentResults.txt");
+        Paths.get(System.getenv("TEMP")+"/cartridgeAssignmentResults.txt");
 
     /* ------------------------------------------------------------ */
     /* analysis                                                     */
@@ -525,25 +525,37 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         HashSet<String> recentMarkerCartridgesResult
     ) 
     {
-         HashSet<String>  formerMarkerCartridgesResult = new HashSet<>()
-        if(Files.exists(cartridgeAssignmentResultsFile, null))
+        List<String>  formerMarkerCartridgesResult = new ArrayList<>();
+        try
         {
-            
-             = (HashSet<String>) Files.readAllLines(cartridgeAssignmentResultsFile, null);
-        }
-        if (recentMarkerCartridgesResult.size() > 0)
-        {
-            LOGGER.info("Wring marker cartridge assignments:");
-            for (String message : recentMarkerCartridgesResult)
+            if(Files.exists(cartridgeAssignmentResultsFile))
             {
-                if(!formerMarkerCartridgesResult.contains(message))
+                formerMarkerCartridgesResult
+                = Files.readAllLines(cartridgeAssignmentResultsFile);
+            }
+            if (recentMarkerCartridgesResult.size() > 0)
+            {
+                for (String message : recentMarkerCartridgesResult)
                 {
-                    formerMarkerCartridgesResult.add(message);
-                    //LOGGER.info(message);
+                    if(!formerMarkerCartridgesResult.contains(message))
+                    {
+                        formerMarkerCartridgesResult.add(message);
+                        //LOGGER.info(message);
+                    }
                 }
             }
-        }
-        Files.write(cartridgeAssignmentResultsFile, formerMarkerCartridgesResult, CREATE);
+            LOGGER.info ("Writing {} marker cartridge assignments to file: {}",
+                            formerMarkerCartridgesResult.size(), cartridgeAssignmentResultsFile.toString());
+            Files.write(cartridgeAssignmentResultsFile, formerMarkerCartridgesResult,
+                            java.nio.file.StandardOpenOption.CREATE, 
+                            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+         }
+        catch (IOException e)
+        {
+            LOGGER.error("Error creating directory for cartridge assignment results file: {}, ",
+                            cartridgeAssignmentResultsFile.getParent().toString(), e.getMessage());
+            return;
+        }       
     }
 
 }
