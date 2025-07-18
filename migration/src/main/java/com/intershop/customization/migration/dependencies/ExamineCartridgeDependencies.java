@@ -2,6 +2,7 @@ package com.intershop.customization.migration.dependencies;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -165,70 +166,87 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             // check applications for cartridge dependencies
             // -------------------------------------------------------
 
-            Path appExtensionPath = cartridgeDir
-            .resolve("src/main/resources/resources")
-            .resolve(cartridgeName).resolve("components")
-            .resolve("app-extension.component");
-            String appExtensionFileName = appExtensionPath.toString() ;
+            Path componentsDir = cartridgeDir
+                .resolve("src/main/resources/resources")
+                .resolve(cartridgeName)
+                .resolve("components");
 
-            LOGGER.info("application dependency tree - scanning {} ", appExtensionFileName);
-            if(Files.exists(appExtensionPath, LinkOption.NOFOLLOW_LINKS))
+            try (Stream<Path> stream = Files.list(componentsDir)) 
             {
-                try (InputStream xmlInput = new FileInputStream(appExtensionFileName)) 
-                {
-                    LOGGER.info("Scanning {} ...", appExtensionFileName);
-                    appCartridgeMap = parseAppextensionXML(xmlInput);
-                }
-                catch(Exception e)
-                {
-                    appCartridgeMap = new HashMap<>();
-                    LOGGER.error("Exception when scanning {} - ", appExtensionFileName
-                                    + e.getMessage());
-                }
-            }
-            else
-            {
-                appCartridgeMap = new HashMap<>();
-            }
+                stream.filter(p -> p.toString().endsWith(".component") 
+                               && ( p.toString().contains(File.separator + "apps.")
+                                    ||  p.toString().contains(File.separator + "app-")
+                                   )
+                               )
+                .forEach(appExtensionPath ->
+                 {
 
-            if (null == appDependencyTree)
-            {
-                // if not yet initialized, create a new root entry
-                // for the dependency tree
-                Dependency appRootDependency = new Dependency(projectPath.getFileName().toString(), null,
-                                DependencyType.APPLICATION);
-                appDependencyTree = new DependencyTree<Dependency>(appRootDependency);
-            }
-            appRootDependencyEntry = appDependencyTree.getRoot();
-
-            LOGGER.info("application dependency tree - adding cartridge {} ", cartridgeName);
-
-            appCartridgeMap.forEach((app, cartridges) -> 
-            {
-                Dependency apDependency = null;;
-                DependencyEntry<Dependency> apDependencyEntry = null;
-                for(DependencyEntry<Dependency> entry: appRootDependencyEntry.getChildren())
-                {
-                    if(entry.getValue().getName().equals(app))
+                    // Do something with each .component file
+                    String appExtensionFileName = appExtensionPath.toString() ;
+                    LOGGER.info("application dependency tree - scanning {} ", appExtensionFileName);
+                    if(Files.exists(appExtensionPath, LinkOption.NOFOLLOW_LINKS))
                     {
-                        apDependency = entry.getValue();
-                        apDependencyEntry = entry;
-                        break;
+                        try (InputStream xmlInput = new FileInputStream(appExtensionFileName)) 
+                        {
+                            LOGGER.info("Scanning {} ...", appExtensionFileName);
+                            appCartridgeMap = parseAppextensionXML(xmlInput);
+                        }
+                        catch(Exception e)
+                        {
+                            appCartridgeMap = new HashMap<>();
+                            LOGGER.error("Exception when scanning {} - ", appExtensionFileName
+                                            + e.getMessage());
+                        }
+                    }   
+                    else
+                    {
+                        appCartridgeMap = new HashMap<>();
                     }
-                }
-                if(null == apDependency)
-                {
-                    apDependency = new Dependency(app, "epp-extensiom.properties", DependencyType.APPLICATION);
-                    apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
-                    appRootDependencyEntry.addChild(apDependencyEntry);
-                }
 
-                for(String cartridge: cartridges)
-                {
-                    Dependency cartridgeDependency = new Dependency(cartridge, "epp-extensiom.properties", DependencyType.CARTRIDGE);
-                    apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
-               }
-            });
+                    // add the application cartridge map to the dependency tree
+                    if (null == appDependencyTree)
+                    {
+                        // if not yet initialized, create a new root entry
+                        // for the dependency tree
+                        Dependency appRootDependency = new Dependency(projectPath.getFileName().toString(), null,
+                                        DependencyType.APPLICATION);
+                        appDependencyTree = new DependencyTree<Dependency>(appRootDependency);
+                    }
+                    appRootDependencyEntry = appDependencyTree.getRoot();
+
+                    LOGGER.info("application dependency tree - adding cartridge {} ", cartridgeName);
+
+                    appCartridgeMap.forEach((app, cartridges) -> 
+                    {
+                        Dependency apDependency = null;;
+                        DependencyEntry<Dependency> apDependencyEntry = null;
+                        for(DependencyEntry<Dependency> entry: appRootDependencyEntry.getChildren())
+                        {
+                            if(entry.getValue().getName().equals(app))
+                            {
+                                apDependency = entry.getValue();
+                                apDependencyEntry = entry;
+                                break;
+                            }
+                        }
+                        if(null == apDependency)
+                        {
+                            apDependency = new Dependency(app, "epp-extensiom.properties", DependencyType.APPLICATION);
+                            apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
+                            appRootDependencyEntry.addChild(apDependencyEntry);
+                        }
+
+                        for(String cartridge: cartridges)
+                        {
+                            Dependency cartridgeDependency = new Dependency(cartridge, "epp-extensiom.properties", DependencyType.CARTRIDGE);
+                            apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
+                    
+                        }
+                    });
+                });
+            } catch (IOException e) {
+                LOGGER.error("Error listing .component files: " + e.getMessage());
+            }
 
             // output the dependency tree
             if ("JSON".equals(treeFormat))
@@ -430,6 +448,40 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         dbFactory.setNamespaceAware(true);
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         Document doc = dBuilder.parse(xmlInput);
+
+        NodeList instance = doc.getElementsByTagNameNS("*", "instance");
+        for (int i = 0; i < instance.getLength(); i++) 
+        {
+            Element instanceElement = (Element) instance.item(i);
+            String application = instanceElement.getAttribute("name");
+            if (application != null && application.startsWith("intershop.")) 
+            {
+                NodeList fulfillNodes = instanceElement.getElementsByTagNameNS("*", "fulfill");
+
+                for (int j = 0; j < fulfillNodes.getLength(); j++) 
+                {
+                    Element fillFillElement = (Element) fulfillNodes.item(j);
+                    String requirement = fillFillElement.getAttribute("requirement");
+                    if ("selectedCartridge".equals(requirement)) 
+                    {
+                        String cartridge = fillFillElement.getAttribute("value");
+                        if (cartridge != null && !cartridge.isEmpty()) 
+                        {
+                            // Add the cartridge to the application's list
+                            appCartridgeMap.computeIfAbsent(application, k -> new ArrayList<>()).add(cartridge);
+                        }
+                    }
+                }
+                // Initialize the list for this application if not already present
+                appCartridgeMap.putIfAbsent(application, new ArrayList<>());
+            } 
+            else 
+            {
+                // If the application is not an Intershop application, skip it
+                continue;
+            }
+
+        }
 
         NodeList fulfillNodes = doc.getElementsByTagNameNS("*", "fulfill");
         for (int i = 0; i < fulfillNodes.getLength(); i++) 
