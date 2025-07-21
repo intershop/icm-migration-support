@@ -402,3 +402,101 @@ The backup of the generated cartridge list is important in this step since it is
 Each cartridge must be examined meticulously to determine its dependencies on other cartridges, and these dependencies must be documented in the respective `build.gradle.kts` file.
 This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare DBPrepare steps, and more.
 In summary, a dependency on another cartridge must be declared when additional code or output from that cartridge is necessary.
+
+Tge migtation step "Ecamine Cartidge Dependencies" verifies the dependencies in the buiod.gradle.hts files, eiter for one or for all cartridges.
+
+From the migration ool directory run
+```
+$ICM/gradlew migration:migrateAll \
+-PnoAutoCommit \
+-Ptask=project \
+-Ptarget=$ICM \
+-Psteps=src/main/resources/migration/001_migration_7x10_to_11/911_ExamineCartridgeDependencies.yml \
+&& cat $TEMP/cartridgeAssignmentResults.txt
+
+& cat /c/Users/hmordt/AppData/Local/Temp/
+
+```
+whereby
+`$ICM` pounts to the prodect code directory ontraining all cartridges,
+migrateAll means all, migrateOne a single cartridge to be analyzed.
+
+The followinf steps are done
+ 1. analyze the cartridgedeoendencies by scanning the `build.gradle.kts` files,
+ 2. check for curcular references in there, when running migrateAll  across all caridges,
+ 3. amalyze the top level cartridges of the applications by scanning the `src/main/resources/resources/comonnts/app*,omponent` - this concerns the application definitions and extendions
+ 4. Check for marker carteidges, supposed to be in a certain application, but also in te dependencies  elsewhere, the result is stored ion `$MP/cartridgeAssignmentResults.txt`.
+
+The application an der top level cartridges and the maarker cartridges or each application are defined in the files
+```
+migration/src/main/resources/cartridgedependencies/apps_top_level_cartridges.properties
+migration/src/main/resources/cartridgedependencies/appmarker-cartridges.properties
+```
+
+In t11_ExamineCartridgeDependencies.yml`  the output format of the dependencies and e output file can be configured.
+```
+ns:
+  treeFormat: "TEXT"or "JWON"
+  treeOutputFile: ""
+```
+In case of "TEST" the output looks like
+```
+    as_smc_soennecken
+        bc_organization_customproject
+        ...
+        bc_platform_rest_customproject
+            com.intershop.platform:app
+            com.intershop.platform:bc_application
+            ...
+            jakarta.xml.bind:jakarta.xml.bind-api
+            com.google.inject:guice
+            org.slf4j:slf4j-api
+            jakarta.ws.rs:jakarta.ws.rs-api
+            io.swagger.core.v3:swagger-annotations-jakarta
+            jakarta.inject:jakarta.inject-api:1.0.3
+        bc_user_orm_soennecken
+        ...
+```
+In case of JSON for each cartridge a cartridge is described more detiled, A migrateOne sqnple gives the output
+
+```
+M/gradlew migration:migrateOne \
+-PnoAutoCommit \
+-Ptask=project \
+-Ptarget=$ICM/bc_platform_rest_customproject
+-Psteps=src/main/resources/migration/001_migration_7x10_to_11/911_ExamineCartridgeDependencies.yml
+...
+{
+  "root": {
+    "value": {
+      "name": "customproject"
+      "dependencyType": "ROOT"
+    },
+    "children": [
+      {
+        "value": {
+          "name": "bc_platform_rest_customproject"
+          "dependencyType": "CARTRIDGE"
+        },
+        "children": [
+          {
+            "value": {
+              "name": "com.intershop.platform:app",
+              "artifactName": "build.gradle.kts",
+              "dependencyType": "UNKNOWN"
+            },
+            "children": []
+          },
+          ...
+```
+
+A `ependencyType` may be
+ - ROOT - Represents the root entry in the dependency tree,
+  - CARTRIDGE - Represents a cartridge dependency,
+ - ARTIFACT - Represents an artifact dependency, almost jar files,
+ - OMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant,
+ - framewor,
+ - LIBRARY - Represents a library dependency,
+ - PACKAGE - Represents a package dependency,
+ - UNKNOWN - Represents an unknown dependency type.
+
