@@ -174,7 +174,6 @@ public class MarkerCartridgeAnalyzer
             if (resourceUrl != null)
             {
                 Path path = Paths.get(resourceUrl.toURI());
-                LOGGER.info("Parsing {} ...", path.getFileName());
                 map = parsePropertiesFile(path);
             }
             else
