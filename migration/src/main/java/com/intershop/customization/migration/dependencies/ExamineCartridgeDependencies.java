@@ -119,7 +119,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         if (toBeExaminded(cartridgePath))
         {
 
-            LOGGER.info("-");
+            LOGGER.info("");
             LOGGER.info("-----------------------------------------------------------------");
             LOGGER.info("-- 1. build the dependency tree by build.grtadle.kts           --");
             LOGGER.info("-----------------------------------------------------------------");
