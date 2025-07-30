@@ -44,8 +44,8 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     private String treeFormat = "TEXT"; // default format
 
     /**
-     * YAML key of the output file name to weite tre dependency tree to.<br/>
-     * prints to console if thereis none.
+     * YAML key of the output file name to write the dependency tree to.<br/>
+     * prints to console if there is none.
      */
     private static final String YAML_KEY_TREE_OUTPUT_FILE = "treeOutputFile";
     private Path treeOutputFile = null; // default is no output file
@@ -54,13 +54,13 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * file to keep the cartridge top level assignment results.<br/>
      */
     private static Path cartridgeAssignmentResultsFile = 
-        Paths.get(System.getenv("TEMP")+"/cartridgeAssignmentResults.txt");
+        Paths.get(System.getenv("TEMP")+File.separator +"cartridgeAssignmentResults.txt");
 
     /* ------------------------------------------------------------ */
     /* analysis                                                     */
     /* ------------------------------------------------------------ */
 
-    static DependencyTree<Dependency> dependencyxTree;
+    static DependencyTree<Dependency> dependencyTree;
     static DependencyEntry<Dependency> rootDependencyEntry;
     static List<String> rootCartridgeCrumbs;
 
@@ -98,10 +98,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     /**
-     * main method to examine cartridge dependencies..<br/>
+     * main method to examine cartridge dependencies.<br/>
      * if not yet examined 1st a cartridge is assigned to the project.<br/>
-     * Looping through the cartridges, their dependencies are (re-)assigned as they depend on each other....<br/>
-     * 
+     * Looping through the cartridges, their dependencies are (re-)assigned as they depend on each other.<br/>
      */
     @Override
     public void migrate(Path cartridgeDir, MigrationContext context)
@@ -130,10 +129,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 // for the dependency tree
                 Dependency rootDependency = new Dependency(projectPath.getFileName().toString(), null,
                                 DependencyType.ROOT);
-                dependencyxTree = new DependencyTree<Dependency>(rootDependency);
+                dependencyTree = new DependencyTree<Dependency>(rootDependency);
                 rootCartridgeCrumbs = new ArrayList<>();
             }
-            rootDependencyEntry = dependencyxTree.getRoot();
+            rootDependencyEntry = dependencyTree.getRoot();
             Dependency dependency = new Dependency(cartridgeName, null, DependencyType.CARTRIDGE);
             DependencyEntry<Dependency> cartridgeEntry = new DependencyEntry<>(dependency);
 
@@ -158,7 +157,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             // output the dependency tree
             if ("JSON".equals(treeFormat))
             {
-                printJSON(dependencyxTree);
+                printJSON(dependencyTree);
             }
             else
             {
