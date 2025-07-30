@@ -8,6 +8,8 @@ options:
     "urlrewriterules": "staticfiles/share/system/config/cluster"
     "configuration": "staticfiles/share/system/config/cluster"
     "replication": "staticfiles/share/system/config/cluster"
+    "domainsplitting": "staticfiles/general"
+    "processchain": "staticfiles/general"
     "urlrewriting" : "staticfiles/general"
     "lib" : "staticfiles/general/lib"
   target-map:
@@ -16,7 +18,9 @@ options:
     "urlrewriterules": "src/main/resources/resources/{cartridgeName}/config"
     "configuration": "src/main/resources/resources/{cartridgeName}/config"
     "replication": "src/main/resources/resources/{cartridgeName}/replication"
-    "urlrewriting" : "src/main/resources/resources/{cartridgeName}/config"
+    "domainsplitting": "src/main/resources/resources/{cartridgeName}/config"
+    "processchain": "../ac_impex_soennecken/staticfiles/cartridge/processchain/backup"
+    "urlrewriting" : "../src/main/resources/resources/{cartridgeName}/config"
     "lib" : "staticfiles/cartridge/lib"
   filter-map:
     "dca" : "directCustomAttributes\\.xml"
@@ -24,5 +28,7 @@ options:
     "urlrewriterules": "urlrewriterules\\.xml"
     "configuration": "configuration\\.xml"
     "replication": "replication\\.xml"
+    "domainsplitting": "domainsplitting.*\\.xml"
+    "processchain": "ProcessChain\\..*\\.xml"
     "urlrewriting" : "urlrewriting.*\\.xml"
     "lib" : ".*\\.jar"
