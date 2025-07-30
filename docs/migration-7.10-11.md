@@ -403,7 +403,7 @@ Each cartridge must be examined meticulously to determine its dependencies on ot
 This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare dbPrepare steps, and more.
 In summary, a dependency on another cartridge must be declared when additional code or output from that cartridge is necessary.
 
-The migration step "Examine Cartidge Dependencies" verifies the dependencies in the build.gradle.hts files, either for one or for all cartridges.
+The migration step "Examine Cartridge Dependencies" verifies the dependencies in the build.gradle.hts files, either for one or for all cartridges.
 
 From the migration ool directory run
 ```
