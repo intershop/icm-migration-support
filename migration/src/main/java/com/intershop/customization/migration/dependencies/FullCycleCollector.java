@@ -116,43 +116,15 @@ public class FullCycleCollector
                 List<String> cycle = new ArrayList<>(path);
                 cycle.add(start);
                 // Normalize cycle to avoid duplicates (start from smallest lexicographically)
-                List<String> normalized = normalizeCycle(cycle);
+                List<String> normalized = cycle.stream().sorted().toList();
                 cycles.add(normalized);
             } else if (!visited.contains(neighbor)) {
                 findCycles(start, neighbor, visited, path, graph, cycles);
             }
         }
 
-        path.remove(path.size() - 1);
+        path.removeLast();
         visited.remove(current);
     }
-
-
-    /** * Normalizes a cycle by rotating it to start from the lexicographically smallest node.
-     * This ensures that cycles are represented in a consistent manner, avoiding duplicates.
-     * For example, the cycle ["A", "B", "C"] will be normalized to ["A", "B", "C"],
-     * while ["B", "C", "A"] will also be normalized to ["A", "B", "C"].
-     * This method is useful for ensuring that cycles are stored in a canonical form,
-     * making it easier to compare and detect unique cycles.
-     * 
-     * @param cycle List of strings representing a cycle.
-     * @return   A normalized list of strings representing the cycle,
-     */
-    private static List<String> normalizeCycle(List<String> cycle) 
-	{
-        int n = cycle.size();
-        int minIdx = 0;
-        for (int i = 1; i < n; i++) {
-            if (cycle.get(i).compareTo(cycle.get(minIdx)) < 0) {
-                minIdx = i;
-            }
-        }
-        List<String> normalized = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            normalized.add(cycle.get((minIdx + i) % n));
-        }
-        return normalized;
-    }
-
 
 }
