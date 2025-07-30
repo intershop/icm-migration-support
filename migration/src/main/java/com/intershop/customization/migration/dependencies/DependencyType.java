@@ -6,7 +6,7 @@ package com.intershop.customization.migration.dependencies;
  * <li>ROOT - Represents the root entry in the dependency tree.</li>
  * <li>CARTRIDGE - Represents a cartridge dependency.</li>
  * <li>ARTIFACT - Represents an artifact dependency, almost jar files</li>
- * <li>COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant
+ * <li>COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the component
  * framework</li>
  * <li>LIBRARY - Represents a library dependency.</li>
  * <li>PACKAGE - Represents a package dependency.</li>
