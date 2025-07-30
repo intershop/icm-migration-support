@@ -405,7 +405,7 @@ In summary, a dependency on another cartridge must be declared when additional c
 
 The migration step "Examine Cartridge Dependencies" verifies the dependencies in the build.gradle.hts files, either for one or for all cartridges.
 
-From the migration ool directory run
+From the migration tool directory run
 ```
 $ICM/gradlew migration:migrateAll \
 -PnoAutoCommit \
@@ -418,14 +418,14 @@ $ICM/gradlew migration:migrateAll \
 
 ```
 whereby
-`$ICM` pounts to the prodect code directory ontraining all cartridges,
+`$ICM` points to the project code directory containing all cartridges,
 migrateAll means all, migrateOne a single cartridge to be analyzed.
 
-The followinf steps are done
- 1. analyze the cartridgedeoendencies by scanning the `build.gradle.kts` files,
+The following steps are done
+ 1. analyze the cartridge dependencies by scanning the `build.gradle.kts` files,
  2. check for curcular references in there, when running migrateAll  across all caridges,
- 3. amalyze the top level cartridges of the applications by scanning the `src/main/resources/resources/comonnts/app*,omponent` - this concerns the application definitions and extendions
- 4. Check for marker carteidges, supposed to be in a certain application, but also in te dependencies  elsewhere, the result is stored ion `$MP/cartridgeAssignmentResults.txt`.
+ 3. analyze the top level cartridges of the applications by scanning the `src/main/resources/resources/comonnts/app*.omponent` - this concerns the application definitions and extensions
+ 4. Check for marker cartridges, supposed to be in a certain application, but also in te dependencies  elsewhere, the result is stored ion `$MP/cartridgeAssignmentResults.txt`.
 
 The application at the top level cartridges and the maarker cartridges or each application are defined in the files
 ```
@@ -457,10 +457,10 @@ In case of "TEST" the output looks like
         bc_user_orm_soennecken
         ...
 ```
-In case of JSON for each cartridge a cartridge is described more detailed, A migrateOne sqnple gives the output
+In case of JSON for each cartridge a cartridge is described more detailed, A migrateOne sample gives the output
 
 ```
-M/gradlew migration:migrateOne \
+./gradlew migration:migrateOne \
 -PnoAutoCommit \
 -Ptask=project \
 -Ptarget=$ICM/bc_platform_rest_customproject
@@ -490,7 +490,7 @@ M/gradlew migration:migrateOne \
           ...
 ```
 
-A `ependencyType` may be
+A `dependencyType` may be
  - ROOT - Represents the root entry in the dependency tree.
  - CARTRIDGE - Represents a cartridge dependency.
  - ARTIFACT - Represents an artifact dependency, almost jar files
