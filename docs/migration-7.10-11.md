@@ -400,10 +400,10 @@ It is no longer relevant and has already been deleted.
 The backup of the generated cartridge list is important in this step since it is a helpful tool for verifying and correcting dependencies between cartridges.
 
 Each cartridge must be examined meticulously to determine its dependencies on other cartridges, and these dependencies must be documented in the respective `build.gradle.kts` file.
-This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare DBPrepare steps, and more.
+This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare dbPrepare steps, and more.
 In summary, a dependency on another cartridge must be declared when additional code or output from that cartridge is necessary.
 
-Tge migtation step "Ecamine Cartidge Dependencies" verifies the dependencies in the buiod.gradle.hts files, eiter for one or for all cartridges.
+The migration step "Examine Cartidge Dependencies" verifies the dependencies in the build.gradle.hts files, either for one or for all cartridges.
 
 From the migration ool directory run
 ```
@@ -457,7 +457,7 @@ In case of "TEST" the output looks like
         bc_user_orm_soennecken
         ...
 ```
-In case of JSON for each cartridge a cartridge is described more detiled, A migrateOne sqnple gives the output
+In case of JSON for each cartridge a cartridge is described more detailed, A migrateOne sqnple gives the output
 
 ```
 M/gradlew migration:migrateOne \
@@ -491,12 +491,11 @@ M/gradlew migration:migrateOne \
 ```
 
 A `ependencyType` may be
- - ROOT - Represents the root entry in the dependency tree,
-  - CARTRIDGE - Represents a cartridge dependency,
- - ARTIFACT - Represents an artifact dependency, almost jar files,
- - OMPONENT - Represents a component dependency, used to resolve the dependencies declared by the comonant,
- - framewor,
- - LIBRARY - Represents a library dependency,
- - PACKAGE - Represents a package dependency,
+ - ROOT - Represents the root entry in the dependency tree.
+ - CARTRIDGE - Represents a cartridge dependency.
+ - ARTIFACT - Represents an artifact dependency, almost jar files
+ - COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the component framework 
+ - LIBRARY - Represents a library dependency.
+ - Represents a package dependency.
  - UNKNOWN - Represents an unknown dependency type.
 
