@@ -427,16 +427,16 @@ The followinf steps are done
  3. amalyze the top level cartridges of the applications by scanning the `src/main/resources/resources/comonnts/app*,omponent` - this concerns the application definitions and extendions
  4. Check for marker carteidges, supposed to be in a certain application, but also in te dependencies  elsewhere, the result is stored ion `$MP/cartridgeAssignmentResults.txt`.
 
-The application an der top level cartridges and the maarker cartridges or each application are defined in the files
+The application at the top level cartridges and the maarker cartridges or each application are defined in the files
 ```
 migration/src/main/resources/cartridgedependencies/apps_top_level_cartridges.properties
 migration/src/main/resources/cartridgedependencies/appmarker-cartridges.properties
 ```
 
-In t11_ExamineCartridgeDependencies.yml`  the output format of the dependencies and e output file can be configured.
+In t11_ExamineCartridgeDependencies.yml`  the output format of the dependencies and the output file can be configured.
 ```
 ns:
-  treeFormat: "TEXT"or "JWON"
+  treeFormat: "TEXT" or "JSON"
   treeOutputFile: ""
 ```
 In case of "TEST" the output looks like
