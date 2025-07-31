@@ -108,7 +108,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
         if (null == cartridgeDir || !Files.exists(cartridgeDir))
         {
-            LOGGER.error("Project path does not exist:{} ", cartridgeDir.toFile());
+            LOGGER.error("Project path does not exist:{} ", (null == cartridgeDir ) ? cartridgeDir : "NULL");
             return;
         }
         Path projectPath = cartridgeDir.getName(2);
@@ -120,7 +120,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             LOGGER.info("");
             LOGGER.info("-----------------------------------------------------------------");
-            LOGGER.info("-- 1. build the dependency tree by build.grtadle.kts           --");
+            LOGGER.info("-- 1. build the dependency tree by build.gradle.kts           --");
             LOGGER.info("-----------------------------------------------------------------");
 
             if (null == rootDependencyEntry)
@@ -138,18 +138,14 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             rootDependencyEntry.addChild(cartridgeEntry);
 
-            LOGGER.info("-- 2. chek for dependency cycle                                --");
+            LOGGER.info("-- 2. check for dependency cycle                               --");
             LOGGER.info("-----------------------------------------------------------------");
             // scan build.gradle.kts in first level (cartridge) directories
             String fileToFind = "build.gradle.kts";
             List<String> cartridgeCrumbs = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
-            if(cartridgeCrumbs.size() > 0)
+            if(!cartridgeCrumbs.isEmpty())
             {
                 
-                // TODO verify undirect dependencies
-                // verify geting the dependencies accross all cartridges 
-                // otherise: need to log the m as well in create and append mode for analysis
-
                 rootCartridgeCrumbs.addAll(cartridgeCrumbs);
                 FullCycleCollector.hasCycles(rootCartridgeCrumbs);
             }
@@ -229,14 +225,14 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                         }
                         if(null == apDependency)
                         {
-                            apDependency = new Dependency(app, "epp-extensiom.properties", DependencyType.APPLICATION);
+                            apDependency = new Dependency(app, "app-extension.component", DependencyType.APPLICATION);
                             apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
                             appRootDependencyEntry.addChild(apDependencyEntry);
                         }
 
                         for(String cartridge: cartridges)
                         {
-                            Dependency cartridgeDependency = new Dependency(cartridge, "epp-extensiom.properties", DependencyType.CARTRIDGE);
+                            Dependency cartridgeDependency = new Dependency(cartridge, "app-extension.component", DependencyType.CARTRIDGE);
                             apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
                     
                         }
@@ -256,8 +252,8 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 printTree(appRootDependencyEntry, "");
             }
 
-            LOGGER.info("-- 4. check applications for wrong asigned marker cartridgests --");
-            LOGGER.info("-----------------------------------------------------------------");
+            LOGGER.info("-- 4. check applications for wrong assigned marker cartridges --");
+            LOGGER.info("----------------------------------------------------------------");
 
             HashSet<String> checkMarkerCartridgesResult =
             MarkerCartridgeAnalyzer.analyzeMarkerCartridges(rootCartridgeCrumbs);
@@ -267,7 +263,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     /**
-     * walks through cartridge directories to find and analyze the build,.gradle.kts file.<br/>
+     * walks through cartridge directories to find and analyze the build.gradle.kts file.<br/>
      * 
      * @param cartridgeEntry the cartridge entry to add dependencies to
      * @param startDir the directory to start searching from
@@ -362,12 +358,11 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
             KtsDependencyAnalyzer ktsAnalyzer = new KtsDependencyAnalyzer();
 
-            Dependency dependency = new Dependency(cartridgName, buildFile.getName(), DependencyType.CARTRIDGE);
             try
             {
                 // analyze the dependencies within the build file
                 List<Dependency> denendencies = ktsAnalyzer.parseKtsFile(buildFile.toPath());
-                if (denendencies != null && denendencies.size() > 0)
+                if (denendencies != null && !denendencies.isEmpty())
                 {
                     for (Dependency dep : denendencies)
                     {
@@ -404,35 +399,29 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * checks if the referende is a project cartridge.<br/>
      * A project cartridge is a cartridge that is not part of the ICM standard software and
      * has no package name in its reference name. 
-     * The format of these depenencies is <packageName>:<cartridgeName>:<version>
+     * The format of these depenencies is<br/>
+     *   - non-project cartridge: <packageName>:<cartridgeName>[:<version>]<br/>
+     *   - project cartridge: [:]<cartridgeName>:<version><br/>
      * 
      * @param referenceName the reference name of the cartridge
      * @return true if it is a project cartridge, false otherwise
      */
     private static boolean isProjectCartridge(String referenceName) 
     {
-        String cartridgeName = referenceName;
-
-        // <packageName>:<cartridgeName>:<version>
-        String reference[] = referenceName.split(":");
-        if (reference.length > 1)
-        {
-            return  false; // this is not a project cartridge
-        }
-        return  true;
+        return  !(referenceName.indexOf(":")>0);
     }
 
     // ---------------------------------------------------------------
-    // scann app-extension.componnt 
+    // scan app-extension.component  
     // ---------------------------------------------------------------
 
     /**
      * Reads all <fulfill> tags with requirement="selectedCartridge".
-     * For each, if of starts with "intershop.", adds the value to 
+     * For each, if it starts with "intershop.", adds the value to 
      * the application's cartridge list.
      * Returns a map: {application, [cartridge, cartridge, ...]}.
     *
-     * @param xmlInput xontent of the app-extension.componnt 
+     * @param xmlInput content of the app-extension.component 
      * @return a map of applications with a list of their cartridges
      * @throws Exception
      */
@@ -473,12 +462,6 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 // Initialize the list for this application if not already present
                 appCartridgeMap.putIfAbsent(application, new ArrayList<>());
             } 
-            else 
-            {
-                // If the application is not an Intershop application, skip it
-                continue;
-            }
-
         }
 
         NodeList fulfillNodes = doc.getElementsByTagNameNS("*", "fulfill");
@@ -505,10 +488,10 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     // ---------------------------------------------------------------
 
     /**
-     * prints the dependency tree donwards starig from an entry
+     * prints the dependency tree downwards starting from an entry
      * 
      * @param node the node of the dependency tree to start at
-     * @param insertion the prefix to use for each line
+     * @param insertion the prefix to use for each lineHashSet<String> recentMarkerCartridgesResult
      * 
      */
     public <T> void printTree(DependencyEntry<Dependency> node, String insertion)
@@ -572,7 +555,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     }
 
     private void printMarkerCartridgeAssignments(
-        HashSet<String> recentMarkerCartridgesResult
+        Set<String> recentMarkerCartridgesResult
     ) 
     {
         List<String>  formerMarkerCartridgesResult = new ArrayList<>();
@@ -583,7 +566,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 formerMarkerCartridgesResult
                 = Files.readAllLines(cartridgeAssignmentResultsFile);
             }
-            if (recentMarkerCartridgesResult.size() > 0)
+            if (!recentMarkerCartridgesResult.isEmpty())
             {
                 for (String message : recentMarkerCartridgesResult)
                 {
@@ -600,8 +583,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
          }
         catch (IOException e)
         {
-            LOGGER.error("Error creating directory for cartridge assignment results file: {}, ",
-                            cartridgeAssignmentResultsFile.getParent().toString(), e.getMessage());
+            String message = String.format("Error creating directory for cartridge assignment results file: %s ",
+            cartridgeAssignmentResultsFile.getParent().toString());
+            LOGGER.error(message, e);
             return;
         }       
     }
