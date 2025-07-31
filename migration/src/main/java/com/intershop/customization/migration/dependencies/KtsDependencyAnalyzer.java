@@ -19,16 +19,6 @@ public class KtsDependencyAnalyzer
 
     Path startDir = null;
 
-    /**
-     * Constructor for KtsDependencyAnalyzer.
-     * 
-     * @param startDir the directory to start the analysis from
-     */
-    public KtsDependencyAnalyzer()
-    {
-        this.startDir = null;
-    }
-
     private static final String START_DEPENDENCIES = "dependencies";
 
     /**
