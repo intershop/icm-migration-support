@@ -2,7 +2,6 @@ package com.intershop.customization.migration.dependencies;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -11,9 +10,7 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
-import java.io.InputStream;
 import java.util.*;
-import javax.xml.parsers.*;
 import org.w3c.dom.*;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -49,12 +46,6 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      */
     private static final String YAML_KEY_TREE_OUTPUT_FILE = "treeOutputFile";
     private Path treeOutputFile = null; // default is no output file
-
-    /**
-     * file to keep the cartridge top level assignment results.<br/>
-     */
-    private static Path cartridgeAssignmentResultsFile = 
-        Paths.get(System.getenv("TEMP")+File.separator +"cartridgeAssignmentResults.txt");
 
     /* ------------------------------------------------------------ */
     /* analysis                                                     */
@@ -120,7 +111,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             LOGGER.info("");
             LOGGER.info("-----------------------------------------------------------------");
-            LOGGER.info("-- 1. build the dependency tree by build.gradle.kts           --");
+            LOGGER.info("-- 1. build the dependency tree by {}/{}", cartridgeName, BUILD_FILE_NAME);
             LOGGER.info("-----------------------------------------------------------------");
 
             if (null == rootDependencyEntry)
@@ -130,7 +121,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                 Dependency rootDependency = new Dependency(projectPath.getFileName().toString(), null,
                                 DependencyType.ROOT);
                 dependencyTree = new DependencyTree<Dependency>(rootDependency);
-                rootCartridgeCrumbs = new ArrayList<>();
+                rootCartridgeCrumbs =  new ArrayList<>();
             }
             rootDependencyEntry = dependencyTree.getRoot();
             Dependency dependency = new Dependency(cartridgeName, null, DependencyType.CARTRIDGE);
@@ -141,13 +132,16 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             LOGGER.info("-- 2. check for dependency cycle                               --");
             LOGGER.info("-----------------------------------------------------------------");
             // scan build.gradle.kts in first level (cartridge) directories
-            String fileToFind = "build.gradle.kts";
-            List<String> cartridgeCrumbs = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, fileToFind);
+            List<String> cartridgeCrumbs = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, BUILD_FILE_NAME);
             if(!cartridgeCrumbs.isEmpty())
             {
-                
                 rootCartridgeCrumbs.addAll(cartridgeCrumbs);
-                FullCycleCollector.hasCycles(rootCartridgeCrumbs);
+                FullCycleCollector.hasCycles(cartridgeCrumbs);
+                FullCycleCollector.storeCartridgeAssignmentsCrumbs(cartridgeCrumbs);
+            }
+            else
+            {
+                LOGGER.info("No cartridge dependencies found in {}", cartridgeDir);
             }
 
             // output the dependency tree
@@ -159,6 +153,8 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             {
                 printTree(rootDependencyEntry, "");
             }
+            
+            FullCycleCollector.storeCartridgeAssignmentsCrumbs(rootCartridgeCrumbs);
 
             LOGGER.info("-- 3. check applications for cartridge dependencies            --");
             LOGGER.info("-----------------------------------------------------------------");
@@ -243,23 +239,58 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
 
             // output the dependency tree
-            if ("JSON".equals(treeFormat))
-            {
-                printJSON(appDependencyTree);
-            }
-            else
-            {
-                printTree(appRootDependencyEntry, "");
-            }
-
-            LOGGER.info("-- 4. check applications for wrong assigned marker cartridges --");
-            LOGGER.info("----------------------------------------------------------------");
-
-            HashSet<String> checkMarkerCartridgesResult =
-            MarkerCartridgeAnalyzer.analyzeMarkerCartridges(rootCartridgeCrumbs);
-            printMarkerCartridgeAssignments(checkMarkerCartridgesResult);
+            // in post processing because it is complete, there...
 
         }
+    }
+    /**
+     * pre migration processing of the cartridge dependencies.<br/>
+     */
+    @Override
+    public void preMigrate(File rootProject)
+    {
+        FullCycleCollector.remobeBreadCrumbsFile();
+        MarkerCartridgeAnalyzer.removeMarkerCartridgeAssignmentsFile();
+    }
+
+    /**
+     * post migration processing of the cartridge dependencies.<br/>
+     * This method is called after all cartridges have beenanalyzed.<br/>
+     * It checks for <br/>
+     *  - wrong assigned marker carteidgesand<br/>
+     *  - cycles in the cartridge dependencies across all cartridgess.<br/>
+     * 
+     * @param rootProject the root project directory to post process
+     */
+    @Override
+    public void postMigrate(File rootProject)
+    {
+        LOGGER.info("----------------------------------------------------------------");
+        LOGGER.info("-- cartridge dependency - post rocessing                      --");
+        LOGGER.info("----------------------------------------------------------------");
+
+        LOGGER.info("-- p.1 top level application dependencies                      --");
+        LOGGER.info("-----------------------------------------------------------------");
+        if ("JSON".equals(treeFormat))
+        // output the dependency tree
+        {
+            printJSON(appDependencyTree);
+        }
+        else
+        {
+            printTree(appRootDependencyEntry, "");
+        }
+            
+        LOGGER.info("-- p.2 check applications for wrong assigned marker cartridges --");
+        LOGGER.info("-----------------------------------------------------------------");
+        rootCartridgeCrumbs = FullCycleCollector.loadSavedBreadCrumbs();
+        FullCycleCollector.hasCycles(rootCartridgeCrumbs);
+
+        LOGGER.info("-- p.3 check for dependency cycles across all cartridges       --");
+        LOGGER.info("-----------------------------------------------------------------");
+        HashSet<String> checkMarkerCartridgesResult =
+        MarkerCartridgeAnalyzer.analyzeMarkerCartridges(rootCartridgeCrumbs);
+        MarkerCartridgeAnalyzer.printMarkerCartridgeAssignments(checkMarkerCartridgesResult);
     }
 
     /**
@@ -372,7 +403,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                         && isProjectCartridge(subCarteidgeName))
                         {
                             Path subDir = dir.getParent().resolve( subCarteidgeName );
-                            Path  subbuildGradle = subDir.resolve("build.gradle.kts");
+                            Path  subbuildGradle = subDir.resolve(BUILD_FILE_NAME);
                             cartridgeCrumbs = analyzeBuildFile(child, subDir, subbuildGradle.toString(), cartridgeCrumbs);
                         }
                         cartridgeEntry.addChild(child);
@@ -553,41 +584,4 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
         }
     }
-
-    private void printMarkerCartridgeAssignments(
-        Set<String> recentMarkerCartridgesResult
-    ) 
-    {
-        List<String>  formerMarkerCartridgesResult = new ArrayList<>();
-        try
-        {
-            if(Files.exists(cartridgeAssignmentResultsFile))
-            {
-                formerMarkerCartridgesResult
-                = Files.readAllLines(cartridgeAssignmentResultsFile);
-            }
-            if (!recentMarkerCartridgesResult.isEmpty())
-            {
-                for (String message : recentMarkerCartridgesResult)
-                {
-                    if(!formerMarkerCartridgesResult.contains(message))
-                    {
-                        formerMarkerCartridgesResult.add(message);
-                        //LOGGER.info(message);
-                    }
-                }
-            }
-            Files.write(cartridgeAssignmentResultsFile, formerMarkerCartridgesResult,
-                            java.nio.file.StandardOpenOption.CREATE, 
-                            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
-         }
-        catch (IOException e)
-        {
-            String message = String.format("Error creating directory for cartridge assignment results file: %s ",
-            cartridgeAssignmentResultsFile.getParent().toString());
-            LOGGER.error(message, e);
-            return;
-        }       
-    }
-
 }

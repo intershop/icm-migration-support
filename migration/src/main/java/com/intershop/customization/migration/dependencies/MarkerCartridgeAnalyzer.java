@@ -1,10 +1,12 @@
 package com.intershop.customization.migration.dependencies;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +34,12 @@ public class MarkerCartridgeAnalyzer
 {
 
     public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+
+    /**
+     * file to keep the cartridge top level assignment results.<br/>
+     */
+    private static Path cartridgeAssignmentResultsFile = 
+        Paths.get(System.getenv("TEMP")+File.separator +"cartridgeAssignmentResults.txt");
 
     /** 
      * Analyzes marker cartridges in top-level cartridges based on breadcrumb lines
@@ -251,4 +259,62 @@ public class MarkerCartridgeAnalyzer
         return cartridgeToAllDependencies;
     }
 
+    /**
+     * Prints the faulty marker cartridge assignments to appllications to a file and logs them.
+     * 
+     * @param recentMarkerCartridgesResult Set of strings describing faulty assignments
+     */
+    public static void printMarkerCartridgeAssignments(
+        Set<String> recentMarkerCartridgesResult
+    ) 
+    {
+        List<String>  formerMarkerCartridgesResult = new ArrayList<>();
+        try
+        {
+            if(Files.exists(cartridgeAssignmentResultsFile))
+            {
+                formerMarkerCartridgesResult
+                = Files.readAllLines(cartridgeAssignmentResultsFile);
+            }
+            if (!recentMarkerCartridgesResult.isEmpty())
+            {
+                for (String message : recentMarkerCartridgesResult)
+                {
+                    if(!formerMarkerCartridgesResult.contains(message))
+                    {
+                        formerMarkerCartridgesResult.add(message);
+                        LOGGER.info(message);
+                    }
+                }
+            }
+            Files.write(cartridgeAssignmentResultsFile, formerMarkerCartridgesResult,
+                            java.nio.file.StandardOpenOption.CREATE, 
+                            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+         }
+        catch (IOException e)
+        {
+            String message = String.format("Error creating directory for cartridge assignment results file: %s ",
+            cartridgeAssignmentResultsFile.getParent().toString());
+            LOGGER.error(message, e);
+            return;
+        }       
+    }
+
+    /**
+     * Removes the marker cartridge assignments file if it exists.<br/>
+     */
+    public static void removeMarkerCartridgeAssignmentsFile()
+    {
+        try
+        {
+            if(Files.exists(cartridgeAssignmentResultsFile))
+            {
+                Files.delete(cartridgeAssignmentResultsFile);
+            }
+        }
+        catch (IOException e)
+        {
+            LOGGER.error("Error removing marker cartridge assignment results file: {}", e.getMessage());
+        }
+    }
 }

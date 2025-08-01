@@ -1,5 +1,10 @@
 package com.intershop.customization.migration.dependencies;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +39,13 @@ public class FullCycleCollector
 
         public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
-        /**
+    /**
+     * dependency bread crumbs for analysis<br/>
+     */
+    private static Path dependencyBreadCrumbsFile = 
+        Paths.get(System.getenv("TEMP")+File.separator +"dependencyBreadCrumb.txt");
+
+    /**
      * Detects cycles in a directed graph represented by a list of strings.
      * Each string should be in the format "from > to", where "from" is the starting node
      * 
@@ -153,5 +164,76 @@ public class FullCycleCollector
         return normalized;
     }
 
+    /**     
+     * removes the dependency bread crumbs file.<br/>
+     * This method is used to clean up the file after the migration process is complete.<br
+     */
+    static void remobeBreadCrumbsFile() 
+    {
+        try 
+        {
+            if(Files.exists(dependencyBreadCrumbsFile)) 
+            {
+                Files.delete(dependencyBreadCrumbsFile);
+            }
+        } catch (IOException e) 
+        {
+            LOGGER.error("Error deleting dependency bread crumbs file: {}", e.getMessage());
+        }
+    }
+
+    /**
+     *  loads the saved bread crumbs from the file.<br/>
+     *  If the file does not exist, an empty list is returned.<br/>
+     * @return a list of saved bread crumbs, which are the cartridge names in the dependency path.<br/>
+     */
+    static List<String> loadSavedBreadCrumbs() 
+    {
+        ArrayList<String> cartridgeCrumbs = new ArrayList<>();
+        try 
+        {
+            if(!Files.exists(dependencyBreadCrumbsFile)) 
+            {
+                Files.createFile(dependencyBreadCrumbsFile);
+            }
+            else
+            {
+                cartridgeCrumbs = new ArrayList<>(Files.readAllLines(dependencyBreadCrumbsFile));
+            }
+        } catch (IOException e) 
+        {
+            LOGGER.error("Error reading dependency bread crumbs file: {}", e.getMessage());
+        }
+        cartridgeCrumbs.removeIf(String::isEmpty); // Remove empty lines
+        return cartridgeCrumbs;
+    }
+
+    /**
+     * stores the cartridge crumbs in the dependency bread crumbs file.<br/>
+     * The crumbs are the names of the cartridges in the dependency path.<br/>
+     * If null or empty, nothing is stored.<br/>
+     * 
+     * @param cartridgeCrumbs   the list of cartridge names in the dependency path.<br/>
+     */
+    static void storeCartridgeAssignmentsCrumbs(List<String> cartridgeCrumbs) {
+        // dependencyBreadCrumbsFile
+        if (cartridgeCrumbs != null && !cartridgeCrumbs.isEmpty())
+        {
+            for(String line : cartridgeCrumbs)
+            {
+                try
+                {
+                    Files.writeString(dependencyBreadCrumbsFile, line + System.lineSeparator(),
+                                    java.nio.file.StandardOpenOption.CREATE, 
+                                    java.nio.file.StandardOpenOption.APPEND);
+                }
+                catch(IOException e)
+                {
+                    LOGGER.error("Error writing to dependency bread crumbs file {}: {}, ", 
+                                    dependencyBreadCrumbsFile.getFileName().toString(), e.getMessage());
+                }
+            }
+        }
+    }
 
 }
