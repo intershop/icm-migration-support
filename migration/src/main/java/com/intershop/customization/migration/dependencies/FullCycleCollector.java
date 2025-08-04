@@ -6,8 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,10 +39,12 @@ import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigReso
 public class FullCycleCollector 
 {
 
-        public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
 
     /**
      * dependency bread crumbs for analysis<br/>
+     * NOTE: The environment variable <code>TEMP</code> must be declard,
+     * usually is set by the system.<br/>
      */
     private static Path dependencyBreadCrumbsFile = 
         Paths.get(System.getenv("TEMP")+File.separator +"dependencyBreadCrumb.txt");
@@ -138,7 +142,44 @@ public class FullCycleCollector
         visited.remove(current);
     }
 
-    /** * Normalizes a cycle by rotating it to start from the lexicographically smallest node.
+    /**
+     * Checks if there is are mutual dependencies between two cartridges across all 
+     * dependency paths<br/>
+     * back ground: cartridges are considered as nodes in a directed graph. Dependencies
+     * are represented as edges in the graph.<br/>
+     * 
+     * @param dependencyPaths a list of cartridge dependency paths "cartridge1 > cartridge2 > ..."
+     * @return true if there is a mutual dependency between the two cartridges, false otherwise.
+     */
+    public static boolean hasMutualGraphDependency(List<String> dependencyPaths)
+    {
+        // list to hold all cartridge names from the dependency paths
+        LinkedHashSet<String> allCartridges = new LinkedHashSet<>();
+        for (String crumb : dependencyPaths) {
+            String[] cartridges = crumb.split("\\s*>\\s*");
+            allCartridges.addAll(Arrays.asList(cartridges));
+        }
+        List<String> uniqueCartridges = new ArrayList<>(allCartridges);
+
+        // go through all cartridges and check if there is a mutual dependency
+        boolean mutual = false;
+        for (int i = 0; i < uniqueCartridges.size(); i++) {
+            for (int j = i + 1; j < uniqueCartridges.size(); j++) {
+                String node1 = uniqueCartridges.get(i);
+                String node2 = uniqueCartridges.get(j);
+                if(!node1.equals(node2))
+                {
+                    if (hasMutualGraphDependency(dependencyPaths, node1, node2)) {
+                        LOGGER.info("Mutual dependency found between {} and {}", node1, node2);
+                        mutual = true;
+                    }
+                }
+            }
+        }
+        return mutual;
+    }
+
+     /** * Normalizes a cycle by rotating it to start from the lexicographically smallest node.
      * This ensures that cycles are represented in a consistent manner, avoiding duplicates.
      * For example, the cycle ["A", "B", "C"] will be normalized to ["A", "B", "C"],
      * while ["B", "C", "A"] will also be normalized to ["A", "B", "C"].
@@ -234,6 +275,62 @@ public class FullCycleCollector
                 }
             }
         }
+    }
+
+    /**
+     * Checks if there is a path from the start cartridge to 
+     * the target cartridge in the graph.
+     * 
+     * @param graph the cartridge dependency path list (directed graph) represented as a map
+     * @param start the starting cartridge name 
+     * @param target the target cartridge name
+     */
+    private static boolean isReachable(
+        Map<String, List<String>> graph, 
+        String start, 
+        String target
+    )
+    {
+        if (start.equals(target)) return true;
+        Set<String> visited = new java.util.HashSet<>();
+        java.util.Deque<String> stack = new java.util.ArrayDeque<>();
+        stack.push(start);
+        while (!stack.isEmpty()) 
+        {
+            String node = stack.pop();
+            if (node.equals(target)) return true;
+            if (visited.add(node)) 
+            {
+                for (String neighbor : graph.getOrDefault(node, List.of())) {
+                    stack.push(neighbor);
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if cartridge 1 is reachable from cartridge 2 and vice versa in the dependency parh.
+     * 
+     * @param paths the list of cartridge dependency paths
+     * @param node1 the name of the first cartridge
+     * @param node2 the name of the second cartridge
+     */
+    private static boolean hasMutualGraphDependency(List<String> paths, String node1, String node2)
+    {
+        // Build the graph from all paths
+        Map<String, List<String>> graph = new HashMap<>();
+        for (String path : paths) 
+        {
+            String[] nodes = path.split("\\s*>\\s*");
+            for (int i = 0; i < nodes.length - 1; i++) 
+            {
+                String from = nodes[i];
+                String to = nodes[i + 1];
+                graph.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
+            }
+        }
+        return isReachable(graph, node1, node2) && isReachable(graph, node2, node1);
     }
 
 }

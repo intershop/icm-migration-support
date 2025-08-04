@@ -37,6 +37,8 @@ public class MarkerCartridgeAnalyzer
 
     /**
      * file to keep the cartridge top level assignment results.<br/>
+     * NOTE: The environment variable <code>TEMP</code> must be declard,
+     * usually is set by the system.<br/>
      */
     private static Path cartridgeAssignmentResultsFile = 
         Paths.get(System.getenv("TEMP")+File.separator +"cartridgeAssignmentResults.txt");

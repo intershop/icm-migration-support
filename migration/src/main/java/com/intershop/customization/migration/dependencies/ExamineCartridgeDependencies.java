@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.FileVisitOption;
@@ -237,10 +238,6 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             } catch (IOException e) {
                 LOGGER.error("Error listing .component files: " + e.getMessage());
             }
-
-            // output the dependency tree
-            // in post processing because it is complete, there...
-
         }
     }
     /**
@@ -257,7 +254,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
      * post migration processing of the cartridge dependencies.<br/>
      * This method is called after all cartridges have beenanalyzed.<br/>
      * It checks for <br/>
-     *  - wrong assigned marker carteidgesand<br/>
+     *  - wrong assigned marker carteidges and<br/>
      *  - cycles in the cartridge dependencies across all cartridgess.<br/>
      * 
      * @param rootProject the root project directory to post process
@@ -280,17 +277,19 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
             printTree(appRootDependencyEntry, "");
         }
+
+        rootCartridgeCrumbs = FullCycleCollector.loadSavedBreadCrumbs();
             
         LOGGER.info("-- p.2 check applications for wrong assigned marker cartridges --");
-        LOGGER.info("-----------------------------------------------------------------");
-        rootCartridgeCrumbs = FullCycleCollector.loadSavedBreadCrumbs();
-        FullCycleCollector.hasCycles(rootCartridgeCrumbs);
-
-        LOGGER.info("-- p.3 check for dependency cycles across all cartridges       --");
         LOGGER.info("-----------------------------------------------------------------");
         HashSet<String> checkMarkerCartridgesResult =
         MarkerCartridgeAnalyzer.analyzeMarkerCartridges(rootCartridgeCrumbs);
         MarkerCartridgeAnalyzer.printMarkerCartridgeAssignments(checkMarkerCartridgesResult);
+
+        LOGGER.info("-- p.3 check for dependency cycles across all cartridges       --");
+        LOGGER.info("-----------------------------------------------------------------");
+
+        boolean hasCrossCartridgeCucles = FullCycleCollector.hasMutualGraphDependency(rootCartridgeCrumbs);
     }
 
     /**
