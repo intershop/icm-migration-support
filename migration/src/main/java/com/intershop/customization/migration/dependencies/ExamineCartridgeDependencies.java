@@ -60,7 +60,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     static DependencyTree<Dependency> appDependencyTree;
     static DependencyEntry<Dependency> appRootDependencyEntry;
 
-    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(MigrateConfigResources.class);
+    public static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(ExamineCartridgeDependencies.class);
 
 
     @Override
@@ -111,9 +111,6 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         {
 
             LOGGER.info("");
-            LOGGER.info("-----------------------------------------------------------------");
-            LOGGER.info("-- 1. build the dependency tree by {}/{}", cartridgeName, BUILD_FILE_NAME);
-            LOGGER.info("-----------------------------------------------------------------");
 
             if (null == rootDependencyEntry)
             {
@@ -130,34 +127,28 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
             rootDependencyEntry.addChild(cartridgeEntry);
 
-            LOGGER.info("-- 2. check for dependency cycle                               --");
             LOGGER.info("-----------------------------------------------------------------");
+            LOGGER.info("-- 1. build the dependency tree by {}/{}", cartridgeName, BUILD_FILE_NAME);
+            LOGGER.info("-----------------------------------------------------------------");
+
             // scan build.gradle.kts in first level (cartridge) directories
+            // and analyze their kts files for dependencies
+
             List<String> cartridgeCrumbs = searchFirstLevelDirs(cartridgeEntry, cartridgeDir, BUILD_FILE_NAME);
             if(!cartridgeCrumbs.isEmpty())
             {
                 rootCartridgeCrumbs.addAll(cartridgeCrumbs);
-                FullCycleCollector.hasCycles(cartridgeCrumbs);
                 FullCycleCollector.storeCartridgeAssignmentsCrumbs(cartridgeCrumbs);
+                FullCycleCollector.storeCartridgeAssignmentsCrumbs(rootCartridgeCrumbs);
+
             }
             else
             {
                 LOGGER.info("No cartridge dependencies found in {}", cartridgeDir);
             }
 
-            // output the dependency tree
-            if ("JSON".equals(treeFormat))
-            {
-                printJSON(dependencyTree);
-            }
-            else
-            {
-                printTree(rootDependencyEntry, "");
-            }
-            
-            FullCycleCollector.storeCartridgeAssignmentsCrumbs(rootCartridgeCrumbs);
 
-            LOGGER.info("-- 3. check applications for cartridge dependencies            --");
+            LOGGER.info("-- 2. check application components for cartridge dependencies  --");
             LOGGER.info("-----------------------------------------------------------------");
 
             Path componentsDir = cartridgeDir
@@ -238,6 +229,22 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             } catch (IOException e) {
                 LOGGER.error("Error listing .component files: " + e.getMessage());
             }
+
+
+            // output the dependency tree
+
+            if ("JSON".equals(treeFormat))
+            {
+                printJSON(dependencyTree);
+            }
+            else
+            {
+                printTree(rootDependencyEntry, "");
+            }
+                
+            LOGGER.info("-- 2. check for dependency cycle                               --");
+            LOGGER.info("-----------------------------------------------------------------");
+            FullCycleCollector.hasCycles(cartridgeCrumbs);
         }
     }
     /**
@@ -307,9 +314,13 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         List<String> cartridgeCrumbs = new ArrayList<>();
         try (Stream<Path> stream = Files.walk(startDir, 0, FileVisitOption.FOLLOW_LINKS))
         {
+            // prevent analyzing a (sub) dependency a 2nd time
+
+            // recursion starts here - calling analyzeBuildFile(...)
             stream.filter(Files::isDirectory)
                   .filter(dir -> toBeExaminded(dir)) // Exclude the start directory itself
-                  .forEach(dir -> cartridgeCrumbs.add( analyzeBuildFile(cartridgeEntry, dir, targetFile, "")));
+                  //.filter(dir -> null == findDependencyByCartridgeName( rootDependencyEntry, dir.getFileName().toString()))  // Exclude already analyzed cartridges
+                    .forEach(dir -> cartridgeCrumbs.add( analyzeBuildFile(cartridgeEntry, dir, targetFile, "")));
         }
         catch(IOException e)
         {
@@ -318,6 +329,29 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         return cartridgeCrumbs;
     }
 
+    /**
+     * Recursively searches for a dependency by cartridge name in the dependency tree.
+     * 
+     * @param node The root node to start searching from.
+     * @param cartridgeName The name of the cartridge to find.
+     * @return The DependencyEntry if found, otherwise null.
+     */
+    public static DependencyEntry<Dependency> findDependencyByCartridgeName(
+        DependencyEntry<Dependency> node, 
+        String cartridgeName) 
+    {
+        if (node == null) return null;
+        if (cartridgeName.equals(node.getValue().getName())) 
+        {
+            return node;
+        }
+        for (DependencyEntry<Dependency> child : node.getChildren()) 
+        {
+            DependencyEntry<Dependency> found = findDependencyByCartridgeName(child, cartridgeName);
+            if (found != null) return found;
+        }
+        return null;
+    }    
     /**
      * list of excluded cartridge directories They are part of the standard project setup, the cartridge
      * pf_configuration_fs is part of the ICM standard software replacing the 7.10.x version of the pf_configuration
@@ -399,7 +433,9 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
                         DependencyEntry<Dependency> child = new DependencyEntry<>(dep);
                         String subCarteidgeName = child.getValue().getName();
                         if(!subCarteidgeName.startsWith(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY) 
-                        && isProjectCartridge(subCarteidgeName))
+                        && isProjectCartridge(subCarteidgeName)
+                        // Exclude already analyzed cartridges)
+                        && (null == findDependencyByCartridgeName( rootDependencyEntry, subCarteidgeName))) 
                         {
                             Path subDir = dir.getParent().resolve( subCarteidgeName );
                             Path  subbuildGradle = subDir.resolve(BUILD_FILE_NAME);

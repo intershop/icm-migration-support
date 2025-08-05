@@ -10,12 +10,20 @@ package com.intershop.customization.migration.dependencies;
  * @param dependencyType the type of the dependency, e.g., CARTRIDGE, ARTIFACT, COMPONENT, LIBRARY, PACKAGE
  * 
  */
-public record Dependency(
-    String name,
-    String artifactName,
-    DependencyType dependencyType
-) 
+public class Dependency
 {
+    private final String name;
+    private final String artifactName;
+    private final DependencyType dependencyType;
+
+    /**
+     * Constructor to create a Dependency object.
+     * 
+     * @param name the name of the dependency
+     * @param artifactName the artifact name of the dependency
+     * @param dependencyType the type of the dependency
+     */
+
     public Dependency(String name, String artifactName, DependencyType dependencyType)
      {
         this.name = name;
@@ -37,6 +45,5 @@ public record Dependency(
     {
         return dependencyType;
     }
-
 
 }

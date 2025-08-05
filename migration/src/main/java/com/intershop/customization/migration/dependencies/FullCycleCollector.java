@@ -246,7 +246,9 @@ public class FullCycleCollector
             LOGGER.error("Error reading dependency bread crumbs file: {}", e.getMessage());
         }
         cartridgeCrumbs.removeIf(String::isEmpty); // Remove empty lines
-        return cartridgeCrumbs;
+                cartridgeCrumbs.removeIf(String::isEmpty); // Remove empty lines
+
+        return cartridgeCrumbs.stream().sorted().distinct().toList();
     }
 
     /**
