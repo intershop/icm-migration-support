@@ -413,12 +413,10 @@ $ICM/gradlew migration:migrateAll \
 -Ptarget=$ICM \
 -Psteps=src/main/resources/migration/001_migration_7x10_to_11/911_ExamineCartridgeDependencies.yml \
 && cat $TEMP/cartridgeAssignmentResults.txt
-
-& cat /c/Users/hmordt/AppData/Local/Temp/
-
 ```
 whereby
-`$ICM` points to the project code directory containing all cartridges,
+`$ICM` points to the project code directory containing all cartridges and
+`$TEMP` has to be declared - usually it is set in the sytem environment.
 migrateAll means all, migrateOne a single cartridge to be analyzed.
 
 The following steps are done
@@ -433,7 +431,7 @@ migration/src/main/resources/cartridgedependencies/apps_top_level_cartridges.pro
 migration/src/main/resources/cartridgedependencies/appmarker-cartridges.properties
 ```
 
-In t11_ExamineCartridgeDependencies.yml`  the output format of the dependencies and the output file can be configured.
+In 911_ExamineCartridgeDependencies.yml`  the output format of the dependencies and the output file can be configured.
 ```
 ns:
   treeFormat: "TEXT" or "JSON"
