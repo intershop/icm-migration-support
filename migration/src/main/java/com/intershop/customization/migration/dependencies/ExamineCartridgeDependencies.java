@@ -151,84 +151,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             LOGGER.info("-- 2. check application components for cartridge dependencies  --");
             LOGGER.info("-----------------------------------------------------------------");
 
-            Path componentsDir = cartridgeDir
-                .resolve("src/main/resources/resources")
-                .resolve(cartridgeName)
-                .resolve("components");
-
-            try (Stream<Path> stream = Files.list(componentsDir)) 
-            {
-                stream.filter(p -> p.toString().endsWith(".component") 
-                               && ( p.toString().contains(File.separator + "apps.")
-                                    ||  p.toString().contains(File.separator + "app-")
-                                   )
-                               )
-                .forEach(appExtensionPath ->
-                 {
-
-                    // Do something with each .component file
-                    String appExtensionFileName = appExtensionPath.toString() ;
-                    if(Files.exists(appExtensionPath, LinkOption.NOFOLLOW_LINKS))
-                    {
-                        try (InputStream xmlInput = new FileInputStream(appExtensionFileName)) 
-                        {
-                            appCartridgeMap = parseAppextensionXML(xmlInput);
-                        }
-                        catch(Exception e)
-                        {
-                            appCartridgeMap = new HashMap<>();
-                            LOGGER.error("Exception when scanning {} - ", appExtensionFileName
-                                            + e.getMessage());
-                        }
-                    }   
-                    else
-                    {
-                        appCartridgeMap = new HashMap<>();
-                    }
-
-                    // add the application cartridge map to the dependency tree
-                    if (null == appDependencyTree)
-                    {
-                        // if not yet initialized, create a new root entry
-                        // for the dependency tree
-                        Dependency appRootDependency = new Dependency(projectPath.getFileName().toString(), null,
-                                        DependencyType.APPLICATION);
-                        appDependencyTree = new DependencyTree<Dependency>(appRootDependency);
-                    }
-                    appRootDependencyEntry = appDependencyTree.getRoot();
-
-                    // application dependency tree - adding cartridge;
-                    appCartridgeMap.forEach((app, cartridges) -> 
-                    {
-                        Dependency apDependency = null;;
-                        DependencyEntry<Dependency> apDependencyEntry = null;
-                        for(DependencyEntry<Dependency> entry: appRootDependencyEntry.getChildren())
-                        {
-                            if(entry.getValue().getName().equals(app))
-                            {
-                                apDependency = entry.getValue();
-                                apDependencyEntry = entry;
-                                break;
-                            }
-                        }
-                        if(null == apDependency)
-                        {
-                            apDependency = new Dependency(app, "app-extension.component", DependencyType.APPLICATION);
-                            apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
-                            appRootDependencyEntry.addChild(apDependencyEntry);
-                        }
-
-                        for(String cartridge: cartridges)
-                        {
-                            Dependency cartridgeDependency = new Dependency(cartridge, "app-extension.component", DependencyType.CARTRIDGE);
-                            apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
-                    
-                        }
-                    });
-                });
-            } catch (IOException e) {
-                LOGGER.error("Error listing .component files: " + e.getMessage());
-            }
+            analyzeApplicationComponents(cartridgeDir, cartridgeName, projectPath);
 
 
             // output the dependency tree
@@ -247,6 +170,104 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             FullCycleCollector.hasCycles(cartridgeCrumbs);
         }
     }
+
+    /* *    
+     * Parses the app*.component file to extract dependencies.
+     * 
+     * @param the location of the component files in the cartridge directory
+     * @param cartridgeName the name of the cartridge
+     * @param projectPath the path of the project
+     */
+    private void analyzeApplicationComponents(
+            Path cartridgeDir, 
+            String cartridgeName, 
+            Path projectPath
+    )
+    {
+
+        LOGGER.info("Analyzing application components in cartridge: {}", cartridgeName);
+
+        Path componentsDir = cartridgeDir
+            .resolve("src/main/resources/resources")
+            .resolve(cartridgeName)
+            .resolve("components");
+
+        try (Stream<Path> stream = Files.list(componentsDir)) 
+        {
+            stream.filter(p -> p.toString().endsWith(".component") 
+                           && ( p.toString().contains(File.separator + "apps.")
+                                ||  p.toString().contains(File.separator + "app-")
+                               )
+                           )
+            .forEach(appExtensionPath ->
+            {
+
+                // Do something with each .component file
+                String appExtensionFileName = appExtensionPath.toString() ;
+                if(Files.exists(appExtensionPath, LinkOption.NOFOLLOW_LINKS))
+                {
+                    try (InputStream xmlInput = new FileInputStream(appExtensionFileName)) 
+                    {
+                        appCartridgeMap = parseAppextensionXML(xmlInput);
+                    }
+                    catch(Exception e)
+                    {
+                        appCartridgeMap = new HashMap<>();
+                        LOGGER.error("Exception when scanning {} - ", appExtensionFileName
+                                        + e.getMessage());
+                    }
+                }   
+                else
+                {
+                    appCartridgeMap = new HashMap<>();
+                }
+
+                // add the application cartridge map to the dependency tree
+                if (null == appDependencyTree)
+                {
+                    // if not yet initialized, create a new root entry
+                    // for the dependency tree
+                    Dependency appRootDependency = new Dependency(projectPath.getFileName().toString(), null,
+                                    DependencyType.APPLICATION);
+                    appDependencyTree = new DependencyTree<Dependency>(appRootDependency);
+                }
+                appRootDependencyEntry = appDependencyTree.getRoot();
+
+                // application dependency tree - adding cartridge;
+                appCartridgeMap.forEach((app, cartridges) -> 
+                {
+                    Dependency apDependency = null;;
+                    DependencyEntry<Dependency> apDependencyEntry = null;
+                    for(DependencyEntry<Dependency> entry: appRootDependencyEntry.getChildren())
+                    {
+                        if(entry.getValue().getName().equals(app))
+                        {
+                            apDependency = entry.getValue();
+                            apDependencyEntry = entry;
+                            break;
+                        }
+                    }
+                    if(null == apDependency)
+                    {
+                        apDependency = new Dependency(app, "app-extension.component", DependencyType.APPLICATION);
+                        apDependencyEntry = new DependencyEntry<Dependency>(apDependency);
+                        appRootDependencyEntry.addChild(apDependencyEntry);
+                    }
+
+                    for(String cartridge: cartridges)
+                    {
+                        Dependency cartridgeDependency = new Dependency(cartridge, "app-extension.component", DependencyType.CARTRIDGE);
+                        apDependencyEntry.addChild(new DependencyEntry<Dependency>(cartridgeDependency));
+                
+                    }
+                });
+            });
+        } catch (IOException e) 
+        {
+            LOGGER.error("Error listing .component files: " + e.getMessage());
+        }
+    }
+
     /**
      * pre migration processing of the cartridge dependencies.<br/>
      */
