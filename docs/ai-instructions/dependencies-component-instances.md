@@ -59,6 +59,7 @@ For each cartridge with `*.component` files:
 
 - **Correct**: Components match the cartridge's designated ApplicationType from the table above
 - **Incorrect**: Components belong to different ApplicationTypes than the cartridge's designation (see "Category" in the table above)
+  - bc_ cartridge must not reference app_ or sld_ cartridges.
 - **Action**: Move misplaced components to appropriate cartridge or `as_` cartridge
 
 #### Step 3: Fix Misplaced Components
@@ -95,7 +96,7 @@ For each cartridge that provides ApplicationType instances:
 
 ### AI Task - Instruction
 
-- validate my cartridge dependencies and component files. see component-instances.md. Are there cartridges, with missing dependencies.
+- validate my cartridge dependencies and component files. see docs/dependencies-component-instances.md. Are there cartridges, with missing dependencies.
 - create new as_<project> cartridges, if there are not exist.
   - add cartridgeRuntime dependencies at as_ cartridges
   - register new as_ cartridges at ft_ cartridge
