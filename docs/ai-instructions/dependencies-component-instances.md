@@ -6,36 +6,24 @@ This document provides a comprehensive list of all ApplicationType component ins
 
 The following table lists all REST related instances:
 
-| ApplicationType Instance                 | Cartridge                   | Category   | Dependency (icm-as)                                                          | Dependency (external)                                                |
-|------------------------------------------|-----------------------------|------------|------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| `intershop.REST`                         | `app_sf_headless`           | Storefront | cartridgeRuntime(project(":business:a_storefront:app_sf_headless")           | cartridgeRuntime("com.intershop.business:app_sf_headless")           |
-| `intershop.EnterpriseBackoffice.RESTAPI` | `sld_enterprise_app`        | Backoffice Enterprise | cartridgeRuntime(project(":business:a_backoffice:sld_enterprise_app")        | cartridgeRuntime("com.intershop.business:sld_enterprise_app")        |
-| `intershop.CC`                           | `app_sf_contactcenter_rest` | Backoffice CC | cartridgeRuntime(project(":business:a_backoffice:app_sf_contactcenter_rest") | cartridgeRuntime("com.intershop.business:app_sf_contactcenter_rest") |
+| ApplicationType Instance                 | Cartridge                   | Category              | Dependency (external)                                                |
+|------------------------------------------|-----------------------------|-----------------------|----------------------------------------------------------------------|
+| `intershop.REST`                         | `app_sf_headless`           | Storefront            | cartridgeRuntime("com.intershop.business:app_sf_headless")           |
+| `intershop.EnterpriseBackoffice.RESTAPI` | `sld_enterprise_app`        | Backoffice Enterprise | cartridgeRuntime("com.intershop.business:sld_enterprise_app")        |
+| `intershop.CC`                           | `app_sf_contactcenter_rest` | Backoffice CC         | cartridgeRuntime("com.intershop.business:app_sf_contactcenter_rest") |
 
 ## ApplicationType Instances
 
 For ICM application extensions, the following ApplicationType instances are defined:
 
-| ApplicationType Instance         | Cartridge                | Category   | Dependency (icm-as)                                                       | Dependency (external)                                             |
-|----------------------------------|--------------------------|------------|---------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `intershop.B2CBackoffice`        | `sld_ch_consumer_plugin` | Backoffice Sales Channel | cartridgeRuntime(project(":business:a_backoffice:sld_ch_consumer_plugin") | cartridgeRuntime("com.intershop.business:sld_ch_consumer_plugin") |
-| `intershop.PartnerBackoffice`    | `sld_ch_partner_plugin`  | Backoffice Partner | cartridgeRuntime(project(":business:a_backoffice:sld_ch_partner_plugin")  | cartridgeRuntime("com.intershop.business:sld_ch_partner_plugin")  |
-| `intershop.EnterpriseBackoffice` | `sld_enterprise_app`     | Backoffice Enterprise | cartridgeRuntime(project(":business:a_backoffice:sld_enterprise_app")     | cartridgeRuntime("com.intershop.business:sld_enterprise_app")     |
-| `intershop.SLDSystem`            | `sld_system_app`         | System Operations     | cartridgeRuntime(project(":business:a_sldsystem:sld_system_app")          | cartridgeRuntime("com.intershop.business:sld_system_app")         |
-| `intershop.SMC`                  | `smc`                    | System SMC | cartridgeRuntime(project(":business:a_sldsystem:smc")                     | cartridgeRuntime("com.intershop.business:smc")                    |
-| `intershop.System`               | `core`                   | Platform   | cartridgeRuntime(project(":platform:core")                                | cartridgeRuntime("com.intershop.platform:core")                   |
-| `intershop.Internal`             | `core`                   | Platform   | cartridgeRuntime(project(":platform/core")                                |                                                                   |
-
-## ApplicationType Test Instances
-
-For testing purposes, the following ApplicationType instances are also defined (sub set):
-
-| ApplicationType Instance            | Cartridge         | Dependency (icm-as)                                                |
-|-------------------------------------|-------------------|--------------------------------------------------------------------|
-| `intershop.enfinity.BcPreviewTests` | `bc_preview_test` | cartridgeRuntime(project(":business:a_backoffice:bc_preview_test") |
-| `intershop.BusinessTestSF`          | `test_app_sf`     | cartridgeRuntime(project(":business/a_test/test_app_sf")           |
-| `intershop.ConsumerTestSF`          | `test_app_sf`     | cartridgeRuntime(project(":business/a_test/test_app_sf")           |
-| `intershop.ETest`                   | `etest`           | cartridgeRuntime(project(":platform/etest")                        |
+| ApplicationType Instance         | Cartridge                | Category                 | Dependency (external)                                             |
+|----------------------------------|--------------------------|--------------------------|-------------------------------------------------------------------|
+| `intershop.B2CBackoffice`        | `sld_ch_consumer_plugin` | Backoffice Sales Channel | cartridgeRuntime("com.intershop.business:sld_ch_consumer_plugin") |
+| `intershop.PartnerBackoffice`    | `sld_ch_partner_plugin`  | Backoffice Partner       | cartridgeRuntime("com.intershop.business:sld_ch_partner_plugin")  |
+| `intershop.EnterpriseBackoffice` | `sld_enterprise_app`     | Backoffice Enterprise    | cartridgeRuntime("com.intershop.business:sld_enterprise_app")     |
+| `intershop.SLDSystem`            | `sld_system_app`         | System Operations        | cartridgeRuntime("com.intershop.business:sld_system_app")         |
+| `intershop.SMC`                  | `smc`                    | System SMC               | cartridgeRuntime("com.intershop.business:smc")                    |
+| `intershop.System`               | `core`                   | Platform                 | cartridgeRuntime("com.intershop.platform:core")                   |
 
 ## Fixing Dependencies - Instruction
 
@@ -96,7 +84,7 @@ For each cartridge that provides ApplicationType instances:
 
 ### AI Task - Instruction
 
-- validate my cartridge dependencies and component files. see docs/dependencies-component-instances.md. Are there cartridges, with missing dependencies.
+- validate my cartridge dependencies and component files. see docs/ai-instructions/dependencies-component-instances.md. Are there cartridges, with missing dependencies.
 - create new as_<project> cartridges, if there are not exist.
   - add cartridgeRuntime dependencies at as_ cartridges
   - register new as_ cartridges at ft_ cartridge
