@@ -3,7 +3,8 @@
 
 # Change default project prefix "<rootProject.name in settings.gradle.kts>" used for container names, volumes and network in Docker.
 # Underscores will be replaced with dashes, capital letters with lowercase.
-# Cannot be configured here! Needs to be done in settings.gradle.kts (and in your environment.bat, if you created one):
+# Cannot be configured here! Needs to be done in settings.gradle.kts (and in your environment.bat/.sh, if you created one).
+# (In addition, containerProjectPrefix can be configured in build.gradle.kts, see https://github.com/IntershopCommunicationsAG/icm-docker-plugin)
 # // define root project name
 # rootProject.name = "<rootProject.name in settings.gradle.kts>"
 #containerProjectPrefix = <rootProject.name in settings.gradle.kts>
@@ -33,14 +34,20 @@ intershop.jdbc.password = !InterShop00!
 #intershop.jdbc.password = intershop
 
 # folder for sites (default: <project root folder>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
-# Since important configuration is stored here (e.g. in root/1/solrcloud/default/conf/), created during DBPrepare only,
+# Since important configuration is stored here (e.g. in root/1/solrcloud/), created during DBPrepare only,
 # deleting it can cause the app server to fail. Thus, storing it outside the project directory might be a good idea.
 # Attention: "gradlew clean" deletes (in addition to the cartridge build folders) the sites_folder, regardless of its location!
+# When setting up staging on a local DEV system: Use different folders for sites on Edit and Live,
+# and keep in mind: If DB was copied, DBPrepare steps are not executed again and you end up with an empty sites folder,
+# then copy at least the content of root/1/solrcloud to get a working system.
 #sites.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\sites_folder
 
 # webserver configuration of the appserver
 # In ICM11, set intershop.WebServerURL to same value as intershop.WebServerSecureURL: https (port 443)
 # See ISH=978-517: In environment YAML files for ICM, INTERSHOP_WEBSERVERSECUREURL and INTERSHOP_WEBSERVERURL are both configured to same value (https, port 443)
+# When setting up staging on a local DEV system: Set intershop.WebServerSecureURL to a http URL
+# (https requires a valid SSL certificate), accessible from the Live Docker container, e.g.: http://host.docker.internal:80
+# The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working) to Live for copying file system content.
 intershop.WebServerURL=https://mycomputer.ad.intershop.net:443
 intershop.WebServerSecureURL=https://mycomputer.ad.intershop.net:443
 
@@ -124,14 +131,37 @@ mail.smtp.port=25
 #nginx.cert.path=C:/
 
 
-#################################################################################
-# environment=development                                                       #
-# development properties                                                        #
-# Attention:                                                                    #
-#  * intershop.template.CheckSource is very slow in Docker on Windows (WSL 2)!  #
-#################################################################################
+###########################################################################################################
+# environment=development                                                                                 #
+# Extra container-related environment properties using intershop.environment.* (ISH_ENV_* in Helm charts) #
+# development properties                                                                                  #
+# Attention:                                                                                              #
+#  * intershop.template.CheckSource is very slow in Docker on Windows (WSL 2)!                            #
+###########################################################################################################
 
 environment=development
+
+# When setting up staging on a local DEV system: staging.system.type = none|editing|live (default: none)
+#intershop.environment.STAGINGTYPE=staging.system.type=editing
+
+# When setting up staging on a local DEV system: Define the location of the replication-clusters.xml
+# Please make sure the path exists in your app server (in the Docker container).
+# It contains the container project prefix (/intershop/customizations/<containerProjectPrefix>/cartridges/...), that might be different in Edit and Live!
+#intershop.environment.REPLICATION_CLUSTER_CONFIG=intershop.replication.cluster.configuration = /intershop/customizations/<rootProject.name in settings.gradle.kts>/cartridges/<replicationCartridge>/build/resources/main/resources/<replicationCartridge>/replication/replication-clusters.xml
+
+# When setting up staging on a local DEV system: Define URL of Edit to be used by Live.
+# A web server URL, which can optionally be used by staging processes.
+# If configured, this property sets the web server in the source system,
+# which has to be used to downloaded file system content from.
+# If no value is set the standard web server URL
+# as configured in 'appserver.properties' is used (default).
+# Currently, staging.WebServerURL is not working! Use intershop.WebServerSecureURL (see above).
+#intershop.environment.STAGING_WEBSERVERURL=staging.WebServerURL=http://host.docker.internal:80
+
+# When setting up staging on a local DEV system: Location for transfer of Solr indexes from Edit to Live.
+# Set solr.cloudBackupLocation to the same physical location for Edit and Live
+# Keep in mind: This location is accessed by the Solr server(s), not by the ICM app servers
+#intershop.environment.SOLR_CLOUDBACKUPLOCATION=solr.cloudBackupLocation=D:\\solr\\backup
 
 # switch auto reload on for all Intershop artifacts
 intershop.extensions.CheckSource=true
