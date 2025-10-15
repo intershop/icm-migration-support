@@ -128,7 +128,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     LOGGER.debug("Found cartridge: '{}'", name);
 
                     // Check if there is a replication.xml or replication-clusters.xml file in the cartridge
-                    // pathToReplicationFiles := <cartridge-directory>/src/main/resources/resources/{cartridgeName}/replication/
+                    // pathToReplicationFiles := <cartridge-directory>/src/main/resources/resources/#cartridgeName#/replication/
                     Path pathToReplicationFiles = path.resolve("src")
                                                       .resolve("main")
                                                       .resolve("resources")
