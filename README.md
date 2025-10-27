@@ -1,9 +1,10 @@
-How to Work with the ICM Migration Support
-==========================================
+# Introduction
 
-ICM Migration Support is a tool that assists with migrating from one major ICM version to another.
-It aims to streamline the migration process by reducing repetitive tasks and providing a set of executable migration steps.
-However, it is not a fully automated migration solution; some manual steps remain necessary.
+This projects contains three major tools to support migration projects from ICM7.10 to ICM11+.
+
+* The "migration tool" uses standard Java Application to migrate up to the latest version. Major tasks are exposed via gradle.
+* The "AI migration tools" to [instruct](docs/ai-instructions/migrate-all-cartridges-instructions.md) Github Copilot (in agent mode) to help migrate from one version of the platform to the next. It follows the same essential steps as the Java-based migration tool. A training for this is available in the academy.
+* The "AI dependency [instructions](docs/ai-instructions/dependencies-component-instances.md)" can be used after the migration to check if there are issues in the dependency structure and propose fixes. In agent mode, the Github Copilot can use this file to actually perform the fix to solve the issues.
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -14,6 +15,11 @@ However, it is not a fully automated migration solution; some manual steps remai
   - [Available Migration Steps](#available-migration-steps)
   - [Third Party Libraries](#third-party-libraries)
 
+# How to Work with the "Migration Tool"
+
+ICM Migration Support is a tool that assists with migrating from one major ICM version to another.
+It aims to streamline the migration process by reducing repetitive tasks and providing a set of executable migration steps.
+However, it is not a fully automated migration solution; some manual steps remain necessary.
 
 ## Prerequisites
 * This tool is based on Java 21. An appropriate JDK must be installed and configured in your environment.
