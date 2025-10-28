@@ -152,7 +152,7 @@ environment=development
 # When setting up staging on a local DEV system: Define URL of Edit to be used by Live.
 # A web server URL, which can optionally be used by staging processes.
 # If configured, this property sets the web server in the source system,
-# which has to be used to downloaded file system content from.
+# which has to be used to download file system content from.
 # If no value is set the standard web server URL
 # as configured in 'appserver.properties' is used (default).
 # Currently, staging.WebServerURL is not working! Use intershop.WebServerSecureURL (see above).
