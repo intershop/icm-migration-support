@@ -77,9 +77,11 @@ webserver.https.port = 443
 # This is a host port (Docker container external port), default: 7747, change it in case of port collisions
 #intershop.as.jmx.connector.port = 7747
 
-# local host configuration
+# local host configuration (the hostname or the IP of the local machine)
 # this is not always 'localhost'.
-intershop.local.hostname = mycomputer.ad.intershop.net
+# Because it is also used as Configuration Servlet URL 'cs.url.0' inside the waa (Web Adapter Agent) container,
+# the hostname might not work! If host.docker.internal does not work (for solr or mailsrv container or Geb/RestTests), use the IP of the local machine.
+intershop.local.hostname = host.docker.internal
 
 # External/host solr configuration (optional), in case you use your own Solr
 # In case you use the Solr in Docker container <rootProject.name in settings.gradle.kts>-solr (gradlew startSolrCloud), comment out below lines
