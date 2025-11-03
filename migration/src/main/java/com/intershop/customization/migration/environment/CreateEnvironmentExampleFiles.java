@@ -47,6 +47,8 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     public static final String GRADLE_PROPERTIES = "gradle.properties";  // gradle.properties file in project root
     public static final String DOCKER_REGISTRY   = "dockerRegistry";     // dockerRegistry key in gradle.properties, with value e.g. "ishprjzzacr.azurecr.io"
     public static final String ADO_ORGANIZATION  = "adoOrganizationName";  // adoOrganizationName key in gradle.properties, with value e.g. "ish-prjzz"
+    public static final String REPLICATION_XML          = "replication.xml";           // replication.xml          file in a cartridge
+    public static final String REPLICATION_CLUSTERS_XML = "replication-clusters.xml";  // replication-clusters.xml file in a cartridge
 
     public static final String ENVIRONMENT_BAT_EXAMPLE_TEMPLATE = "environment.bat.example.template";
     public static final String ENVIRONMENT_BAT_EXAMPLE          = "environment.bat.example";
@@ -61,6 +63,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     public static final String TEMPLATE_PLACEHOLDER_ROOT_PROJECT_NAME      = "<rootProject.name in settings.gradle.kts>";
     public static final String TEMPLATE_PLACEHOLDER_DOCKER_REGISTRY        = "<ishprjxxacr>";
     public static final String TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION       = "<adoOrganizationName>";
+    public static final String TEMPLATE_PLACEHOLDER_REPLICATIONCARTRIDGE   = "<replicationCartridge>";
     public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME          = "{cartridgeName}";
     public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME_LAST     = "{cartridgeName.last}";
     public static final String TEMPLATE_PLACEHOLDER_CARTRIDGENAME_NOT_LAST = "{cartridgeName.!last}";
@@ -82,6 +85,9 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
     protected Path icmPropertiesExample  = null;
     protected Path cleanBat              = null;
     protected Path cleanSh               = null;
+
+    protected String replicationXmlCartridge         = null;  // Name of the cartridge containing replication.xml
+    protected String replicationClustersXmlCartridge = null;  // Name of the cartridge containing replication-clusters.xml
 
     @Override
     public void prepareMigrateRoot(Path resource, MigrationContext context)
@@ -120,6 +126,44 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 {
                     this.cartridgeNames.add(name);
                     LOGGER.debug("Found cartridge: '{}'", name);
+
+                    // Check if there is a replication.xml or replication-clusters.xml file in the cartridge
+                    // pathToReplicationFiles := <cartridge-directory>/src/main/resources/resources/#cartridgeName#/replication/
+                    Path pathToReplicationFiles = path.resolve("src")
+                                                      .resolve("main")
+                                                      .resolve("resources")
+                                                      .resolve("resources")
+                                                      .resolve(name)
+                                                      .resolve("replication");
+                    Path pathToReplicationXml = pathToReplicationFiles.resolve(REPLICATION_XML);
+                    if (pathToReplicationXml.toFile().exists())
+                    {
+                        if (this.replicationXmlCartridge == null)
+                        {
+                            this.replicationXmlCartridge = name;
+                            LOGGER.info("{} found in cartridge '{}'.", REPLICATION_XML, name);
+                        }
+                        else
+                        {
+                            LOGGER.info("{} found in cartridge '{}', but was already found in cartridge '{}'.", REPLICATION_XML, name, this.replicationXmlCartridge);
+                            context.recordSkipped(resourceName, MigrationContext.OperationType.CREATE, pathToReplicationXml, null, REPLICATION_XML + " found in cartridge '" + name + "', but was already found in cartridge '" + this.replicationXmlCartridge + "'.");
+                        }
+                    }
+
+                    Path pathToReplicationClustersXml = pathToReplicationFiles.resolve(REPLICATION_CLUSTERS_XML);
+                    if (pathToReplicationClustersXml.toFile().exists())
+                    {
+                        if (this.replicationClustersXmlCartridge == null)
+                        {
+                            this.replicationClustersXmlCartridge = name;
+                            LOGGER.info("{} found in cartridge '{}'.", REPLICATION_CLUSTERS_XML, name);
+                        }
+                        else
+                        {
+                            LOGGER.warn("{} found in cartridge '{}', but was already found in cartridge '{}'.", REPLICATION_CLUSTERS_XML, name, this.replicationClustersXmlCartridge);
+                            context.recordWarning(resourceName, MigrationContext.OperationType.CREATE, pathToReplicationClustersXml, null, REPLICATION_CLUSTERS_XML + " found in cartridge '" + name + "', but was already found in cartridge '" + this.replicationClustersXmlCartridge + "'.");
+                        }
+                    }
                 }
 
                 if (name.equals(SETTINGS_GRADLE_KTS))
@@ -167,6 +211,13 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                     this.cleanSh = dirOrFileInICMProjectRoot.toPath();
                     LOGGER.warn("File '{}' already exists, content will be replaced.", name);
                 }
+            }
+
+            if (this.replicationClustersXmlCartridge == null
+                && this.replicationXmlCartridge != null)
+            {
+                this.replicationClustersXmlCartridge = this.replicationXmlCartridge;
+                LOGGER.info("Using cartridge '{}' for {} although only {} was found there.", this.replicationXmlCartridge, REPLICATION_CLUSTERS_XML, REPLICATION_XML);
             }
         } catch (IOException e) {
             LOGGER.error("Exception reading project root " + resource.toString(), e);
@@ -312,7 +363,7 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 exampleFile = this.resource.resolve(exampleFileName);
             }
 
-            createOrReplaceExampleFile(exampleTemplate, exampleFile, this.rootProjectName, this.dockerRegistry, this.adoOrganizationName);
+            createOrReplaceExampleFile(exampleTemplate, exampleFile, this.rootProjectName, this.dockerRegistry, this.adoOrganizationName, this.replicationClustersXmlCartridge);
             this.context.recordSuccess(this.resourceName, MigrationContext.OperationType.MOVE, exampleTemplate.toPath(), exampleFile);
         }
         else
@@ -364,8 +415,10 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
      *                               If <code>null</code>, the placeholder will remain in the output file.
      * @param adoOrganizationName    adoOrganizationName configured in gradle.properties, used to replace placeholders &lt;adoOrganizationName&gt;.
      *                               If <code>null</code>, the placeholder will remain in the output file.
+     * @param replicationCartridge   name of the cartridge containing the replication-clusters.xml file, used to replace placeholders &lt;replicationCartridge&gt;.
+     *                               If <code>null</code>, the placeholder will remain in the output file. In contrast to the other parameters no warning is issued if it is missing.
      */
-    protected static void createOrReplaceExampleFile(File exampleFileTemplate, Path exampleFile, String rootProjectName, String dockerRegistry, String adoOrganizationName)
+    protected static void createOrReplaceExampleFile(File exampleFileTemplate, Path exampleFile, String rootProjectName, String dockerRegistry, String adoOrganizationName, String replicationCartridge)
     {
         LOGGER.debug("START executing method  createOrReplaceExampleFile  ({})", exampleFile.getFileName());
 
@@ -383,6 +436,11 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
             if (adoOrganizationName == null)
             {
                 LOGGER.warn("No {} found. {} might still contain placeholders {}.", ADO_ORGANIZATION, exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION);
+            }
+
+            if (replicationCartridge == null)
+            {
+                LOGGER.info("No cartridge containing replication files found. {} might still contain placeholders {}.", exampleFile.getFileName(), TEMPLATE_PLACEHOLDER_REPLICATIONCARTRIDGE);
             }
 
             StringBuilder resultingFileContent = new StringBuilder(20000);
@@ -403,6 +461,11 @@ public class CreateEnvironmentExampleFiles implements MigrationPreparer
                 if (adoOrganizationName != null)
                 {
                     line = line.replace(TEMPLATE_PLACEHOLDER_ADO_ORGANIZATION, adoOrganizationName);  // replaces all occurrences in line
+                }
+
+                if (replicationCartridge != null)
+                {
+                    line = line.replace(TEMPLATE_PLACEHOLDER_REPLICATIONCARTRIDGE, replicationCartridge);  // replaces all occurrences in line
                 }
 
                 resultingFileContent.append(line).append(LINE_SEP);
