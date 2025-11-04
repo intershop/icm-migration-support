@@ -4,33 +4,35 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
 
 ## Table of Contents
 
-- [Preparation Steps](#preparation-steps)
-  - [Prepare ICM 11 Template](#prepare-icm-11-template)
-  - [Verify ICM 11 Template](#verify-icm-11-template)
-  - [Prepare ICM 11 Branch](#prepare-icm-11-branch)
-- [Automated Migration Steps](#automated-migration-steps)
-  - [Remove Assembly Projects](#remove-assembly-projects)
-  - [Move Folder Structure](#move-folder-structure)
-  - [Move Additional Files](#move-additional-files)
-  - [Move Java Source Code](#move-java-source-code)
-  - [Convert build.gradle Files](#convert-buildgradle-files)
-  - [Convert to Cartridge Dependency](#convert-to-cartridge-dependency)
-  - [Rename Dependencies](#rename-dependencies)
-  - [Remove Obsolete Dependencies](#remove-obsolete-dependencies)
-  - [Move DB Prepare Files](#move-db-prepare-files)
-  - [Migrate Configuration Resources](#migrate-configuration-resources)
-  - [Migrate Version Information](#migrate-version-information)
-  - [Add Site Content Preparer](#add-site-content-preparer)
-  - [Rename Packages](#rename-packages)
-  - [Delete Obsolete Files](#delete-obsolete-files)
-  - [Create Environment Example Files](#create-environment-example-files)
-- [Manual Migration Steps](#manual-migration-steps)
-   - [Globally Defined Dependencies](#globally-defined-dependencies)
-   - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
-   - [Wiring Files Using the Configuration Framework](#wiring-files-using-the-configuration-framework)
-   - [Adapt Logback Configuration](#adapt-logback-configuration)
-   - [Check Remaining Static Files](#check-remaining-static-files)
-   - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
+- [ICM 7.10 to ICM 11 Migration Steps](#icm-710-to-icm-11-migration-steps)
+  - [Table of Contents](#table-of-contents)
+  - [Preparation Steps](#preparation-steps)
+    - [Prepare ICM 11 Template](#prepare-icm-11-template)
+    - [Verify ICM 11 Template](#verify-icm-11-template)
+    - [Prepare ICM 11 Branch](#prepare-icm-11-branch)
+  - [Automated Migration Steps](#automated-migration-steps)
+    - [Remove Assembly Projects](#remove-assembly-projects)
+    - [Move Folder Structure](#move-folder-structure)
+    - [Move Additional Files](#move-additional-files)
+    - [Move Java Source Code](#move-java-source-code)
+    - [Convert build.gradle Files](#convert-buildgradle-files)
+    - [Convert to Cartridge Dependency](#convert-to-cartridge-dependency)
+    - [Rename Dependencies](#rename-dependencies)
+    - [Remove Obsolete Dependencies](#remove-obsolete-dependencies)
+    - [Move DB Prepare Files](#move-db-prepare-files)
+    - [Migrate Configuration Resources](#migrate-configuration-resources)
+    - [Migrate Version Information](#migrate-version-information)
+    - [Add Site Content Preparer](#add-site-content-preparer)
+    - [Rename Packages](#rename-packages)
+    - [Delete Obsolete Files](#delete-obsolete-files)
+    - [Create Environment Example Files](#create-environment-example-files)
+  - [Manual Migration Steps](#manual-migration-steps)
+    - [Globally Defined Dependencies](#globally-defined-dependencies)
+    - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
+    - [Wiring Files Using the Configuration Framework](#wiring-files-using-the-configuration-framework)
+    - [Adapt Logback Configuration](#adapt-logback-configuration)
+    - [Check Remaining Static Files](#check-remaining-static-files)
+    - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
 
 ## Preparation Steps
 
@@ -455,7 +457,7 @@ In case of "TEST" the output looks like
         bc_user_orm_soennecken
         ...
 ```
-In case of JSON for each cartridge a cartridge is described more detailed, A migrateOne sample gives the output
+In case of JSON for each cartridge a cartridge is described more detailed, a migrateOne sample gives the output
 
 ```
 ./gradlew migration:migrateOne \

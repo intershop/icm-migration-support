@@ -100,7 +100,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
 
         if (null == cartridgeDir || !Files.exists(cartridgeDir))
         {
-            LOGGER.error("Project path does not exist:{} ", (null == cartridgeDir ) ? cartridgeDir : "NULL");
+            LOGGER.error("Project path does not exist: {} ", (null != cartridgeDir ) ? cartridgeDir : "NULL");
             return;
         }
         Path projectPath = cartridgeDir.getName(2);
@@ -264,7 +264,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             });
         } catch (IOException e) 
         {
-            LOGGER.error("Error listing .component files: " + e.getMessage());
+            LOGGER.error("Error listing .component files: {} ", e.getMessage());
         }
     }
 
@@ -291,7 +291,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     public void postMigrate(File rootProject)
     {
         LOGGER.info("----------------------------------------------------------------");
-        LOGGER.info("-- cartridge dependency - post rocessing                      --");
+        LOGGER.info("-- cartridge dependency - post processing                      --");
         LOGGER.info("----------------------------------------------------------------");
 
         LOGGER.info("-- p.1 top level application dependencies                      --");
@@ -345,7 +345,7 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
         }
         catch(IOException e)
         {
-            LOGGER.error("Error searching directories: " + e.getMessage());
+            LOGGER.error("Error searching directories: {}", e.getMessage());
         }
         return cartridgeCrumbs;
     }
@@ -468,15 +468,14 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
             }
             catch(Exception e)
             {
-                LOGGER.error("Exception when searching " + targetFile + " in directory: " + dir + ": "
-                                + e.getMessage());
+                LOGGER.error("Exception when searching '{}' in directory: '{}'",  targetFile, e.getMessage());
             }
         }
         else
         {
             if(! dir.getFileName().toString().contains(KtsDependencyAnalyzer.MARK_EXCLUDED_DEPENDENCY))
             {
-                LOGGER.error("File " + targetFile + " not found in directory: " + dir);
+                LOGGER.error("File '{}' not found in directory '{}'", targetFile, dir);
             }
         }
         return cartridgeCrumbs;

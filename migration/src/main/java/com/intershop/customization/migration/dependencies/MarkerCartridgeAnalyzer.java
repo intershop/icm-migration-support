@@ -24,9 +24,9 @@ import com.intershop.customization.migration.pfconfigurationfs.MigrateConfigReso
  * 
  * This class analyzes marker cartridges in top-level cartridges based on a list of breadcrumb lines.
  * It checks if marker cartridges are used in top-level cartridges where they are not allowed.<br/>
- * A marker carteidge implements specific funtionality for an application, e.g. 
- * <code>com.intershop.business:smc</code> for the application <code>imntershop.SMC</code>. 
- * That's why it  must not appeare in te dependencies of the <code>intershop.EnterpriseBackoffice</code> PP:
+ * A marker cartridge implements specific functionality for an application, e.g. 
+ * <code>com.intershop.business:smc</code> for the application <code>intershop.SMC</code>. 
+ * That's why it  must not appeare in th    e dependencies of the <code>intershop.EnterpriseBackoffice</code> PP:
  * 
  * The analysis is based on predefined properties files that map top-level cartridges to their allowed marker cartridges.
  */
@@ -201,9 +201,9 @@ public class MarkerCartridgeAnalyzer
      /**
      * Parses a resource file and returns its content as a map.
      * <key>=[<value1>, <value2>, ...]<br/>
-     * Comments lead by '#' and empty line sare ignored.
+     * Comments lead by '#' and empty lines are ignored.
      * 
-     * @param resourceName The name of the resource file to parse
+     * @param file The name of the resource file to parse
      * @return the map containing the parsed key-value pairs
      */
     public static Map<String, List<String>> parsePropertiesFile(Path file)
@@ -232,12 +232,12 @@ public class MarkerCartridgeAnalyzer
     }
     
     /** 
-     * Parses breadcrumb lines to extract cartridge dependencies a a list
+     * Parses breadcrumb lines to extract cartridge dependencies as a list
      * 
      * @param breadcrumbLines List of breadcrumb lines representing cartridge dependencies
      * where in the dependencies are listed top down
      * as <cartridge> > <dependency1> > <dependency2> ...
-     * @return Map of cartridge as key and a list of its its dependencies as value
+     * @return Map of cartridge as key and a list of its dependencies as value
     */
     public static Map<String, Set<String>> parseBreadcrumbDependencies(List<String> breadcrumbLines)
     {

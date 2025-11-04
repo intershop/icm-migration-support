@@ -22,7 +22,7 @@ public class KtsDependencyAnalyzer
     private static final String START_DEPENDENCIES = "dependencies";
 
     /**
-     * * Parses a Kotlin script (.kts) file to extract dependencies.
+     * Parses a Kotlin script (.kts) file to extract dependencies.
      * 
      * @param buildGradle
      * @return List of Dependency objects representing the dependencies found in the file.
