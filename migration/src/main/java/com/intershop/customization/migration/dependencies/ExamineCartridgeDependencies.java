@@ -601,13 +601,13 @@ public class ExamineCartridgeDependencies implements MigrationPreparer
     /**
      * prints the dependency tree as JSON to the output file or console.<br/>
      * 
-     * @param dependencyxTree the dependency tree to print
+     * @param dependencyTree the dependency tree to print
      */
 
-    public <T> void printJSON(DependencyTree<Dependency> dependencyxTree)
+    public <T> void printJSON(DependencyTree<Dependency> dependencyTree)
     {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(dependencyxTree);
+        String json = gson.toJson(dependencyTree);
 
         printOut(json);
     }
