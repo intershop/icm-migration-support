@@ -43,11 +43,24 @@ public class FullCycleCollector
 
     /**
      * dependency bread crumbs for analysis<br/>
-     * NOTE: The environment variable <code>TEMP</code> must be declard,
-     * usually is set by the system.<br/>
+     * NOTE: The environment variable <code>TEMP</code> must be declard, 
+     * it is usually is set by the system.<br/>
+     * if not, the current path the tool is called from is used.
      */
-    private static Path dependencyBreadCrumbsFile = 
-        Paths.get(System.getenv("TEMP")+File.separator +"dependencyBreadCrumb.txt");
+    public static final String BREADCRUMBS_FILE_NAME = "dependencyBreadCrumb.txt";
+    private static  Path dependencyBreadCrumbsFile = Paths.get(BREADCRUMBS_FILE_NAME);
+    {
+        if(! System.getenv("TEMP").isEmpty())
+        {
+        Path dependencyBreadCrumbsFile = 
+            Paths.get(System.getenv("TEMP")+File.separator +BREADCRUMBS_FILE_NAME);
+        }
+        else {
+            // current path
+            Path dependencyBreadCrumbsFile = 
+                Paths.get("").toAbsolutePath().normalize().resolve(BREADCRUMBS_FILE_NAME);
+        }
+    }
 
     /**
      * Detects cycles in a directed graph represented by a list of strings.
@@ -189,7 +202,7 @@ public class FullCycleCollector
      * @param cycle List of strings representing a cycle.
      * @return   A normalized list of strings representing the cycle,
      */
-    private static List<String> normalizeCycle(List<String> cycle)
+    protected static List<String> normalizeCycle(List<String> cycle)
        {
         int n = cycle.size();
         int minIdx = 0;
@@ -243,10 +256,9 @@ public class FullCycleCollector
             }
         } catch (IOException e) 
         {
-            LOGGER.error("Error reading dependency bread crumbs file: {}", e.getMessage());
+            LOGGER.error("Error reading dependency bread crumbs file: {}- returning empty list, nothing to work with.", e.getMessage());
         }
         cartridgeCrumbs.removeIf(String::isEmpty); // Remove empty lines
-                cartridgeCrumbs.removeIf(String::isEmpty); // Remove empty lines
 
         return cartridgeCrumbs.stream().sorted().distinct().toList();
     }
@@ -287,7 +299,7 @@ public class FullCycleCollector
      * @param start the starting cartridge name 
      * @param target the target cartridge name
      */
-    private static boolean isReachable(
+    protected static boolean isReachable(
         Map<String, List<String>> graph, 
         String start, 
         String target
@@ -318,7 +330,7 @@ public class FullCycleCollector
      * @param node1 the name of the first cartridge
      * @param node2 the name of the second cartridge
      */
-    private static boolean hasMutualGraphDependency(List<String> paths, String node1, String node2)
+    protected static boolean hasMutualGraphDependency(List<String> paths, String node1, String node2)
     {
         // Build the graph from all paths
         Map<String, List<String>> graph = new HashMap<>();
