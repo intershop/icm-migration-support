@@ -1,5 +1,6 @@
 package com.intershop.customization.migration.common;
 
+import java.io.File;
 import java.nio.file.Path;
 
 /**
@@ -106,4 +107,22 @@ public interface MigrationPreparer
         }
         return resource.getName(resource.getNameCount() - 1).toString();
     }
+
+    /**
+     * Prepares the migration by executing some tasks before migrating the carteidges
+     * @param rootProject   the root project directory to prepare for migration
+     */
+    default void preMigrate(File rootProject)
+    {
+        // Default implementation does nothing
+    };
+
+    /**
+     * executes tasks to do after migrating the single carteidges
+     * @param rootProject   the root project directory to prepare for migration
+     */
+    default void postMigrate(File rootProject)
+    {
+        // Default implementation does nothing
+    };
 }
