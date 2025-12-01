@@ -1,9 +1,9 @@
-## AI Agent Migration & Project Guide (Updated Mirror)
+# AI Agent Migration & Project Guide (Updated Mirror)
 
-### 1. Scope & Audience
+## 1. Scope & Audience
 Applies to every cartridge. Ignore generated/build output (`bin/`, `build/`, `target/`). Focus only on source (`src/main/**`, `staticfiles/**`, legacy resources) and Gradle build scripts.
 
-### 2. Target Post-Migration Structure (per cartridge)
+## 2. Target Post-Migration Structure (per cartridge)
 ```
 <cartridge>/
   build.gradle.kts
@@ -27,7 +27,7 @@ Applies to every cartridge. Ignore generated/build output (`bin/`, `build/`, `ta
 ```
 Avoid alternative layouts like `src/main/resources/edl/<cartridge>` or `src/main/resources/<cartridge>/resources`.
 
-### 3. High-Level Migration Sequence
+## 3. High-Level Migration Sequence
 1. Convert `build.gradle` → `build.gradle.kts`.
 2. Replace dependency configurations & perform Jakarta namespace replacement.
 3. Move resources (staticfiles, EDL, queries, ISML, dbinit, pipelet descriptors)
@@ -37,7 +37,7 @@ Avoid alternative layouts like `src/main/resources/edl/<cartridge>` or `src/main
 7. Add required annotation processors and supplemental Jakarta dependencies.
 8. Remove obsolete files & legacy folders.
 
-### 4. Build Script Migration Essentials
+## 4. Build Script Migration Essentials
 Plugins mapping:
 | Old | New (Kotlin DSL) |
 |-----|------------------|
@@ -69,17 +69,17 @@ Do not duplicate with both `cartridge` and `cartridgeRuntime` for the same coord
 
 Move `displayname` inside of section `intershop` to `description` on top-level below `plugins`.
 
-### 5. Resource & Asset Migration Highlights
+## 5. Resource & Asset Migration Highlights
 Move from `staticfiles/cartridge/...` into `src/main/resources/resources/<cartridge>/...` and ISML to `src/main/isml/<cartridge>/...`.
 Flatten all `.edl` files into `.../edl` (no subfolders). Remove non-empty legacy directories.
 
-### 6. Pipelets
+## 6. Pipelets
 Ensure two artifacts:
 1. `pipeline/pipelets.resource`
 2. `pipeline/pipelets/*.xml`
 Missing mappings cause runtime errors. Rebuild after adding.
 
-### 7. Jakarta Migration Reminders
+## 7. Jakarta Migration Reminders
 Regex safe replace for imports:
 ```
 find: ^import javax\.(?!annotation\.processing)(.*);
@@ -87,7 +87,7 @@ replace: import jakarta.$1;
 ```
 Do not touch `javax.annotation.processing`.
 
-### 8. New Edge Cases & Resolutions
+## 8. New Edge Cases & Resolutions
 | Case | Symptom | Resolution |
 |------|---------|------------|
 | Outdated AuthorizationService instance name | `ComponentConfigurationException` referencing `intershop.B2CWebShop.RESTAPI.AuthorizationService` | Update fulfill to `intershop.WebShop.RESTAPI.AuthorizationService` and rebuild |
@@ -99,7 +99,7 @@ Do not touch `javax.annotation.processing`.
 | Missing pipelets.resource | Pipeline execution errors | Add file & descriptors under `pipeline/` |
 | EDL left nested | Runtime warnings / missing definitions | Flatten all `.edl` at `.../edl` |
 
-### 9. REST Components Naming Change
+## 9. REST Components Naming Change
 Modern platform instances use the `intershop.WebShop.RESTAPI.*` naming. Any legacy component fulfill referencing `intershop.B2CWebShop.*` or `intershop.B2BWebShop.*` must be updated.
 
 Additionally some other renamings have to be done in `*.component` files:
@@ -111,7 +111,7 @@ Additionally some other renamings have to be done in `*.component` files:
 
 Also check all `*.java` files if the following pattern is used `@Named("intershop.WebShop.RESTAPI.*")`. This has to be adapted accordingly.
 
-### 10. Change Registration of cartridges to application-specific cartridge lists
+## 10. Change Registration of cartridges to application-specific cartridge lists
 In case a cartridge contains files `app-extension.component` or `apps-extension.component` the content of this file must be splitted up and moved to different `apps.component` files in different `as_` cartridges.
 The location for the `apps.component` is `src/main/resources/resources/<cartridge>/components`.
 
@@ -127,7 +127,7 @@ When a line is moved, the cartridge must be added as runtime dependency in the `
 |intershop.SLDSystem.Cartridges|as_sldsystem_|
 |intershop.SMC.Cartridges|as_smc_|
 
-### 11. Dependency Configuration Clarification
+## 11. Dependency Configuration Clarification
 
 | Need | Use | Notes |
 |------|-----|-------|
@@ -137,7 +137,7 @@ When a line is moved, the cartridge must be added as runtime dependency in the `
 | Third-party library | `implementation("group:artifact:version")` | Keep versions centralized if possible |
 | Annotation processors | `annotationProcessor("com.intershop.platform:...")` | Only when required annotations present |
 
-### 12. Cleanup Checklist
+## 12. Cleanup Checklist
 * Delete obsolete `*.version` files in root directory
 * Delete legacy `build.gradle`
 * Delete `staticfiles/cartridge/*` except `configdef`
