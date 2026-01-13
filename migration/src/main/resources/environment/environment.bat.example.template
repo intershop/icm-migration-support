@@ -37,7 +37,7 @@ REM CALL echo {Azure Personal Access Token (PAT)} | az devops login --organizati
 :: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13: AdoptOpenJDK 21)
 ::
 "ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
-set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.6.7-hotspot
+set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot
 
 ::
 :: Configure the directory containing the license.xml (LICENSEDIR)
@@ -63,13 +63,12 @@ SET CONFIGDIR=%GRADLE_USER_HOME%\<rootProject.name in settings.gradle.kts>\conf
 SET WORKSPACE=D:\IntershopStudio\workspace
 
 REM IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
-REM IStudio versions recommended for ICM11/12/13: 4.30.2 (no official support for ICM13), 4.35.0 (latest GA), 4.36.0 (with AI support by GitHub Copilot)
+REM IStudio versions recommended for ICM11/12/13/14: 4.35.0 (latest GA), 4.38.0 (recommendend, with AI support by GitHub Copilot)
 REM Set aliases "openStudio*" and use a dedicated workspace for each IStudio version and project (and may be even branch)
 "ADJUST TO YOUR PATH AND WORKSPACE NAME IN THE LINES BELOW (and then comment out this line here)"
-doskey openStudio     = D:\IntershopStudio\IntershopStudio_4.36.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.36.0
-doskey openStudio4360 = D:\IntershopStudio\IntershopStudio_4.36.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.36.0
+doskey openStudio     = D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0
+doskey openStudio4380 = D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0
 doskey openStudio4350 = D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0
-doskey openStudio4302 = D:\IntershopStudio\IntershopStudio_4.30.2\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2
 
 ::
 :: dozzle - Docker log viewer - configured to host port 8888 by default. Check container "dozzle" is running in Docker Desktop, open http://localhost:8888 in browser.
@@ -118,7 +117,6 @@ echo --------------------------------------------------------------------------
 echo dozzle                           (docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest)
 echo --------------------------------------------------------------------------
 echo openStudio                       (open Intershop Studio:)
-echo openStudio4360                   (D:\IntershopStudio\IntershopStudio_4.36.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.36.0)
+echo openStudio4380                   (D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0)
 echo openStudio4350                   (D:\IntershopStudio\IntershopStudio_4.35.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.35.0)
-echo openStudio4302                   (D:\IntershopStudio\IntershopStudio_4.30.2\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.30.2)
 echo --------------------------------------------------------------------------
