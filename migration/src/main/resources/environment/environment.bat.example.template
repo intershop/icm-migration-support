@@ -40,6 +40,13 @@ REM CALL echo {Azure Personal Access Token (PAT)} | az devops login --organizati
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot
 
 ::
+:: Configure the directory containing the license.xml (LICENSEDIR)
+::
+REM LICENSEDIR=%GRADLE_USER_HOME%\icm-default\lic is the default path to license.xml,
+REM but license.xml is not used anymore in ICM11+
+REM SET LICENSEDIR=%GRADLE_USER_HOME%\icm-default\lic
+
+::
 :: Configure the directory containing the icm.properties (CONFIGDIR)
 ::
 REM The default path to icm.properties is: CONFIGDIR=%GRADLE_USER_HOME%\icm-default\conf
