@@ -47,13 +47,12 @@ export CONFIGDIR=$GRADLE_USER_HOME/<rootProject.name in settings.gradle.kts>/con
 export WORKSPACE=~/dev/<rootProject.name in settings.gradle.kts>/workspace
 
 # IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
-# IStudio versions recommended for ICM11/12/13: 4.30.2 (no official support for ICM13), 4.35.0 (latest GA), 4.36.0 (with AI support by GitHub Copilot)
+# IStudio versions recommended for ICM11/12/13/14: 4.35.0 (latest GA), 4.38.0 (recommendend, with AI support by GitHub Copilot)
 #
 # IStudio - set alias openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
-alias     openStudio='~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0'
-alias openStudio4360='~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0'
+alias     openStudio='~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0'
+alias openStudio4380='~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0'
 alias openStudio4350='~/dev/apps/IntershopStudio_4.35.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.35.0'
-alias openStudio4302='~/dev/apps/IntershopStudio_4.30.2/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.30.2'
 
 # dozzle - Docker log viewer - configured to host port 8888 by default.
 # Check container "dozzle" is running in Docker Desktop, open http://localhost:8888 in browser.
@@ -100,8 +99,7 @@ echo '--------------------------------------------------------------------------
 echo 'dozzle                           (docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest)'
 echo '--------------------------------------------------------------------------'
 echo 'openStudio                       (open Intershop Studio:)'
-echo 'openStudio4360                   (~/dev/apps/IntershopStudio_4.36.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.36.0)'
+echo 'openStudio4380                   (~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0)'
 echo 'openStudio4350                   (~/dev/apps/IntershopStudio_4.35.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.35.0)'
-echo 'openStudio4302                   (~/dev/apps/IntershopStudio_4.30.2/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.30.2)'
 echo '--------------------------------------------------------------------------'
 echo
