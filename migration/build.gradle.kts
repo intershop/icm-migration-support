@@ -14,6 +14,7 @@ dependencies {
     implementation("io.github.classgraph:classgraph")
     implementation("org.slf4j:slf4j-api")
     implementation("org.yaml:snakeyaml")
+	implementation("com.google.code.gson:gson")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
     runtimeOnly("ch.qos.logback:logback-classic")
 

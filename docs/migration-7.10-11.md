@@ -4,33 +4,35 @@ This document outlines the migration process from ICM 7.10 to ICM 11. It include
 
 ## Table of Contents
 
-- [Preparation Steps](#preparation-steps)
-  - [Prepare ICM 11 Template](#prepare-icm-11-template)
-  - [Verify ICM 11 Template](#verify-icm-11-template)
-  - [Prepare ICM 11 Branch](#prepare-icm-11-branch)
-- [Automated Migration Steps](#automated-migration-steps)
-  - [Remove Assembly Projects](#remove-assembly-projects)
-  - [Move Folder Structure](#move-folder-structure)
-  - [Move Additional Files](#move-additional-files)
-  - [Move Java Source Code](#move-java-source-code)
-  - [Convert build.gradle Files](#convert-buildgradle-files)
-  - [Convert to Cartridge Dependency](#convert-to-cartridge-dependency)
-  - [Rename Dependencies](#rename-dependencies)
-  - [Remove Obsolete Dependencies](#remove-obsolete-dependencies)
-  - [Move DB Prepare Files](#move-db-prepare-files)
-  - [Migrate Configuration Resources](#migrate-configuration-resources)
-  - [Migrate Version Information](#migrate-version-information)
-  - [Add Site Content Preparer](#add-site-content-preparer)
-  - [Rename Packages](#rename-packages)
-  - [Delete Obsolete Files](#delete-obsolete-files)
-  - [Create Environment Example Files](#create-environment-example-files)
-- [Manual Migration Steps](#manual-migration-steps)
-   - [Globally Defined Dependencies](#globally-defined-dependencies)
-   - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
-   - [Wiring Files Using the Configuration Framework](#wiring-files-using-the-configuration-framework)
-   - [Adapt Logback Configuration](#adapt-logback-configuration)
-   - [Check Remaining Static Files](#check-remaining-static-files)
-   - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
+- [ICM 7.10 to ICM 11 Migration Steps](#icm-710-to-icm-11-migration-steps)
+  - [Table of Contents](#table-of-contents)
+  - [Preparation Steps](#preparation-steps)
+    - [Prepare ICM 11 Template](#prepare-icm-11-template)
+    - [Verify ICM 11 Template](#verify-icm-11-template)
+    - [Prepare ICM 11 Branch](#prepare-icm-11-branch)
+  - [Automated Migration Steps](#automated-migration-steps)
+    - [Remove Assembly Projects](#remove-assembly-projects)
+    - [Move Folder Structure](#move-folder-structure)
+    - [Move Additional Files](#move-additional-files)
+    - [Move Java Source Code](#move-java-source-code)
+    - [Convert build.gradle Files](#convert-buildgradle-files)
+    - [Convert to Cartridge Dependency](#convert-to-cartridge-dependency)
+    - [Rename Dependencies](#rename-dependencies)
+    - [Remove Obsolete Dependencies](#remove-obsolete-dependencies)
+    - [Move DB Prepare Files](#move-db-prepare-files)
+    - [Migrate Configuration Resources](#migrate-configuration-resources)
+    - [Migrate Version Information](#migrate-version-information)
+    - [Add Site Content Preparer](#add-site-content-preparer)
+    - [Rename Packages](#rename-packages)
+    - [Delete Obsolete Files](#delete-obsolete-files)
+    - [Create Environment Example Files](#create-environment-example-files)
+  - [Manual Migration Steps](#manual-migration-steps)
+    - [Globally Defined Dependencies](#globally-defined-dependencies)
+    - [Remove Sites Folder Copy Tasks](#remove-sites-folder-copy-tasks)
+    - [Wiring Files Using the Configuration Framework](#wiring-files-using-the-configuration-framework)
+    - [Adapt Logback Configuration](#adapt-logback-configuration)
+    - [Check Remaining Static Files](#check-remaining-static-files)
+    - [Verify and Correct Dependencies](#verify-and-correct-dependencies)
 
 ## Preparation Steps
 
@@ -400,5 +402,100 @@ It is no longer relevant and has already been deleted.
 The backup of the generated cartridge list is important in this step since it is a helpful tool for verifying and correcting dependencies between cartridges.
 
 Each cartridge must be examined meticulously to determine its dependencies on other cartridges, and these dependencies must be documented in the respective `build.gradle.kts` file.
-This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare DBPrepare steps, and more.
+This applies to all source code artifacts, including component files, ISML templates, Java classes, property files that declare dbPrepare steps, and more.
 In summary, a dependency on another cartridge must be declared when additional code or output from that cartridge is necessary.
+
+The migration step "Examine Cartridge Dependencies" verifies the dependencies in the build.gradle.hts files, either for one or for all cartridges.
+
+From the migration tool directory run
+```
+$ICM/gradlew migration:migrateAll \
+-PnoAutoCommit \
+-Ptask=project \
+-Ptarget=$ICM \
+-Psteps=src/main/resources/migration/001_migration_7x10_to_11/911_ExamineCartridgeDependencies.yml \
+&& cat $TEMP/cartridgeAssignmentResults.txt
+```
+whereby
+`$ICM` points to the project code directory containing all cartridges and
+`$TEMP` has to be declared - usually it is set in the sytem environment.
+migrateAll means all, migrateOne a single cartridge to be analyzed.
+
+The following steps are done
+ 1. analyze the cartridge dependencies by scanning the `build.gradle.kts` files,
+ 2. check for curcular references in there, when running migrateAll  across all caridges,
+ 3. analyze the top level cartridges of the applications by scanning the `src/main/resources/resources/comonnts/app*.omponent` - this concerns the application definitions and extensions
+ 4. Check for marker cartridges, supposed to be in a certain application, but also in te dependencies  elsewhere, the result is stored ion `$MP/cartridgeAssignmentResults.txt`.
+
+The application at the top level cartridges and the maarker cartridges or each application are defined in the files
+```
+migration/src/main/resources/cartridgedependencies/apps_top_level_cartridges.properties
+migration/src/main/resources/cartridgedependencies/appmarker-cartridges.properties
+```
+
+In 911_ExamineCartridgeDependencies.yml`  the output format of the dependencies and the output file can be configured.
+```
+ns:
+  treeFormat: "TEXT" or "JSON"
+  treeOutputFile: ""
+```
+In case of "TEST" the output looks like
+```
+    as_smc_soennecken
+        bc_organization_customproject
+        ...
+        bc_platform_rest_customproject
+            com.intershop.platform:app
+            com.intershop.platform:bc_application
+            ...
+            jakarta.xml.bind:jakarta.xml.bind-api
+            com.google.inject:guice
+            org.slf4j:slf4j-api
+            jakarta.ws.rs:jakarta.ws.rs-api
+            io.swagger.core.v3:swagger-annotations-jakarta
+            jakarta.inject:jakarta.inject-api:1.0.3
+        bc_user_orm_soennecken
+        ...
+```
+In case of JSON for each cartridge a cartridge is described more detailed, a migrateOne sample gives the output
+
+```
+./gradlew migration:migrateOne \
+-PnoAutoCommit \
+-Ptask=project \
+-Ptarget=$ICM/bc_platform_rest_customproject
+-Psteps=src/main/resources/migration/001_migration_7x10_to_11/911_ExamineCartridgeDependencies.yml
+...
+{
+  "root": {
+    "value": {
+      "name": "customproject"
+      "dependencyType": "ROOT"
+    },
+    "children": [
+      {
+        "value": {
+          "name": "bc_platform_rest_customproject"
+          "dependencyType": "CARTRIDGE"
+        },
+        "children": [
+          {
+            "value": {
+              "name": "com.intershop.platform:app",
+              "artifactName": "build.gradle.kts",
+              "dependencyType": "UNKNOWN"
+            },
+            "children": []
+          },
+          ...
+```
+
+A `dependencyType` may be
+ - ROOT - Represents the root entry in the dependency tree.
+ - CARTRIDGE - Represents a cartridge dependency.
+ - ARTIFACT - Represents an artifact dependency, almost jar files
+ - COMPONENT - Represents a component dependency, used to resolve the dependencies declared by the component framework 
+ - LIBRARY - Represents a library dependency.
+ - Represents a package dependency.
+ - UNKNOWN - Represents an unknown dependency type.
+
