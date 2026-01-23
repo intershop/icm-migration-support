@@ -47,7 +47,7 @@ intershop.jdbc.password = !InterShop00!
 # See ISH=978-517: In environment YAML files for ICM, INTERSHOP_WEBSERVERSECUREURL and INTERSHOP_WEBSERVERURL are both configured to same value (https, port 443)
 # When setting up staging on a local DEV system: Set intershop.WebServerSecureURL to a http URL
 # (https requires a valid SSL certificate), accessible from the Live Docker container, e.g.: http://host.docker.internal:80
-# The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working) to Live for copying file system content.
+# The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working anymore in ICM11+) to Live for copying file system content.
 intershop.WebServerURL=https://mycomputer.ad.intershop.net:443
 intershop.WebServerSecureURL=https://mycomputer.ad.intershop.net:443
 
@@ -152,13 +152,9 @@ environment=development
 #intershop.environment.REPLICATION_CLUSTER_CONFIG=intershop.replication.cluster.configuration = /intershop/customizations/<rootProject.name in settings.gradle.kts>/cartridges/<replicationCartridge>/build/resources/main/resources/<replicationCartridge>/replication/replication-clusters.xml
 
 # When setting up staging on a local DEV system: Define URL of Edit to be used by Live.
-# A web server URL, which can optionally be used by staging processes.
-# If configured, this property sets the web server in the source system,
-# which has to be used to download file system content from.
-# If no value is set the standard web server URL
-# as configured in 'appserver.properties' is used (default).
-# Currently, staging.WebServerURL is not working! Use intershop.WebServerSecureURL (see above).
-#intershop.environment.STAGING_WEBSERVERURL=staging.WebServerURL=http://host.docker.internal:80
+# Because staging.WebServerURL is not working anymore in ICM11+,
+# the Edit system always sends its intershop.WebServerSecureURL to Live for copying file system content.
+# See intershop.WebServerSecureURL above.
 
 # When setting up staging on a local DEV system: Location for transfer of Solr indexes from Edit to Live.
 # Set solr.cloudBackupLocation to the same physical location for Edit and Live
