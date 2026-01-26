@@ -32,9 +32,6 @@ export GRADLE_USER_HOME=~/.gradle
 # Make sure OpenJDK 21 is used. (ICM11: OpenJDK 17, ICM12/13: OpenJDK 21)
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-21.0.7.0.6-2.el8.x86_64
 
-# Configure the directory containing the license.xml (LICENSEDIR)
-export LICENSEDIR=~/dev/<rootProject.name in settings.gradle.kts>
-
 # Configure the directory containing the icm.properties (CONFIGDIR)
 #
 # The default path to icm.properties is: CONFIGDIR=$GRADLE_USER_HOME/icm-default/conf
