@@ -143,7 +143,8 @@ mail.smtp.port=25
 
 environment=development
 
-# Prevent executing the embedded DBPrepare during application server startup
+# Prevent executing the embedded DBPrepare during application server startup.
+# Please use only for local DEV systems in case of issues with DBPrepare.
 #intershop.environment.NO_DB_PREPARE=intershop.preparation.embedded=false
 
 # When setting up staging on a local DEV system: staging.system.type = none|editing|live (default: none)
