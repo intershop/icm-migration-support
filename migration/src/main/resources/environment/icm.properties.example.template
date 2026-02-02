@@ -134,11 +134,9 @@ mail.smtp.port=25
 
 
 ###########################################################################################################
-# environment=development                                                                                 #
+# environment                                                                                             #
 # Extra container-related environment properties using intershop.environment.* (ISH_ENV_* in Helm charts) #
 # development properties                                                                                  #
-# Attention:                                                                                              #
-#  * intershop.template.CheckSource is very slow in Docker on Windows (WSL 2)!                            #
 ###########################################################################################################
 
 environment=development
@@ -171,7 +169,8 @@ intershop.queries.CheckSource=true
 intershop.pipelines.CheckSource=true
 intershop.pagelets.CheckSource=true
 intershop.webforms.CheckSource=true
-#intershop.template.CheckSource=true
+# Attention: intershop.template.CheckSource can be slow in Docker on Windows (WSL 2)!
+intershop.template.CheckSource=true
 ##intershop.template.CheckSourceModified=true (does not exist anymore in ICM11!)
 intershop.template.isfilebundle.CheckSource=true
 intershop.urlrewrite.CheckSource=true
