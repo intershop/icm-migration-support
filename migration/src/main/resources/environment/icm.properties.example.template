@@ -164,16 +164,19 @@ environment=development
 #intershop.environment.SOLR_CLOUDBACKUPLOCATION=solr.cloudBackupLocation=D:\\solr\\backup
 
 # switch auto reload on for all Intershop artifacts
-intershop.extensions.CheckSource=true
-intershop.queries.CheckSource=true
-intershop.pipelines.CheckSource=true
-intershop.pagelets.CheckSource=true
-intershop.webforms.CheckSource=true
-# Attention: intershop.template.CheckSource can be slow in Docker on Windows (WSL 2)!
-intershop.template.CheckSource=true
+# Attention:
+# - intershop.template.CheckSource can be slow in Docker on Windows (WSL 2)!
+# - Each CheckSource=true can cause much higher CPU load of Docker!
+#     - This can also be the case for hot code reloading/swapping.
+#intershop.extensions.CheckSource=true
+#intershop.queries.CheckSource=true
+#intershop.pipelines.CheckSource=true
+#intershop.pagelets.CheckSource=true
+#intershop.webforms.CheckSource=true
+#intershop.template.CheckSource=true
 ##intershop.template.CheckSourceModified=true (does not exist anymore in ICM11!)
-intershop.template.isfilebundle.CheckSource=true
-intershop.urlrewrite.CheckSource=true
+#intershop.template.isfilebundle.CheckSource=true
+#intershop.urlrewrite.CheckSource=true
 # enables the reloading of localization property files
 ##intershop.localization.CheckContent=true (does not exist anymore in ICM11!)
 
