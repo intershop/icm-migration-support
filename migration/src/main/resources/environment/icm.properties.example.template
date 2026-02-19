@@ -129,10 +129,6 @@ mail.smtp.host=host.docker.internal
 mail.smtp.port=25
 
 
-# Avoid error in IStudio on "build Gradle model": Could not create task ':startNGINX' / Missing or empty property 'nginx.cert.path' in your icm.properties
-#nginx.cert.path=C:/
-
-
 ###########################################################################################################
 # environment                                                                                             #
 # Extra container-related environment properties using intershop.environment.* (ISH_ENV_* in Helm charts) #
