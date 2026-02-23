@@ -12,4 +12,4 @@ options:
     "rewrite-recipes" : "rewrite.yml"
   log-map:
     # optional log message for the copied file
-    "rewrite-task" : "Created rewrite.gradle in root project. Adjust the file to your needs and execute 'gradle --init-script rewrite.gradle rewriteRun' afterwards."
+    "rewrite-task" : "Created rewrite.gradle in root project. Adjust the file to your needs and execute 'gradlew --init-script rewrite.gradle rewriteRun' afterwards."
