@@ -129,11 +129,12 @@ mail.smtp.host=host.docker.internal
 mail.smtp.port=25
 
 
-###########################################################################################################
-# environment                                                                                             #
-# Extra container-related environment properties using intershop.environment.* (ISH_ENV_* in Helm charts) #
-# development properties                                                                                  #
-###########################################################################################################
+####################################################################################################
+# environment                                                                                      #
+# Prefixed System Environment Variables intershop.environment.*                                    #
+#     (same as ISH_ENV_* in Helm charts, see document "Concept - Configuration" in Knowledge Base) #
+# development properties                                                                           #
+####################################################################################################
 
 environment=development
 
