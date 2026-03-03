@@ -16,7 +16,9 @@ dependencies {
         // load resources
 		api 'io.github.classgraph:classgraph:4.8.154'
         api 'org.slf4j:slf4j-api:1.7.36'
-    }
+
+        // json
+        api 'com.google.code.gson:gson:2.13.1'    }
 }
 
 def depConstraints = project.dependencies.constraints

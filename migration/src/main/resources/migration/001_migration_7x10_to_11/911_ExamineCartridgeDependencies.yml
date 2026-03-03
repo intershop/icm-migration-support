@@ -1,0 +1,7 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.dependencies.ExamineCartridgeDependencies
+message: "feat: examine cartridge dependencies"
+options:
+  treeFormat: "TEXT"
+  treeOutputFile: ""
+
