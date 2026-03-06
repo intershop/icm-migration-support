@@ -1,7 +1,7 @@
 # This file is just an example (DB, Solr and mail server installed on local/host machine instead of using Docker containers).
 # YOU HAVE TO ADAPT IT TO FIT YOUR ENVIRONMENT AND NEEDS!!!
 
-# Change default project prefix "<rootProject.name in settings.gradle.kts>" used for container names, volumes and network in Docker.
+# Default project prefix "<rootProject.name in settings.gradle.kts>" used for container names, volumes and network in Docker.
 # Underscores will be replaced with dashes, capital letters with lowercase.
 # Cannot be configured here! Needs to be done in settings.gradle.kts (and in your environment.bat/.sh, if you created one).
 # (In addition, containerProjectPrefix can be configured in build.gradle.kts, see https://github.com/IntershopCommunicationsAG/icm-docker-plugin)
@@ -9,8 +9,8 @@
 # rootProject.name = "<rootProject.name in settings.gradle.kts>"
 #containerProjectPrefix = <rootProject.name in settings.gradle.kts>
 
-# Database connection configuration, in case you use your own MS SQL server
-# In case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL), comment out below lines and see next section
+# Database connection configuration, used only in case you use your own MS SQL Server (otherwise comment out all lines in this section)
+# In case you use the MS SQL Server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL), comment out below lines and see next section
 # For analysis of issues please check:
 # Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_URL, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
 # SMC > Monitoring > Application Server > Configuration, scope "system", keys: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_
@@ -21,10 +21,11 @@ intershop.jdbc.url = jdbc:sqlserver://host.docker.internal:1433;databaseName=ish
 intershop.jdbc.user = intershop1
 intershop.jdbc.password = !InterShop00!
 
-# Database container configuration in case you use the MS SQL server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL)
-# The host port to be used for the MS SQL server database Docker container, which needs to be free on you local/host machine! (default: 1433)
+# Database container configuration, used only in case you use the MS SQL Server Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL) (otherwise comment out all lines in this section)
+# The host port to be used for the MS SQL Server database Docker container, which needs to be free on you local/host machine! (default: 1433)
 #intershop.db.container.mssql.hostport = 1433
 # Folder for DB data files (default: <project root folder>/build/data_folder)
+# Attention: "gradlew clean" removes <project root folder>/build completely! DB data files should be stored in another location.
 #data.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\data_folder
 # For more options see section "MSSQL": https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#mssql
 # The following keys are required (no defaults!) for the app server to connect to the database.
@@ -36,7 +37,7 @@ intershop.jdbc.password = !InterShop00!
 # folder for sites (default: <project root folder>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
 # Since important configuration is stored here (e.g. in root/1/solrcloud/), created during DBPrepare only,
 # deleting it can cause the app server to fail. Thus, storing it outside the project directory might be a good idea.
-# Attention: "gradlew clean" deletes (in addition to the cartridge build folders) the sites_folder, regardless of its location!
+# Attention: "gradlew clean" removes <project root folder>/build completely! The sites should be stored in another location.
 # When setting up staging on a local DEV system: Use different folders for sites on Edit and Live,
 # and keep in mind: If DB was copied, DBPrepare steps are not executed again and you end up with an empty sites folder,
 # then copy at least the content of root/1/solrcloud to get a working system.
