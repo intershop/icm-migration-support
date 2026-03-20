@@ -24,12 +24,9 @@ export GRADLE_USER_HOME=~/.gradle
 #   Hint: You can create one Azure Personal Access Token (PAT) for all your Azure DevOps (ADO) projects (Access scope: Global access / All accessible organizations)
 #  $GRADLE_USER_HOME/gradle.properties: localVersion=true
 #   (This is to avoid old code versions to be used by the app server and to avoid the messages during startAS like: "WARN: Found multiple jar files in: {cartridge}...")
+# Please do not confuse the $GRADLE_USER_HOME/gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
 
-# Optional: Check validity of your Azure Personal Access Token (PAT) for the Azure DevOps (ADO) organization <adoOrganizationName>
-# Attention: If it fails ("Failed to authenticate using the supplied token."), you cannot access this ADO organization anymore (https://dev.azure.com/<adoOrganizationName>/), even in the browser!
-#echo [your Azure Personal Access Token (PAT) here] | az devops login --organization https://dev.azure.com/<adoOrganizationName>/
-
-# Make sure OpenJDK 21 is used. (ICM11: OpenJDK 17, ICM12/13: OpenJDK 21)
+# Make sure OpenJDK 21 is used. (ICM11: OpenJDK 17, ICM12/13/14: OpenJDK 21)
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-21.0.7.0.6-2.el8.x86_64
 
 # Configure the directory containing the icm.properties (CONFIGDIR)
@@ -79,6 +76,10 @@ docker login docker.tools.intershop.com -u [your Intershop Docker registry Usern
 # Use Azure Command-Line Client to login into Azure and into Azure Container Registry
 az login
 az acr login --name <ishprjxxacr>
+
+# Optional: Check validity of your Azure Personal Access Token (PAT) for the Azure DevOps (ADO) organization <adoOrganizationName>
+# Attention: If it fails ("Failed to authenticate using the supplied token."), you cannot access this ADO organization anymore (https://dev.azure.com/<adoOrganizationName>/), even in the browser!
+#echo [your Azure Personal Access Token (PAT) here] | az devops login --organization https://dev.azure.com/<adoOrganizationName>/
 
 echo '--------------------------------------------------------------------------'
 echo 'gradlew startWebServer           (= startWA + startWAA, see https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#DockerPluginTasks)'

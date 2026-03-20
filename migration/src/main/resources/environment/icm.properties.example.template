@@ -27,7 +27,7 @@ intershop.jdbc.password = !InterShop00!
 # Folder for DB data files (default: <project root folder>/build/data_folder)
 # Attention: "gradlew clean" removes <project root folder>/build completely! DB data files should be stored in another location.
 #data.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\data_folder
-# For more options see section "MSSQL": https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#mssql
+# See (for MSSQL container options, sa-user password, name of the actual DB,...): https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#mssql
 # The following keys are required (no defaults!) for the app server to connect to the database.
 #intershop.databaseType = mssql
 #intershop.jdbc.url = jdbc:sqlserver://<rootProject.name in settings.gradle.kts>-mssql:1433;databaseName=icmtestdb
