@@ -27,14 +27,10 @@ REM %GRADLE_USER_HOME%\gradle.properties: repoPassword={Azure Personal Access To
 REM  Hint: You can create one Azure Personal Access Token (PAT) for all your Azure DevOps (ADO) projects (Access scope: Global access / All accessible organizations)
 REM %GRADLE_USER_HOME%\gradle.properties: localVersion=true
 REM  (This is to avoid old code versions to be used by the app server and to avoid the messages during startAS like: "WARN: Found multiple jar files in: {cartridge}...")
-
-REM Optional: Check validity of your Azure Personal Access Token (PAT) for the Azure DevOps (ADO) organization <adoOrganizationName>
-REM Attention: If it fails ("Failed to authenticate using the supplied token."), you cannot access this ADO organization anymore (https://dev.azure.com/<adoOrganizationName>/), even in the browser!
-REM ECHO "> echo ************************************************************************************ | az devops login --organization https://dev.azure.com/<adoOrganizationName>/"
-REM CALL echo {Azure Personal Access Token (PAT)} | az devops login --organization https://dev.azure.com/<adoOrganizationName>/
+REM Please do not confuse the %GRADLE_USER_HOME%\gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
 
 ::
-:: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13: AdoptOpenJDK 21)
+:: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13/14: AdoptOpenJDK 21)
 ::
 "ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot
@@ -92,6 +88,11 @@ ECHO ^> az login ("az" is the Azure Command-Line Interface (CLI / Azure Client))
 CALL az login
 ECHO ^> az acr login --name <ishprjxxacr> ("acr" is the Azure Container Registry)
 CALL az acr login --name <ishprjxxacr>
+
+REM Optional: Check validity of your Azure Personal Access Token (PAT) for the Azure DevOps (ADO) organization <adoOrganizationName>
+REM Attention: If it fails ("Failed to authenticate using the supplied token."), you cannot access this ADO organization anymore (https://dev.azure.com/<adoOrganizationName>/), even in the browser!
+REM ECHO "> echo ************************************************************************************ | az devops login --organization https://dev.azure.com/<adoOrganizationName>/"
+REM CALL echo {Azure Personal Access Token (PAT)} | az devops login --organization https://dev.azure.com/<adoOrganizationName>/
 
 echo(
 echo --------------------------------------------------------------------------
