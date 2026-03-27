@@ -46,11 +46,17 @@ intershop.jdbc.password = !InterShop00!
 # webserver configuration of the appserver
 # In ICM11, set intershop.WebServerURL to same value as intershop.WebServerSecureURL: https (port 443)
 # See ISH=978-517: In environment YAML files for ICM, INTERSHOP_WEBSERVERSECUREURL and INTERSHOP_WEBSERVERURL are both configured to same value (https, port 443)
-# When setting up staging on a local DEV system: Set intershop.WebServerSecureURL to a http URL
-# (https requires a valid SSL certificate), accessible from the Live Docker container, e.g.: http://host.docker.internal:80
+# When setting up staging on a local DEV system:
+# - Set intershop.WebServerSecureURL to a http URL, accessible from the Live Docker container, e.g.: http://host.docker.internal:80
+# - Or see below section on how to configure a valid SSL certificate, because https requires a valid SSL certificate
 # The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working anymore in ICM11+) to Live for copying file system content.
-intershop.WebServerURL=https://mycomputer.ad.intershop.net:443
-intershop.WebServerSecureURL=https://mycomputer.ad.intershop.net:443
+intershop.WebServerURL=https://mycomputer.dhcp.j.ad.intershop.net:443
+intershop.WebServerSecureURL=https://mycomputer.dhcp.j.ad.intershop.net:443
+
+# Configure a valid SSL certificate, required when calling e.g. https://mycomputer.dhcp.j.ad.intershop.net from code / a system, e.g. during staging
+#webServer.cert.path=D:\\gitlab.intershop.de\\IT\\wildcard-certificates\\wildcard_dhcp.j.ad.intershop.net
+#webserver.cert.server=fullchain.pem
+#webserver.cert.privatekey=privkey.pem
 
 # webserver configuration
 webserver.http.port = 80
@@ -92,7 +98,7 @@ intershop.local.hostname = host.docker.internal
 # SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: solr.
 # In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
 solr.zooKeeperHostList = host.docker.internal:9983
-solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>
+solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>_
 # Local/host path for Solr data in Docker container <rootProject.name in settings.gradle.kts>-solr
 #solr.data.folder.path = 
 
@@ -155,6 +161,10 @@ environment=development
 # Because staging.WebServerURL is not working anymore in ICM11+,
 # the Edit system always sends its intershop.WebServerSecureURL to Live for copying file system content.
 # See intershop.WebServerSecureURL above.
+
+# Business Object Replication: Avoid "RedirectionException: HTTP 302 Found".
+# Prevent redirect to https by setting SecureAccessOnly=false in the Live system.
+#intershop.environment.SECUREACCESSONLY=SecureAccessOnly=false
 
 # When setting up staging on a local DEV system: Location for transfer of Solr indexes from Edit to Live.
 # Set solr.cloudBackupLocation to the same physical location for Edit and Live
