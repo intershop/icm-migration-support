@@ -50,6 +50,7 @@ intershop.jdbc.password = !InterShop00!
 # - Set intershop.WebServerSecureURL to a http URL, accessible from the Live Docker container, e.g.: http://host.docker.internal:80
 # - Or see below section on how to configure a valid SSL certificate, because https requires a valid SSL certificate
 # The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working anymore in ICM11+) to Live for copying file system content.
+# Attention: When used for a payment redirect URL, http may cause unexpected behavior.
 intershop.WebServerURL=https://mycomputer.dhcp.j.ad.intershop.net:443
 intershop.WebServerSecureURL=https://mycomputer.dhcp.j.ad.intershop.net:443
 
