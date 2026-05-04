@@ -1,5 +1,7 @@
 # This file is just an example (DB, Solr and mail server installed on local/host machine instead of using Docker containers).
 # YOU HAVE TO ADAPT IT TO FIT YOUR ENVIRONMENT AND NEEDS!!!
+# See also: Section "Configuration properties file" in the "Docker Plugins" documentation: https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#PropertiesFile
+# See also: Configuration keys and default values: https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/src/main/kotlin/com/intershop/gradle/icm/docker/utils/Configuration.kt
 
 # Default project prefix "<rootProject.name in settings.gradle.kts>" used for container names, volumes and network in Docker.
 # Underscores will be replaced with dashes, capital letters with lowercase.
