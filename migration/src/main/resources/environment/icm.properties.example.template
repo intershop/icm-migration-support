@@ -148,6 +148,12 @@ mail.smtp.port=25
 
 environment=development
 
+# intershop.InstallationID / IS_INSTALLATION (usually used by log files)
+# In ICM standard there is mapping: intershop.InstallationID = ${IS_INSTALLATION}
+# IS_INSTALLATION should also be defined in environments Helm charts as:
+#     icm-as.environment.IS_INSTALLATION (as something like: <rootProject.name in settings.gradle.kts>-int-live)
+intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in settings.gradle.kts>-mycomputer-local-dev-system
+
 # Prevent executing the embedded DBPrepare during application server startup.
 # Please use only for local DEV systems in case of issues with DBPrepare.
 #intershop.environment.NO_DB_PREPARE=intershop.preparation.embedded=false
