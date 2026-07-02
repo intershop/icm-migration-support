@@ -30,7 +30,7 @@ intershop.jdbc.password = !InterShop00!
 # Attention: "gradlew clean" removes <project root folder>/build completely! DB data files should be stored in another location.
 #data.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\data_folder
 # See (for MSSQL container options, sa-user password, name of the actual DB,...): https://github.com/IntershopCommunicationsAG/icm-docker-plugin/blob/master/README.asciidoc#mssql
-# The following keys are required (no defaults!) for the app server to connect to the database.
+# The following keys are required (no defaults!) for the appserver to connect to the database.
 #intershop.databaseType = mssql
 #intershop.jdbc.url = jdbc:sqlserver://<rootProject.name in settings.gradle.kts>-mssql:1433;databaseName=icmtestdb
 #intershop.jdbc.user = intershop
@@ -38,7 +38,7 @@ intershop.jdbc.password = !InterShop00!
 
 # folder for sites (default: <project root folder>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
 # Since important configuration is stored here (e.g. in root/1/solrcloud/), created during DBPrepare only,
-# deleting it can cause the app server to fail. Thus, storing it outside the project directory might be a good idea.
+# deleting it can cause the appserver to fail. Thus, storing it outside the project directory might be a good idea.
 # Attention: "gradlew clean" removes <project root folder>/build completely! The sites should be stored in another location.
 # When setting up staging on a local DEV system: Use different folders for sites on Edit and Live,
 # and keep in mind: If DB was copied, DBPrepare steps are not executed again and you end up with an empty sites folder,
@@ -146,7 +146,13 @@ mail.smtp.port=25
 # development properties                                                                           #
 ####################################################################################################
 
-environment=development
+environment=dev
+
+# Above "environment" corresponds to "environmentName" in the INT/UAT/PRD Helm charts
+# and both is made available as system environment variable ENVIRONMENT, accessible in the appserver configuration as "environment".
+# To make below "environment.type" also available on INT/UAT/PRD, define it in the Helm charts as icm-as.environment.ENVIRONMENT_TYPE.
+# Do not change operationalContext.environmentType as it is restricted to {int,uat,prd}, used by OPS and not accessible in the appserver.
+intershop.environment.ENVIRONMENT_TYPE=environment.type=development
 
 # intershop.InstallationID / IS_INSTALLATION (usually used by log files)
 # In ICM standard there is mapping: intershop.InstallationID = ${IS_INSTALLATION}
@@ -154,7 +160,7 @@ environment=development
 #     icm-as.environment.IS_INSTALLATION (as something like: <rootProject.name in settings.gradle.kts>-int-live)
 intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in settings.gradle.kts>-mycomputer-local-dev-system
 
-# Prevent executing the embedded DBPrepare during application server startup.
+# Prevent executing the embedded DBPrepare during appserver startup.
 # Please use only for local DEV systems in case of issues with DBPrepare.
 #intershop.environment.NO_DB_PREPARE=intershop.preparation.embedded=false
 
@@ -162,7 +168,7 @@ intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in setti
 #intershop.environment.STAGINGTYPE=staging.system.type=editing
 
 # When setting up staging on a local DEV system: Define the location of the replication-clusters.xml
-# Please make sure the path exists in your app server (in the Docker container).
+# Please make sure the path exists in your appserver (in the Docker container).
 # It contains the container project prefix (/intershop/customizations/<containerProjectPrefix>/cartridges/...), that might be different in Edit and Live!
 #intershop.environment.REPLICATION_CLUSTER_CONFIG=intershop.replication.cluster.configuration = /intershop/customizations/<rootProject.name in settings.gradle.kts>/cartridges/<replicationCartridge>/build/resources/main/resources/<replicationCartridge>/replication/replication-clusters.xml
 
@@ -177,8 +183,12 @@ intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in setti
 
 # When setting up staging on a local DEV system: Location for transfer of Solr indexes from Edit to Live.
 # Set solr.cloudBackupLocation to the same physical location for Edit and Live
-# Keep in mind: This location is accessed by the Solr server(s), not by the ICM app servers
+# Keep in mind: This location is accessed by the Solr server(s), not by the ICM appservers
 #intershop.environment.SOLR_CLOUDBACKUPLOCATION=solr.cloudBackupLocation=D:\\solr\\backup
+
+# Configure if inconsistent indexes should be rebuild on Edit during the replication - before the backup.
+# (For solr.* properties see ac_solr_cloud.properties in ac_solr_cloud-*.jar in %GRADLE_USER_HOME%\caches)
+#intershop.environment.SOLR_REBUILDINCONSISTENTINDEXES=solr.RebuildInconsistentIndexes=true
 
 # switch auto reload on for all Intershop artifacts
 # Attention:

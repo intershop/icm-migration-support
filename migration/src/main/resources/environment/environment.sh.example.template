@@ -14,16 +14,15 @@
 #
 ##############################################################################
 
-# Make sure GRADLE_USER_HOME is defined
-#  Hint: You can either have a single GRADLE_USER_HOME for all your projects (mostly the case) or separate GRADLE_USER_HOMEs for each project (recommended)
+# Make sure GRADLE_USER_HOME is defined and set repoUser/repoPassword and localVersion in your $GRADLE_USER_HOME/gradle.properties
+#  Hint: Due to the Azure Personal Access Token (PAT) it is strongly recommended to have separate GRADLE_USER_HOMEs for each project!
+#  Recommendation: Use one GRADLE_USER_HOME per Azure DevOps (ADO) organization, e.g.: export GRADLE_USER_HOME=~/.gradle/<adoOrganizationName>
 export GRADLE_USER_HOME=~/.gradle
 
 # Set repoUser/repoPassword as well as localVersion in your $GRADLE_USER_HOME/gradle.properties
 #  $GRADLE_USER_HOME/gradle.properties: repoUser=[your Azure DevOps user name here] (e.g. XXxxxxxx@intershop.com)
 #  $GRADLE_USER_HOME/gradle.properties: repoPassword=[your Azure Personal Access Token (PAT) here] (e.g. ekp**********************************************rnq)
-#   Hint: You can create one Azure Personal Access Token (PAT) for all your Azure DevOps (ADO) projects (Access scope: Global access / All accessible organizations)
-#  $GRADLE_USER_HOME/gradle.properties: localVersion=true
-#   (This is to avoid old code versions to be used by the app server and to avoid the messages during startAS like: "WARN: Found multiple jar files in: {cartridge}...")
+#  $GRADLE_USER_HOME/gradle.properties: localVersion=true (to avoid use of old JARs / startAS messages: "WARN: Found multiple jar files in: {cartridge}...")
 # Please do not confuse the $GRADLE_USER_HOME/gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
 
 # Make sure OpenJDK 21 is used. (ICM11: OpenJDK 17, ICM12/13/14: OpenJDK 21)
@@ -41,11 +40,12 @@ export CONFIGDIR=$GRADLE_USER_HOME/<rootProject.name in settings.gradle.kts>/con
 export WORKSPACE=~/dev/<rootProject.name in settings.gradle.kts>/workspace
 
 # IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
-# IStudio versions recommended for ICM11/12/13/14 (as of 2026-Feb-26): 4.38.0 (latest GA, with AI support by GitHub Copilot)
+# IStudio versions recommended for ICM11/12/13/14 (as of 2026-Jul-01): 4.39.1 (latest GA)
 #
 # IStudio - set alias openStudio and use a dedicated workspace for each IStudio version and project (and may be even branch)
-alias     openStudio='~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0'
-alias openStudio4380='~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0'
+alias     openStudio='~/dev/apps/IntershopStudio_4.39.1/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.39.1'
+alias openStudio4391='~/dev/apps/IntershopStudio_4.39.1/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.39.1'
+alias openStudio4400='~/dev/apps/IntershopStudio_4.40.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.40.0'
 
 # dozzle - Docker log viewer - configured to host port 8888 by default.
 # Check container "dozzle" is running in Docker Desktop, open http://localhost:8888 in browser.
@@ -96,6 +96,7 @@ echo '--------------------------------------------------------------------------
 echo 'dozzle                           (docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest)'
 echo '--------------------------------------------------------------------------'
 echo 'openStudio                       (open Intershop Studio:)'
-echo 'openStudio4380                   (~/dev/apps/IntershopStudio_4.38.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.38.0)'
+echo 'openStudio4391                   (~/dev/apps/IntershopStudio_4.39.1/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.39.1)'
+echo 'openStudio4400                   (~/dev/apps/IntershopStudio_4.40.0/IntershopStudio -data $WORKSPACE/<rootProject.name in settings.gradle.kts>_IStudio4.40.0)'
 echo '--------------------------------------------------------------------------'
 echo

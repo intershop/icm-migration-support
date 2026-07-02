@@ -17,22 +17,21 @@
 @echo off
 
 ::
-:: Make sure GRADLE_USER_HOME is defined: dir %GRADLE_USER_HOME%
-:: Set repoUser/repoPassword as well as localVersion in your %GRADLE_USER_HOME%\gradle.properties
+:: Make sure GRADLE_USER_HOME is defined and set repoUser/repoPassword and localVersion in your %GRADLE_USER_HOME%\gradle.properties
 ::
-"ADJUST YOUR gradle.properties (and then comment out this line here)"
-REM  Hint: You can either have a single GRADLE_USER_HOME for all your projects (mostly the case) or separate GRADLE_USER_HOMEs for each project (recommended)
+REM Hint: Due to the Azure Personal Access Token (PAT) it is strongly recommended to have separate GRADLE_USER_HOMEs for each project!
+REM Recommendation: Use one GRADLE_USER_HOME per Azure DevOps (ADO) organization
 REM %GRADLE_USER_HOME%\gradle.properties: repoUser={Azure DevOps user name} (e.g. XXxxxxxx@intershop.com)
 REM %GRADLE_USER_HOME%\gradle.properties: repoPassword={Azure Personal Access Token (PAT)} (e.g. ekp**********************************************rnq)
-REM  Hint: You can create one Azure Personal Access Token (PAT) for all your Azure DevOps (ADO) projects (Access scope: Global access / All accessible organizations)
-REM %GRADLE_USER_HOME%\gradle.properties: localVersion=true
-REM  (This is to avoid old code versions to be used by the app server and to avoid the messages during startAS like: "WARN: Found multiple jar files in: {cartridge}...")
+REM %GRADLE_USER_HOME%\gradle.properties: localVersion=true (to avoid use of old JARs / startAS messages: "WARN: Found multiple jar files in: {cartridge}...")
 REM Please do not confuse the %GRADLE_USER_HOME%\gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
+ADJUST-TO-YOUR-PATH-AND-CREATE-OR-ADJUST-THE gradle.properties IN-THIS-PATH-and-then-comment-out-this-line-here
+SET GRADLE_USER_HOME=D:\gradle_user_home\<adoOrganizationName>
 
 ::
 :: Verify AdoptOpenJDK 21 is used. (ICM11: AdoptOpenJDK 17, ICM12/13/14: AdoptOpenJDK 21)
 ::
-"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+ADJUST-TO-YOUR-PATH-IN-THE-LINE-BELOW-and-then-comment-out-this-line-here
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.9.10-hotspot
 
 ::
@@ -42,21 +41,22 @@ REM The default path to icm.properties is: CONFIGDIR=%GRADLE_USER_HOME%\icm-defa
 REM But since you can have more than one ICM11+ project on your computer and more than one app server per project,
 REM it is recommended to use project / Docker container specific icm.properties file locations!
 REM You should use the rootProject.name defined in settings.gradle.kts (also used as containerProjectPrefix for the Docker containers).
-"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+ADJUST-TO-YOUR-PATH-IN-THE-LINE-BELOW-and-then-comment-out-this-line-here
 SET CONFIGDIR=%GRADLE_USER_HOME%\<rootProject.name in settings.gradle.kts>\conf
 
 ::
 :: IStudio WORKSPACE and aliases/doskeys
 ::
-"ADJUST TO YOUR PATH IN THE LINE BELOW (and then comment out this line here)"
+ADJUST-TO-YOUR-PATH-IN-THE-LINE-BELOW-and-then-comment-out-this-line-here
 SET WORKSPACE=D:\IntershopStudio\workspace
 
 REM IStudio releases: https://knowledge.intershop.com/prd/index.php/Product/41762aa5-2396-11e9-a617-0050568a6a29
-REM IStudio versions recommended for ICM11/12/13/14 (as of 2026-Feb-26): 4.38.0 (latest GA, with AI support by GitHub Copilot)
+REM IStudio versions recommended for ICM11/12/13/14 (as of 2026-Jul-01): 4.39.1 (latest GA)
 REM Set aliases "openStudio*" and use a dedicated workspace for each IStudio version and project (and may be even branch)
-"ADJUST TO YOUR PATH AND WORKSPACE NAME IN THE LINES BELOW (and then comment out this line here)"
-doskey openStudio     = D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0
-doskey openStudio4380 = D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0
+ADJUST-TO-YOUR-PATH-AND-WORKSPACE-NAME-IN-THE-LINES-BELOW-and-then-comment-out-this-line-here
+doskey openStudio     = D:\IntershopStudio\IntershopStudio_4.39.1\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.39.1
+doskey openStudio4391 = D:\IntershopStudio\IntershopStudio_4.39.1\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.39.1
+doskey openStudio4400 = D:\IntershopStudio\IntershopStudio_4.40.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.40.0
 
 ::
 :: dozzle - Docker log viewer - configured to host port 8888 by default. Check container "dozzle" is running in Docker Desktop, open http://localhost:8888 in browser.
@@ -72,7 +72,7 @@ PROMPT $D$H$H$H$H $T$H$H$H %IS_INSTALLATION%$B$P$G
 ::
 :: See https://knowledge.intershop.com/kb/index.php/Display/30669A "Guide - Access to Intershop Docker Images"
 ::
-"ADJUST TO YOUR Intershop Docker registry https://docker.tools.intershop.com (Harbor) "Username" AND "CLI secret" IN THE LINE BELOW (and then comment out this line here)"
+ADJUST-TO-YOUR-Intershop-Docker-registry https://docker.tools.intershop.com (Harbor) "Username" AND "CLI secret" IN-THE-LINE-BELOW-and-then-comment-out-this-line-here
 ECHO docker login docker.tools.intershop.com -u {your Intershop Docker registry Username, e.g. X.Xxxxxxx@intershop.de} -p ********************************
 docker login docker.tools.intershop.com -u {your Intershop Docker registry Username, e.g. X.Xxxxxxx@intershop.de} -p {your Intershop Docker registry CLI secret}
 
@@ -110,5 +110,6 @@ echo --------------------------------------------------------------------------
 echo dozzle                           (docker run --name dozzle --detach --volume=/var/run/docker.sock:/var/run/docker.sock -p 8888:8080 amir20/dozzle:latest)
 echo --------------------------------------------------------------------------
 echo openStudio                       (open Intershop Studio:)
-echo openStudio4380                   (D:\IntershopStudio\IntershopStudio_4.38.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.38.0)
+echo openStudio4391                   (D:\IntershopStudio\IntershopStudio_4.39.1\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.39.1)
+echo openStudio4400                   (D:\IntershopStudio\IntershopStudio_4.40.0\IntershopStudio.exe -data %WORKSPACE%\<rootProject.name in settings.gradle.kts>_IStudio4.40.0)
 echo --------------------------------------------------------------------------
