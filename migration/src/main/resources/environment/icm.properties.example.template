@@ -71,14 +71,6 @@ webserver.https.port = 443
 # This is a host port (Docker container external port), default: 7743, change it in case of port collisions
 #intershop.servletEngine.connector.port = 10050
 
-# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.connector.port; the host port to be used for the appserver service connector http port
-# This is a container port (Docker container internal port), do not change!
-#intershop.as.connector.port = 7743
-
-# https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.managementConnector.port; the host port to be used for the appserver management connector http port
-# This is a container port (Docker container internal port), do not change!
-#intershop.as.managementConnector.port = 7744
-
 # https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.servletEngine.managementConnector.port; the container port to be used for the appserver management connector http port (normally no need to change)
 # This is a host port (Docker container external port), default: 7744, change it in case of port collisions
 #intershop.servletEngine.managementConnector.port = 7744
@@ -86,6 +78,11 @@ webserver.https.port = 443
 # https://github.com/IntershopCommunicationsAG/icm-docker-plugin#dbprepare: intershop.as.jmx.connector.port; the host port to be used for the appserver JMX port
 # This is a host port (Docker container external port), default: 7747, change it in case of port collisions
 #intershop.as.jmx.connector.port = 7747
+
+# Use icm-as-test instead of icm-as (default: true), can be checked on INT/UAT/PRD and local DEV systems at /intershop/cartridges: *_test* cartridges vs. no *_test* cartridges
+# In the INT/UAT/PRD Helm charts this configuration is done in another way, see under YAML path icm-as.image.repository
+# Please keep in mind: This has nothing to do with the cartridge list!
+#intershop.as.use.testimage = false
 
 # local host configuration (the hostname or the IP of the local machine)
 # this is not always 'localhost'.
@@ -104,22 +101,6 @@ solr.zooKeeperHostList = host.docker.internal:9983
 solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>_
 # Local/host path for Solr data in Docker container <rootProject.name in settings.gradle.kts>-solr
 #solr.data.folder.path = 
-
-intershop.smc.admin.user.name = admin
-intershop.smc.admin.user.password = !InterShop00!
-
-# disable the ssl verification of the webserver
-disable.ssl.verification = true
-
-# geb.local.environment = chromePC
-# geb.local.driver = chromeDriver
-
-# Readiness probe during startAS-task
-# number of seconds between requests to http://<hostname>:<port>/status/ReadinessProbe (optional, default=30)
-#intershop.as.readinessProbe.interval = 30
-# max. number of seconds between start of probing and finally given up assuming that the start failed
-# (optional, default=6000)
-#intershop.as.readinessProbe.timeout = 30
 
 # To enable Remote Java Application debugging in IStudio:
 # 1. Set Java debug port here
