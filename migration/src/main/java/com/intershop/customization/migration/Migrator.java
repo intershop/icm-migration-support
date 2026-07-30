@@ -150,6 +150,7 @@ public class Migrator
             {
                 return;
             }
+            migrator.preMigrate(rootProject);
             for (File cartridgeDir : files)
             {
                 if (cartridgeDir.isDirectory() && !cartridgeDir.getName().startsWith(".")
@@ -158,6 +159,7 @@ public class Migrator
                     migrator.migrate(cartridgeDir.toPath(), context);
                 }
             }
+            migrator.postMigrate(rootProject);
             gitRepository.ifPresent(r -> commitChanges(r, step));
         }
 
