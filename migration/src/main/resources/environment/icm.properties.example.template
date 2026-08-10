@@ -46,12 +46,12 @@ intershop.jdbc.password = !InterShop00!
 #sites.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\sites_folder
 
 # webserver configuration of the appserver
-# In ICM11, set intershop.WebServerURL to same value as intershop.WebServerSecureURL: https (port 443)
+# In ICM 11+, set intershop.WebServerURL to the same value as intershop.WebServerSecureURL: A https URL
 # See ISH=978-517: In environment YAML files for ICM, INTERSHOP_WEBSERVERSECUREURL and INTERSHOP_WEBSERVERURL are both configured to same value (https, port 443)
 # When setting up staging on a local DEV system:
 # - Set intershop.WebServerSecureURL to a http URL, accessible from the Live Docker container, e.g.: http://host.docker.internal:80
 # - Or see below section on how to configure a valid SSL certificate, because https requires a valid SSL certificate
-# The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working anymore in ICM11+) to Live for copying file system content.
+# The Edit system sends its intershop.WebServerSecureURL (because staging.WebServerURL is not working anymore in ICM 11+) to Live for copying file system content.
 # Attention: When used for a payment redirect URL, http may cause unexpected behavior.
 intershop.WebServerURL=https://mycomputer.dhcp.j.ad.intershop.net:443
 intershop.WebServerSecureURL=https://mycomputer.dhcp.j.ad.intershop.net:443
@@ -86,7 +86,7 @@ webserver.https.port = 443
 
 # local host configuration (the hostname or the IP of the local machine)
 # this is not always 'localhost'.
-# Because it is also used as Configuration Servlet URL 'cs.url.0' inside the waa (Web Adapter Agent) container,
+# Because it is also used as Configuration Servlet URL 'cs.url.0' inside the wa (Web Server / Web Adapter) container,
 # the hostname might not work! If host.docker.internal does not work (for solr or mailsrv container or Geb/RestTests), use the IP of the local machine.
 intershop.local.hostname = host.docker.internal
 
@@ -154,7 +154,7 @@ intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in setti
 #intershop.environment.REPLICATION_CLUSTER_CONFIG=intershop.replication.cluster.configuration = /intershop/customizations/<rootProject.name in settings.gradle.kts>/cartridges/<replicationCartridge>/build/resources/main/resources/<replicationCartridge>/replication/replication-clusters.xml
 
 # When setting up staging on a local DEV system: Define URL of Edit to be used by Live.
-# Because staging.WebServerURL is not working anymore in ICM11+,
+# Because staging.WebServerURL is not working anymore in ICM 11+,
 # the Edit system always sends its intershop.WebServerSecureURL to Live for copying file system content.
 # See intershop.WebServerSecureURL above.
 
@@ -182,11 +182,11 @@ intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in setti
 #intershop.pagelets.CheckSource=true
 #intershop.webforms.CheckSource=true
 #intershop.template.CheckSource=true
-##intershop.template.CheckSourceModified=true (does not exist anymore in ICM11!)
+##intershop.template.CheckSourceModified=true (does not exist anymore in ICM 11+!)
 #intershop.template.isfilebundle.CheckSource=true
 #intershop.urlrewrite.CheckSource=true
 # enables the reloading of localization property files
-##intershop.localization.CheckContent=true (does not exist anymore in ICM11!)
+##intershop.localization.CheckContent=true (does not exist anymore in ICM 11+!)
 
 # switch all preload functionality off
 # Attention: Empty properties are not copied to Server environment!
@@ -195,13 +195,13 @@ intershop.pipelines.PreloadFromCartridges=none
 intershop.pipelines.PreloadFromSites=none
 # Attention: Empty properties are not copied to Server environment!
 intershop.pipelets.PreloadFromCartridges=none
-##intershop.template.CompileOnStartup=false (does not exist anymore in ICM11!)
+##intershop.template.CompileOnStartup=false (does not exist anymore in ICM 11+!)
 intershop.webforms.Preload=false
 intershop.queries.Preload=false
 
 # use strict modes in pipeline engine
 intershop.pipelines.strict.CheckParameterTypes=true
-##intershop.pipelets.OnLoadError=Exception (does not exist anymore in ICM11!)
+##intershop.pipelets.OnLoadError=Exception (does not exist anymore in ICM 11+!)
 
 # switch all runtime sensors on
 intershop.monitoring.requests=true
@@ -215,7 +215,7 @@ intershop.monitoring.class=true
 intershop.monitoring.maxSensors=100000
 
 # developer's helpers
-##intershop.template.PrintTemplateName=true (does not exist anymore in ICM11!)
+##intershop.template.PrintTemplateName=true (does not exist anymore in ICM 11+!)
 intershop.template.PrintTemplateMarker=true
 intershop.session.TimeOut=300
-##intershop.CSRFGuard.allowRecovery=true (does not exist anymore in ICM11!)
+##intershop.CSRFGuard.allowRecovery=true (does not exist anymore in ICM 11+!)
