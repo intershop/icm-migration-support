@@ -359,7 +359,7 @@ public class CfgResourceConverter
                     {
                         targetLines.add(targetLine);
                     }
-                    targetEntry = new ArrayList<String>();
+                    targetEntry.clear();
                 }
             }
         }
@@ -457,7 +457,7 @@ public class CfgResourceConverter
                     {
                         targetLines.add(targetLine);
                     }
-                    targetEntry = new ArrayList<String>();
+                    targetEntry.clear();
                 }
             }
         }
@@ -482,7 +482,9 @@ public class CfgResourceConverter
      * Unfortunately you cannot quote a > inside a key/name, because pf_configuration_fs does not support any quoting. (Only java.util.Properties supports it, before handing over the keys to the application.)
      * Example quoting:
      * - "My Parameter Name" --> "My\ Parameter\u0020Name"
-     * 
+     *
+     * Currently, only spaces are quoted: " " --> "\ "
+     *
      * @param key the property key to quote
      * @return the quoted property key
      */
