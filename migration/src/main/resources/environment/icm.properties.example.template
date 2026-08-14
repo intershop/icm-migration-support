@@ -37,12 +37,10 @@ intershop.jdbc.password = !InterShop00!
 #intershop.jdbc.password = intershop
 
 # folder for sites (default: <project root folder>/build/sites_folder; formerly in IS7.10: $IS_SHARE/sites)
-# Since important configuration is stored here (e.g. in root/1/solrcloud/), created during DBPrepare only,
-# deleting it can cause the appserver to fail. Thus, storing it outside the project directory might be a good idea.
-# Attention: "gradlew clean" removes <project root folder>/build completely! The sites should be stored in another location.
+# Its content is created during DBPrepare (SiteContentPreparer), but preparers are executed only once. Thus, it is not restored when deleted!
+# And because "gradlew clean" removes <project root folder>/build completely, the sites should be stored in another location.
 # When setting up staging on a local DEV system: Use different folders for sites on Edit and Live,
-# and keep in mind: If DB was copied, DBPrepare steps are not executed again and you end up with an empty sites folder,
-# then copy at least the content of root/1/solrcloud to get a working system.
+# and keep in mind: If DB was copied, DBPrepare steps are not executed again and you may end up with an empty sites folder.
 #sites.folder.path = D:\\ICM\\<rootProject.name in settings.gradle.kts>_dev\\sites_folder
 
 # webserver configuration of the appserver
