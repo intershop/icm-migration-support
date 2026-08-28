@@ -434,6 +434,8 @@ public class CfgResourceConverter
                     String attributeName = targetEntry.get(1);
                     jobName       = quotePropertyKey(jobName); // Escape spaces in job name, because it is used as part of a property key in a properties file
                     attributeName = quotePropertyKey(attributeName); // Escape spaces in attribute name, because it is used as part of a property key in a properties file
+                    // ICM 7.10 uses "EnabledFlag" in job configurations, but ICM 11+ expects "Enabled" as the attribute name
+                    // Also normalize boolean values to lowercase, as required by ICM 11+ pf_configuration_fs
                     if (attributeName.equalsIgnoreCase("EnabledFlag"))
                     {
                         attributeName = "Enabled";
