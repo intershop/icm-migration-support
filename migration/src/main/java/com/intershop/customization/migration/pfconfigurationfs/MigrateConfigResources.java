@@ -77,9 +77,9 @@ public class MigrateConfigResources implements MigrationPreparer
                                  }
                                  if (!targetType.isEmpty())
                                  {
-                                     // convert resource file to properties file
+                                     // convert resource file to properties file: targetName: *.resource --> *.properties
                                      String targetName = targetFile.toFile().getAbsolutePath();
-                                     targetName = targetName.replace(".resource", ".properties");
+                                     targetName = targetName.substring(0, targetName.lastIndexOf(".resource")) + ".properties";
                                      Path target = Paths.get(targetName);
                                      
                                      if( convertResourceFile(targetType, source, target))
