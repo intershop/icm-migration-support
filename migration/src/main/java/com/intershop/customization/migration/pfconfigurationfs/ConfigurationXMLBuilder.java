@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.intershop.customization.migration.pfconfigurationfs.CfgResourceConverter.ResourceType;
-
 /**
  * This method would contain logic to build the XML configuration
  * based on the cartridge name and the provided configuration XML.
@@ -34,11 +32,11 @@ public class ConfigurationXMLBuilder {
 
     private static final String SCOPE_DOMAIN                = "domain";
 
-    private static final String PLACEHOLDER_ENVIRONMENT     ="\\$\\{environment\\}";
+    private static final String PLACEHOLDER_ENVIRONMENT     ="${environment}";
     // LinkedHashMap to keep the order of replacements - e.g. the issue with (pre)production
     private static final Map<String, String> environments   = new LinkedHashMap<>();
 
-    private static final String PLACEHOLDER_STAGING_SYSTEM_TYPE ="\\$\\{staging.system.type\\}";
+    private static final String PLACEHOLDER_STAGING_SYSTEM_TYPE ="${staging.system.type}";
     private static final Map<String, String> systemTypes        = new HashMap<>();
 
     private String lastDopmainName ="";
@@ -57,13 +55,21 @@ public class ConfigurationXMLBuilder {
         footerLines.add("\t</sets>");
         footerLines.add("</configuration-setup>");
         
+        // environment types
+        environments.put("development",      PLACEHOLDER_ENVIRONMENT);
+        environments.put("integration",      PLACEHOLDER_ENVIRONMENT);
+        environments.put("preproduction",    PLACEHOLDER_ENVIRONMENT);
+        environments.put("production",       PLACEHOLDER_ENVIRONMENT);
         // environments
-        environments.put("development",     PLACEHOLDER_ENVIRONMENT);        
-        environments.put("integration",     PLACEHOLDER_ENVIRONMENT);        
-        environments.put("preproduction",   PLACEHOLDER_ENVIRONMENT);        
-        environments.put("production",      PLACEHOLDER_ENVIRONMENT);        
+        environments.put("test",             PLACEHOLDER_ENVIRONMENT);
+        environments.put("testa",            PLACEHOLDER_ENVIRONMENT);
+        environments.put("testb",            PLACEHOLDER_ENVIRONMENT);
+        environments.put("acceptance",       PLACEHOLDER_ENVIRONMENT);
+        environments.put("acceptancea",      PLACEHOLDER_ENVIRONMENT);
+        environments.put("acceptanceb",      PLACEHOLDER_ENVIRONMENT);
 
         // staging system types
+        systemTypes.put("none",     PLACEHOLDER_STAGING_SYSTEM_TYPE);
         systemTypes.put("editing",  PLACEHOLDER_STAGING_SYSTEM_TYPE);
         systemTypes.put("live",     PLACEHOLDER_STAGING_SYSTEM_TYPE);
     
@@ -106,13 +112,45 @@ public class ConfigurationXMLBuilder {
         .replaceFirst( "^.*" + this.cartridgeName+".config", "config");
 
         // set variables or environment and staging system type in the file name
-        for(Map.Entry<String, String> env: environments.entrySet())
+        int lastSlash = cfgFileName.lastIndexOf('/');
+        int dot = cfgFileName.lastIndexOf('.');
+        if (lastSlash >= 0 && dot >= 0 && dot > lastSlash)
         {
-            cfgFileName = cfgFileName.replaceAll(env.getKey(), env.getValue());
+            String fileName = cfgFileName.substring(lastSlash + 1, dot);  // pure file name without path and extension
+            StringBuilder cfgFileNameWithPlaceholders = new StringBuilder();
+            cfgFileNameWithPlaceholders.append(cfgFileName.substring(0, lastSlash + 1));  // add the path up to the last slash before the file name
+            // split filename at "_", "-" and "." and keep the separators in the resulting array
+            String[] splitFileName = fileName.split("((?=_|\\-|\\.)|(?<=_|\\-|\\.))");
+            for(String part: splitFileName)
+            {
+                for(Map.Entry<String, String> env: environments.entrySet())
+                {
+                    if (part.equals(env.getKey()))
+                    {
+                        part = env.getValue();
+                    }
+                }
+                
+                for(Map.Entry<String, String> sys: systemTypes.entrySet())
+                {
+                    if (part.equals(sys.getKey()))
+                    {
+                        part = sys.getValue();
+                    }
+                }
+                
+                cfgFileNameWithPlaceholders.append(part);
+            }
+
+            fileName = cfgFileNameWithPlaceholders.toString();
+
+            cfgFileNameWithPlaceholders.append(cfgFileName.substring(dot));  // add the extension incl. the dot
+
+            cfgFileName = cfgFileNameWithPlaceholders.toString();
         }
-        for(Map.Entry<String, String> sys: systemTypes.entrySet())
+        else
         {
-            cfgFileName = cfgFileName.replaceAll(sys.getKey(), sys.getValue());
+            MigrateConfigResources.LOGGER.warn("Unable to determine file name from path '{}': index of last slash = {}, index of dot = {}", cfgFileName, lastSlash, dot);
         }
 
         // count up priority by domain starting with 60 for each of them
