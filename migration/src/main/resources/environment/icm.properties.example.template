@@ -143,6 +143,9 @@ intershop.environment.IS_INSTALLATION=IS_INSTALLATION=<rootProject.name in setti
 # Please use only for local DEV systems in case of issues with DBPrepare.
 #intershop.environment.NO_DB_PREPARE=intershop.preparation.embedded=false
 
+# See "Cookbook - Logging", "Configure Root Log Level via Environment Variable"&"Configure DuplicateMessageFilter Logger Exclusions via Logback"
+#intershop.environment.INTERSHOP_LOGGING_ROOT_LEVEL=INTERSHOP_LOGGING_ROOT_LEVEL=DEBUG
+
 # When setting up staging on a local DEV system: staging.system.type = none|editing|live (default: none)
 #intershop.environment.STAGINGTYPE=staging.system.type=editing
 
