@@ -21,7 +21,7 @@ export GRADLE_USER_HOME=~/.gradle
 
 # Set repoUser/repoPassword as well as localVersion in your $GRADLE_USER_HOME/gradle.properties
 #  $GRADLE_USER_HOME/gradle.properties: repoUser=[your Azure DevOps user name here] (e.g. XXxxxxxx@intershop.com)
-#  $GRADLE_USER_HOME/gradle.properties: repoPassword=[your Azure Personal Access Token (PAT) here] (e.g. ekp**********************************************rnq)
+#  $GRADLE_USER_HOME/gradle.properties: repoPassword=[your Azure Personal Access Token (PAT) here] (e.g. 7pA******************************************************************************Auj)
 #  $GRADLE_USER_HOME/gradle.properties: localVersion=true (to avoid use of old JARs / startAS messages: "WARN: Found multiple jar files in: {cartridge}...")
 # Please do not confuse the $GRADLE_USER_HOME/gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
 
