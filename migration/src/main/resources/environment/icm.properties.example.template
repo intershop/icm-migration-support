@@ -14,7 +14,7 @@
 # Database connection configuration, used only in case you use your own MS SQL Server (otherwise comment out all lines in this section)
 # In case you use the MS SQL Server database in Docker container <rootProject.name in settings.gradle.kts>-mssql (gradlew startMSSQL), comment out below lines and see next section
 # For analysis of issues please check:
-# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_URL, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Environment: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_URL, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
 # SMC > Monitoring > Application Server > Configuration, scope "system", keys: INTERSHOP_DATABASETYPE, INTERSHOP_JDBC_
 # SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: intershop.databaseType, intershop.jdbc.url, INTERSHOP_JDBC_USER, INTERSHOP_JDBC_PASSWORD
 # In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
@@ -60,8 +60,12 @@ intershop.WebServerSecureURL=https://mycomputer.dhcp.j.ad.intershop.net:443
 #webserver.cert.privatekey=privkey.pem
 
 # webserver configuration
+# Container ports should be identical to host ports, just in case Apache generates URLs without having a port from the incoming request.
+# Required for use of webserver.container.*.port: dockerPluginVersion>=7.2.1 (settings.gradle.kts), icmWAVersion>=2.10.2 in gradle.properties
 webserver.http.port = 80
+webserver.container.http.port = 80
 webserver.https.port = 443
+webserver.container.https.port = 443
 
 # server configuration
 
@@ -88,14 +92,14 @@ webserver.https.port = 443
 # the hostname might not work! If host.docker.internal does not work (for solr or mailsrv container or Geb/RestTests), use the IP of the local machine.
 intershop.local.hostname = host.docker.internal
 
-# External/host solr configuration (optional), in case you use your own Solr
+# External/host solr configuration, in case you use your own Solr
 # In case you use the Solr in Docker container <rootProject.name in settings.gradle.kts>-solr (gradlew startSolrCloud), comment out below lines
 # For analysis of issues please check:
-# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: SOLR_ZOOKEEPERHOSTLIST, SOLR_CLUSTERINDEXPREFIX
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Environment: SOLR_CLOUDSOLRSERVERURLS, SOLR_CLUSTERINDEXPREFIX
 # SMC > Monitoring > Application Server > Configuration, scope "system", keys: SOLR_
-# SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: solr.
 # In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
-solr.zooKeeperHostList = host.docker.internal:9983
+#solr.zooKeeperHostList = host.docker.internal:9983  # Outdated, was using ZooKeeper ports. "solr.cloudSolrServerURLs" is preferred and uses Solr ports!
+solr.cloudSolrServerURLs = http://host.docker.internal:8983/solr
 solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>_
 # Local/host path for Solr data in Docker container <rootProject.name in settings.gradle.kts>-solr
 #solr.data.folder.path = 
@@ -110,7 +114,7 @@ solr.clusterIndexPrefix = <rootProject.name in settings.gradle.kts>_
 # External/host SMTP Mail server configuration (optional), in case you use your own MailHog or Fake SMTP
 # In case you use the MailHog in Docker container <rootProject.name in settings.gradle.kts>-mailsrv (gradlew startMailSrv), comment out below lines
 # For analysis of issues please check:
-# Docker Container <rootProject.name in settings.gradle.kts>-as > Inspect > Environment: ISH_ENV_MAIL
+# Docker Container <rootProject.name in settings.gradle.kts>-as > Environment: ISH_ENV_MAIL
 # SMC > Monitoring > Application Server > Configuration, scope "system", keys: ISH_ENV_MAIL
 # SMC > Monitoring > Application Server > Configuration, scope "cluster", keys: mail.smtp.
 # In case Docker cannot resolve the hostname, use your IP address or use host.docker.internal (automatically added by docker to your hosts file)
