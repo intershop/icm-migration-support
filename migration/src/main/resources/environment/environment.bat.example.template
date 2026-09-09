@@ -22,7 +22,7 @@
 REM Hint: Due to the Azure Personal Access Token (PAT) it is strongly recommended to have separate GRADLE_USER_HOMEs for each project!
 REM Recommendation: Use one GRADLE_USER_HOME per Azure DevOps (ADO) organization
 REM %GRADLE_USER_HOME%\gradle.properties: repoUser={Azure DevOps user name} (e.g. XXxxxxxx@intershop.com)
-REM %GRADLE_USER_HOME%\gradle.properties: repoPassword={Azure Personal Access Token (PAT)} (e.g. ekp**********************************************rnq)
+REM %GRADLE_USER_HOME%\gradle.properties: repoPassword={Azure Personal Access Token (PAT)} (e.g. 7pA******************************************************************************Auj)
 REM %GRADLE_USER_HOME%\gradle.properties: localVersion=true (to avoid use of old JARs / startAS messages: "WARN: Found multiple jar files in: {cartridge}...")
 REM Please do not confuse the %GRADLE_USER_HOME%\gradle.properties with the gradle.properties in the project root folder! Both are for completely different purposes.
 ADJUST-TO-YOUR-PATH-AND-CREATE-OR-ADJUST-THE gradle.properties IN-THIS-PATH-and-then-comment-out-this-line-here
@@ -73,7 +73,7 @@ PROMPT $D$H$H$H$H $T$H$H$H %IS_INSTALLATION%$B$P$G
 :: See https://knowledge.intershop.com/kb/index.php/Display/30669A "Guide - Access to Intershop Docker Images"
 ::
 ADJUST-TO-YOUR-Intershop-Docker-registry https://docker.tools.intershop.com (Harbor) "Username" AND "CLI secret" IN-THE-LINE-BELOW-and-then-comment-out-this-line-here
-ECHO docker login docker.tools.intershop.com -u {your Intershop Docker registry Username, e.g. X.Xxxxxxx@intershop.de} -p ********************************
+ECHO docker login docker.tools.intershop.com -u {your Intershop Docker registry Username, e.g. X.Xxxxxxx@intershop.de} -p ***********CLI secret***********
 docker login docker.tools.intershop.com -u {your Intershop Docker registry Username, e.g. X.Xxxxxxx@intershop.de} -p {your Intershop Docker registry CLI secret}
 
 ::
@@ -91,7 +91,7 @@ CALL az acr login --name <ishprjxxacr>
 
 REM Optional: Check validity of your Azure Personal Access Token (PAT) for the Azure DevOps (ADO) organization <adoOrganizationName>
 REM Attention: If it fails ("Failed to authenticate using the supplied token."), you cannot access this ADO organization anymore (https://dev.azure.com/<adoOrganizationName>/), even in the browser!
-REM ECHO "> echo ************************************************************************************ | az devops login --organization https://dev.azure.com/<adoOrganizationName>/"
+REM ECHO "> echo ***********************Your Azure Personal Access Token (PAT)*********************** | az devops login --organization https://dev.azure.com/<adoOrganizationName>/"
 REM CALL echo {Azure Personal Access Token (PAT)} | az devops login --organization https://dev.azure.com/<adoOrganizationName>/
 
 echo(
