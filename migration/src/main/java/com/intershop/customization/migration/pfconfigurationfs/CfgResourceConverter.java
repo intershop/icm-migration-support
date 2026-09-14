@@ -569,6 +569,13 @@ public class CfgResourceConverter
                 if (targetEntry.size() == 4)
                 {
                     cfgGroup = groupOf(cfgKey);
+                    if (cfgGroup.isEmpty())
+                    {
+                        LOGGER.error("Cannot determine the configuration group from key '{}' in file {},"
+                                        + " skipping entry.", cfgKey, source);
+                        targetEntry.clear();
+                        continue;
+                    }
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)
@@ -670,6 +677,13 @@ public class CfgResourceConverter
                 if (targetEntry.size() == 4)
                 {
                     cfgGroup = groupOf(cfgKey);
+                    if (cfgGroup.isEmpty())
+                    {
+                        LOGGER.error("Cannot determine the configuration group from key '{}' in file {},"
+                                        + " skipping entry.", cfgKey, source);
+                        targetEntry.clear();
+                        continue;
+                    }
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)
