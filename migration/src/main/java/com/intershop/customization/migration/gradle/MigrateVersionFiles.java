@@ -120,7 +120,7 @@ public class MigrateVersionFiles implements MigrationPreparer
                                     migratedConstraintsLines.add("        // migrated version information of '" + entry.getKey() + "'");
                                     return entry.getValue().stream();
                                 })
-                                .map(migratedLine -> ("        api \"" + migratedLine + "\"")).forEach(migratedConstraintsLines::add);
+                                .map(migratedLine -> ("        api(\"" + migratedLine + "\")")).forEach(migratedConstraintsLines::add);
 
                 migratedConstraintsLines.add(EMPTY); // empty line
                 first = false;
