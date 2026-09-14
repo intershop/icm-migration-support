@@ -12,6 +12,7 @@ options:
     javax.validation: jakarta.validation
     javax.servlet: jakarta.servlet
     javax.annotation: jakarta.annotation
+    javax.inject: jakarta.inject
   file-extension:
     - java
     - isml

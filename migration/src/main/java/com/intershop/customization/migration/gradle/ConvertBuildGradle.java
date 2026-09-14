@@ -315,7 +315,13 @@ public class ConvertBuildGradle implements MigrationPreparer
             String[] partsDep = converted.split("'");
             if (partsDep.length > 3)
             {
-                converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'";
+                // whatever followed the coordinates has to survive, for example the closing ')' of
+                // "compile (group: 'x', name: 'y')" when an exclusion block follows on the next line;
+                // dropping it produces a build file that is no longer valid Groovy either
+                String tail = partsDep.length > 4
+                                ? String.join("'", Arrays.copyOfRange(partsDep, 4, partsDep.length))
+                                : "";
+                converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'" + tail;
             }
             else
             {
