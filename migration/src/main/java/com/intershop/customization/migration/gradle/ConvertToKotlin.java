@@ -57,9 +57,19 @@ public class ConvertToKotlin implements MigrationPreparer
 
         try
         {
-            String scriptOutput = executeKotlinScript(resource);
-            context.recordSuccess(resourceName, MODIFY, resource, resource);
-            LOGGER.debug("Script output collected: {}", scriptOutput);
+            ScriptResult result = executeKotlinScript(resource);
+            if (result.exitCode() == 0)
+            {
+                context.recordSuccess(resourceName, MODIFY, resource, resource);
+                LOGGER.debug("Script output collected: {}", result.output());
+            }
+            else
+            {
+                LOGGER.error("Kotlin script for '{}' exited with code {}. Script output:{}{}", resourceName,
+                                result.exitCode(), System.lineSeparator(), result.output());
+                context.recordFailure(resourceName, MODIFY, resource, resource,
+                        "Kotlin script exited with code " + result.exitCode() + ": " + result.output());
+            }
         }
         catch (IOException | InterruptedException e)
         {
@@ -111,25 +121,30 @@ public class ConvertToKotlin implements MigrationPreparer
     }
 
     /**
+     * Result of a Kotlin process execution.
+     *
+     * @param exitCode the exit code reported by the process
+     * @param output the collected output, with stderr merged into stdout
+     */
+    private record ScriptResult(int exitCode, String output) {}
+
+    /**
      * Executes the Kotlin script to convert the given Gradle build file of the given path.
+     * <p>
+     * The exit code is handed back to the caller instead of being interpreted here, so that a
+     * converter which ran and failed is recorded as a failure rather than as a success.
      *
      * @param resource the path of the parent directory to the Gradle build file to convert
-     * @return the collected output
+     * @return the exit code and the collected output
      * @throws IOException unhandled possible IO exception
      * @throws InterruptedException unhandled possible interruption exception
      */
-    private String executeKotlinScript(Path resource) throws IOException, InterruptedException
+    private ScriptResult executeKotlinScript(Path resource) throws IOException, InterruptedException
     {
         Path scriptPath = getKotlinScriptPath();
         return executeKotlinProcess(
                         new String[] { getKotlinExecutable(), scriptPath.toString(), resource.toString(), "skipintro", "deleteInputFile" },
-                        (exitCode, output) -> {
-                            if (exitCode != 0)
-                            {
-                                LOGGER.error("Kotlin script exited with non-zero code: {}", exitCode);
-                            }
-                            return output;
-                        }
+                        ScriptResult::new
         );
     }
 
