@@ -548,8 +548,9 @@ public class CfgResourceConverter
                 // gather the source data
                 if (targetEntry.size() < 4)
                 {
-                    // scan the source line
-                    String[] entry = line.split("=");
+                    // scan the source line; the value may itself contain '=' (for example the
+                    // base64 padding of an encrypted credential), so only split on the first one
+                    String[] entry = line.split("=", 2);
                     if (entry.length == 2)
                     {
                         cfgKey = entry[0].trim();
@@ -559,6 +560,13 @@ public class CfgResourceConverter
                             cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
                             cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
                         }
+                    }
+                    if (cfgKey.isEmpty())
+                    {
+                        // an unparseable line must not be stored: it would count towards the four
+                        // entries a configuration needs and corrupt the entry being collected
+                        LOGGER.warn("Ignoring unparseable configuration line: {}", line);
+                        continue;
                     }
                     targetEntry.put(cfgKey, cfgValue);
                 }
@@ -570,7 +578,14 @@ public class CfgResourceConverter
                     {
                         cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
                     }
-                    cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
+                    int cfgGroupEnd = cfgKey.indexOf(".");
+                    if (0 > cfgGroupEnd)
+                    {
+                        LOGGER.error("Cannot determine the configuration group from key '{}', skipping entry.", cfgKey);
+                        targetEntry.clear();
+                        continue;
+                    }
+                    cfgGroup = cfgKey.substring(0, cfgGroupEnd);
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)
@@ -635,8 +650,9 @@ public class CfgResourceConverter
                 // gather the source data
                 if (targetEntry.size() < 4)
                 {
-                    // scan the source line
-                    String[] entry = line.split("=");
+                    // scan the source line; the value may itself contain '=' (for example the
+                    // base64 padding of an encrypted credential), so only split on the first one
+                    String[] entry = line.split("=", 2);
                     if (entry.length == 2)
                     {
                         cfgKey = entry[0].trim();
@@ -646,6 +662,13 @@ public class CfgResourceConverter
                             cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
                             cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
                         }
+                    }
+                    if (cfgKey.isEmpty())
+                    {
+                        // an unparseable line must not be stored: it would count towards the four
+                        // entries a configuration needs and corrupt the entry being collected
+                        LOGGER.warn("Ignoring unparseable configuration line: {}", line);
+                        continue;
                     }
                     targetEntry.put(cfgKey, cfgValue);
                 }
@@ -657,7 +680,14 @@ public class CfgResourceConverter
                     {
                         cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
                     }
-                    cfgGroup = cfgKey.substring(0, cfgKey.indexOf("."));
+                    int cfgGroupEnd = cfgKey.indexOf(".");
+                    if (0 > cfgGroupEnd)
+                    {
+                        LOGGER.error("Cannot determine the configuration group from key '{}', skipping entry.", cfgKey);
+                        targetEntry.clear();
+                        continue;
+                    }
+                    cfgGroup = cfgKey.substring(0, cfgGroupEnd);
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)
