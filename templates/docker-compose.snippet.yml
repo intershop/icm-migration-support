@@ -2,15 +2,33 @@
 # Put these in a GITIGNORED compose file: the paths are per-developer, and one of them is read-write.
 services:
   agent:
+    # The single most important line in this file. Without feed credentials the agent cannot run
+    # Gradle, and every compile becomes a round trip through a person. Gradle maps
+    # ORG_GRADLE_PROJECT_x onto the property x, which is how an ICM build reads them.
+    # Use a READ-ONLY feed token, never a personal password, and keep it in a gitignored env_file.
+    env_file: .env.local
+    environment:
+      - GRADLE_USER_HOME=/gradle-home
+      - ORG_GRADLE_PROJECT_repoUser=${REPO_USER}
+      - ORG_GRADLE_PROJECT_repoPassword=${REPO_TOKEN}
     volumes:
       # ICM platform sources, READ-ONLY. The authority on every API question. Intershop always has
       # these and partners usually do; they are handed over as a plain file tree, so this is an ask
       # rather than a build. Match the source version to the target release.
       - <path-to>/icm-as:/icm-as:ro
 
-      # The Gradle cache, READ-ONLY. The second authority: it answers "what does this artifact
+      # The ICM 7.10 sources, READ-ONLY. Optional but high value: they are the only thing that says
+      # what a removed concept used to do, and they turn "what does this class patch change" from an
+      # afternoon of reading into a diff.
+      - <path-to>/icm-as-7.10:/icm-as-7.10:ro
+
+      # The Gradle cache. NOT read-only: Gradle writes its caches and lock files here, and a
+      # read-only mount fails in ways that read like network errors. Give the container its OWN
+      # directory rather than sharing the developer's ~/.gradle, or you get lock contention and,
+      # on Windows, differing path semantics between host and container.
+      # It doubles as the second authority on API questions: it answers "what does this artifact
       # actually contain" by listing a jar, which sources cannot.
-      - <path-to>/gradle:/gradle-home:ro
+      - <path-to>/gradle_docker:/gradle-home
 
       # The migration tool, read-write, only if you intend to fix it as you go. You should.
       #

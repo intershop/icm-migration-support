@@ -96,6 +96,11 @@ agent output said migration could not proceed. Its prompt tables are worth keepi
 
 ## Preflight, in order
 
+**Set the environment up first, and treat it as part of the plan rather than a detail.**
+`references/agent-environment.md` grades every mount, tool and credential by what its absence actually
+costs. Two items decide the shape of the project: whether the agent can run Gradle, which hinges on
+artifact feed credentials rather than on Gradle, and whether the platform sources are mounted.
+
 **Two prerequisites to secure before the checks below.** Both are external, both are ordinary asks
 rather than work, and both have held up a real migration.
 
@@ -428,6 +433,7 @@ predicted gets reverted, not patched.
 | `references/compiler-driven-migration.md` | **ours.** How to work in Phases 3 to 5: sources as authority, sweeping, what is and is not a customer decision |
 | `references/cartridge-content-delivery.md` | **ours.** How configuration, sites content, preparers and class patches actually reach a running ICM 11+ server. Phase 2 and Phase 6 work |
 | `references/verifying-the-migration.md` | **ours.** What a green build does not prove, and the verification tiers that close the gap. Read before Phase 6, not after |
+| `references/agent-environment.md` | **ours.** What an agent needs mounted, installed and credentialed, graded by what its absence costs. Read before the first command |
 
 The first five of the vendor files are from `intershop/icm-migration-support` (Apache License 2.0);
 `fix-catalogue.md`, `cartridge-packages.txt` and `import-to-cartridge.md` from
