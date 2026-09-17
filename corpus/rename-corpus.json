@@ -4,7 +4,7 @@
   "route": "7.10 -> current",
   "counts": {
     "constant-replaced": 11,
-    "dependency": 4,
+    "dependency": 13,
     "dependency-added": 2,
     "dependency-removed": 1,
     "method-arg-added": 17,
@@ -13,11 +13,11 @@
     "method-must-implement": 2,
     "method-param-changed": 2,
     "method-renamed": 52,
-    "package": 11,
+    "package": 12,
     "type-renamed": 4,
     "xml-attribute-changed": 1
   },
-  "total": 124,
+  "total": 134,
   "unhandled_recipe_types": [],
   "entries": [
     {
@@ -101,8 +101,43 @@
       "kind": "dependency",
       "since": "11",
       "source": "040_RenamedDependencies",
+      "from": "com.intershop.business:app_sf_rest_b2c",
+      "to": "com.intershop.business:app_sf_rest_customer"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "com.intershop.business:app_sf_rest_b2c_test",
+      "to": "com.intershop.business:app_sf_rest_customer_test"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "com.intershop.business:app_sf_rest_smb",
+      "to": "com.intershop.business:app_sf_rest_customer"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "com.intershop.business:app_sf_rest_smb_test",
+      "to": "com.intershop.business:app_sf_rest_customer_test"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
       "from": "com.intershop.common:encryption",
       "to": "com.intershop:encryption"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "com.jayway.restassured:json-path",
+      "to": "io.rest-assured:json-path"
     },
     {
       "kind": "dependency",
@@ -122,8 +157,36 @@
       "kind": "dependency",
       "since": "11",
       "source": "040_RenamedDependencies",
+      "from": "io.swagger.core.v3:swagger-annotations",
+      "to": "io.swagger.core.v3:swagger-annotations-jakarta"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "javax.inject:javax.inject",
+      "to": "jakarta.inject:jakarta.inject-api"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
       "from": "javax.ws.rs:javax.ws.rs-api",
       "to": "jakarta.ws.rs:jakarta.ws.rs-api"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "org.hamcrest:hamcrest-core",
+      "to": "org.hamcrest:hamcrest"
+    },
+    {
+      "kind": "dependency",
+      "since": "11",
+      "source": "040_RenamedDependencies",
+      "from": "org.hamcrest:hamcrest-library",
+      "to": "org.hamcrest:hamcrest"
     },
     {
       "kind": "dependency-added",
@@ -931,6 +994,17 @@
       ],
       "from": "javax.annotation",
       "to": "jakarta.annotation"
+    },
+    {
+      "kind": "package",
+      "since": "11",
+      "source": "065_RenamedPackages",
+      "applies_to": [
+        "isml",
+        "java"
+      ],
+      "from": "javax.inject",
+      "to": "jakarta.inject"
     },
     {
       "kind": "package",
