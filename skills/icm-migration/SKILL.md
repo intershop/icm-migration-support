@@ -8,25 +8,30 @@ description: Migrate an Intershop ICM customization project from 7.10 to ICM 11/
 Reusable playbook. Everything here is project-agnostic; per-project decisions belong in that
 project's `docs/adr/` and `docs/migration/PROGRESS.md`.
 
-**Start by copying the starting kit**, `templates/` in this plugin's repository, organised by kind:
+**Start by copying the starting kit**, `templates/` in this repository, organised by kind:
 `container/` for the environment, `agent/` for the working agreements, `docs/` for the progress log and
 the ADR, `scripts/` for the smoke check.
 It is one copy and it saves every project reinventing the same bookkeeping badly.
 
-**This skill ships with the tool it describes**, `intershop/icm-migration-support`, and that is
+**This playbook ships with the tool it describes**, `intershop/icm-migration-support`, and that is
 deliberate: statements here like "step 040's rename map covers only X" are claims about specific code in
 that repository, and a skill living apart from the code it documents rots the day someone fixes the
 code. When a migration turns up something any 7.10 project would hit, raise it there rather than fixing
 it locally and meaning to contribute it later.
+
+It is markdown, so it does not depend on any one agent. Claude Code installs it as a plugin; anything
+else, GitHub Copilot included, reads it as files from a clone of that repository, which
+`templates/container/` mounts at `/icm-migration-support` for exactly this reason.
 
 ## The model
 
 Two layers, and keeping them separate is the whole point.
 
 **Layer 1, deterministic.** [icm-migration-support](https://github.com/intershop/icm-migration-support)
-applies 16 YAML-described steps for 7.10 to 11, plus OpenRewrite recipe drops for 11 to 12 and 12 to
-13. Auto-commits per step, so every step is revertable alone, and reports SUCCESS / SKIPPED / UNKNOWN
-/ WARNING / FAILED per file operation. Use it for every mechanical transformation. Do not hand-migrate
+applies 16 YAML-described steps for the 7.10 layout, plus one OpenRewrite set used as an API
+cross-check rather than as a version step. Auto-commits per step, so every step is revertable alone,
+reports SUCCESS / SKIPPED / UNKNOWN / WARNING / FAILED per file operation into a JSON log, and exits
+with a code that distinguishes every outcome. Use it for every mechanical transformation. Do not hand-migrate
 what it already encodes; you lose reproducibility and a vendor-aligned baseline for no gain.
 
 **Layer 2, judgement.** No tool covers these: cartridge-level dependency reconstruction, component and
@@ -231,18 +236,13 @@ split, and how to ship class patches if a project has them.
 cartridge list, and let the compiler arbitrate. See `references/component-application-types.md` for
 the `as_` cartridge split and the `intershop.B2CWebShop.*` to `intershop.WebShop.*` renaming.
 
-**Phase 4, 11 to 12 to 13.** Drop in the recipe sets, then
-`GRADLE_OPTS=-Xmx4G gradlew --init-script rewrite.gradle rewriteRun`, once per version step, compiling
-between them. Manual residue is listed in `references/steps-11-to-12.md` and
-`references/steps-12-to-13.md`.
-
-**Phase 4 is normally not a phase at all.** ICM 11, 12 and 13 are no longer deployment targets, so
+**Phase 4, the API cross-check. Normally not a phase at all.** ICM 11, 12 and 13 are no longer deployment targets, so
 there is one route: 7.10 straight to the current release. Compiling against that target surfaces the
 union of every intermediate delta at once, and fixing them is Phase 5, so Phases 4 and 5 collapse into
 one. Migrate version by version only if the project genuinely has to deploy at an intermediate release,
 which is now rare.
 
-Each step set contains a single `ClasspathResourceFileCopier` that copies `rewrite.gradle` and
+The step set contains a single `ClasspathResourceFileCopier` that copies `rewrite.gradle` and
 `rewrite.yml` into the root; all the substance is in the recipes, and **every one of them fixes a
 compile-breaking delta** (`ChangePackage`, `ChangeMethodName`, `DeleteMethodArgument`,
 `ChangeMethodParameter`). On the direct route they have nothing left to change, so run them afterwards
@@ -250,9 +250,14 @@ as a **cross-check**: no change confirms the compiler-driven route landed where 
 would have; any change means something was hand-fixed differently from the way Intershop intends, and
 the diff says where.
 
+Run it with `GRADLE_OPTS=-Xmx4G gradlew --init-script rewrite.gradle rewriteRun` after the copier step
+has placed the files.
+
 The recipe *content* keeps its value even when the version framing is dropped, because a rename that
-happened in ICM 12 is still a rename between 7.10 and 14. Read them as a lookup table of old name to new
-name, alongside the step 040 and 065 maps.
+happened in ICM 12 is still a rename between 7.10 and the current release. Read it as a lookup table of
+old name to new name, alongside the step 040 and 065 maps; `tools/build_rename_corpus.py` flattens all
+of them into one queryable file. Manual residue that no recipe covers is in
+`references/steps-11-to-12.md` and `references/steps-12-to-13.md`.
 
 Either way, read the diff before committing it. These recipes match on signature and cannot tell that a
 call site is already correct, so on already-migrated code they can rewrite something that was right.

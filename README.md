@@ -11,7 +11,7 @@ A migration has two halves, and keeping them apart is the point of this reposito
 - **The judgement half.** Cartridge dependency reconstruction, component and ApplicationType placement,
   configuration wiring, the API deltas of the newest release, and deciding what a running server needs.
   No step set covers these. That is the **`icm-migration` playbook**, which ships here so that it
-  versions with the code it describes.
+  versions with the code it describes. It is markdown, not a product feature, so any agent can use it.
 
 The tool is built to be driven by an agent and checked by a person. Its output is JSON first and prose
 second, its exit codes distinguish every outcome, and it reports what it did **not** handle as well as
@@ -19,18 +19,40 @@ what it did, because unrecognised content is where a migration's risk lives.
 
 ## Start here
 
-```sh
-# 1. the playbook and the starting kit
-claude plugin marketplace add intershop/icm-migration-support \
-    --sparse .claude-plugin skills templates
-claude plugin install icm-migration
+**1. Get a container with everything the migration needs.** `templates/container/` builds one: JDK 21,
+Kotlin, Python, git, jq, ripgrep, and your agent's CLI. One image, one service per agent.
 
-# 2. copy the starting kit into the project being migrated, then follow the playbook
+```sh
+docker compose run --rm claude      # or: copilot
 ```
 
-The marketplace is read from this repository's **default branch**. If the playbook has not merged there
-yet, name the branch that carries it, `intershop/icm-migration-support@<branch>`, otherwise the add
-fails with `Marketplace file not found`.
+`skills/icm-migration/references/agent-environment.md` grades every mount, tool and credential by what
+its absence actually costs. Read it before the first command: one item on it, the artifact feed
+credential, decides whether the agent can build at all, and it is the difference between a migration
+measured in weeks and one measured in months.
+
+**2. Get the playbook.** How depends on the agent, because the content is the same either way.
+
+- **Claude Code** installs it as a plugin, which keeps it updated:
+
+  ```sh
+  claude plugin marketplace add intershop/icm-migration-support \
+      --sparse .claude-plugin skills templates
+  claude plugin install icm-migration
+  ```
+
+  The marketplace is read from this repository's **default branch**. If the playbook has not merged
+  there yet, name the branch that carries it, `intershop/icm-migration-support@<branch>`, otherwise the
+  add fails with `Marketplace file not found`.
+
+- **GitHub Copilot**, and any other agent, reads it as files. In the container this repository is
+  mounted, so start at **`/icm-migration-support/skills/icm-migration/SKILL.md`**, which links the rest.
+  Outside a container, clone this repository and read it from there.
+
+**3. Copy the starting kit** from `templates/` into the project being migrated, then follow the
+playbook. The kit includes an entry point for each agent: `AGENTS.md` holds the working agreements, and
+`CLAUDE.md` and `.github/copilot-instructions.md` are short redirects to it, so the rules cannot differ
+depending on who is working.
 
 | | |
 |---|---|
