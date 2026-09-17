@@ -1,0 +1,62 @@
+# Agent container for an ICM 7.10 to current migration.
+# Copy this and the Dockerfile into the project, replace every <path-to>, and keep .env.local out of git.
+#
+# Two lines decide how the migration goes, and both are below:
+#   * the artifact feed credentials, without which the agent cannot run Gradle and every compile
+#     becomes a round trip through a person
+#   * the platform sources mount, which is the difference between reading the API and guessing at it
+
+services:
+  agent:
+    build:
+      context: .
+      # Override if the project needs a different Kotlin.
+      # args: { KOTLIN_VERSION: "2.4.20" }
+    image: icm-migration-agent:latest
+    container_name: icm-migration-agent
+    stdin_open: true
+    tty: true
+
+    # Holds REPO_USER and REPO_TOKEN. Gitignore it. Use a READ-ONLY feed token scoped to package
+    # read, never a personal password, and rotate it like any other CI credential.
+    env_file: .env.local
+
+    environment:
+      - JAVA_HOME=/opt/java/openjdk
+      - GRADLE_USER_HOME=/gradle-home
+      # Gradle maps ORG_GRADLE_PROJECT_x onto the project property x, which is how an ICM build
+      # reads its repository credentials. This is the whole of "let the agent run Gradle".
+      - ORG_GRADLE_PROJECT_repoUser=${REPO_USER}
+      - ORG_GRADLE_PROJECT_repoPassword=${REPO_TOKEN}
+      # Keep the agent's state inside the named volume so a `run --rm` does not force a re-login.
+      - CLAUDE_CONFIG_DIR=/root/.claude
+
+    volumes:
+      # The project being migrated.
+      - .:/workspace
+
+      # The agent's own state, so sessions survive container restarts.
+      - agent_home:/root/.claude
+
+      # The Gradle cache. NOT read-only: Gradle writes caches and lock files here, and a read-only
+      # mount fails in ways that read like network errors. Give the container its OWN directory
+      # rather than sharing the developer's ~/.gradle, or you get lock contention, and on Windows
+      # differing path semantics between host and container.
+      - <path-to>/gradle_docker:/gradle-home
+
+      # ICM platform sources for the TARGET release, read-only. The authority on every API question.
+      # Intershop always has these and partners usually do, handed over as a plain file tree.
+      - <path-to>/icm-as:/icm-as:ro
+
+      # ICM 7.10 sources, read-only. Optional, high value: the only thing that says what a removed
+      # concept used to do, and it turns "what does this class patch change" into a diff.
+      - <path-to>/icm-as-7.10:/icm-as-7.10:ro
+
+      # The migration tool, read-write, so it gets fixed rather than worked around.
+      # MOUNT IT OUTSIDE THE PROJECT. The ICM 11+ settings.gradle.kts makes a Gradle project of every
+      # top-level directory without checking for a build script, so a clone inside the project
+      # becomes a phantom cartridge that fails the product build with a missing cartridge descriptor.
+      - <path-to>/icm-migration-support:/icm-migration-support:rw
+
+volumes:
+  agent_home:

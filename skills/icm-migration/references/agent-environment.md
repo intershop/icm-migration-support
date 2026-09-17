@@ -173,7 +173,21 @@ or the agent works from the compiler alone for exactly the deltas where that is 
 - **Sources for the intermediate releases.** On the direct route, 7.10 and the target are the only two
   versions that matter.
 
-## A working compose file
+## Ready-made files
+
+`templates/Dockerfile` and `templates/docker-compose.yml` in this repository implement all of the above.
+Copy both into the project, replace every `<path-to>`, and put `REPO_USER` and `REPO_TOKEN` in a
+gitignored `.env.local`.
+
+The image installs JDK 21, Kotlin, Python with the one third-party package the tooling needs, git, jq
+and ripgrep, and ends with a check that fails the build rather than failing halfway through a migration.
+The Kotlin download is verified against the checksum JetBrains publishes beside it, which catches a
+truncated or corrupted download; it is not a defence against a compromised release.
+
+The agent CLI is the last layer and the only agent-specific part, so driving the migration with
+something other than Claude Code means changing one line.
+
+## The compose file in outline
 
 ```yaml
 services:

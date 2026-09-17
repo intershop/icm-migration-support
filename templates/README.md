@@ -11,7 +11,8 @@ without it every project reinvents the same structure badly.
 | `PROGRESS.md` | `docs/migration/PROGRESS.md` | what has happened, what is next, the command queue, the open items |
 | `adr-0001-migration-approach.md` | `docs/adr/0001-migration-approach.md` | the per-project decisions |
 | `smoke.py` | `scripts/smoke.py` | Tier 0 verification once a server runs |
-| `docker-compose.snippet.yml` | your gitignored compose file | the two mounts that matter |
+| `Dockerfile` | project root | installs everything the playbook needs: JDK 21, Kotlin, Python, git, jq, ripgrep |
+| `docker-compose.yml` | project root | the mounts, and the feed credentials that let the agent build |
 
 Replace every `<placeholder>`. Nothing here is useful until it names the real project.
 
