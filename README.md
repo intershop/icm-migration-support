@@ -71,7 +71,13 @@ delta at once. The recipe sets that used to be per-version steps are merged into
 [cross-check](docs/api-crosscheck.md), where no change confirms the hand fixes landed where Intershop
 intends and any change is a finding.
 
-## Running the migration tool
+## Driving the tool
+
+Reference for what the tool accepts and returns. **Which step to run, in what order and at what scope,
+is the playbook's job, not this page's**: it is a migration decision that depends on the project, and
+duplicating it here would only let the two drift apart. Normally the agent drives this directly. Where
+it cannot, usually because Gradle has no artifact feed credentials, a person runs the same commands and
+pastes the output back.
 
 ### Prerequisites
 
@@ -83,12 +89,7 @@ intends and any change is a finding.
   tree**; the tool refuses to run otherwise. The `.git` folder is looked up in the target directory or
   one level above it.
 
-### Preparation
-
-Back up the cartridge list of the deployed 7.10 project. ICM 11+ derives the cartridge list from
-declared dependencies, so the old list is the only thing to compare the generated one against.
-
-### Running it
+### Commands
 
 One commit per step, so any single step can be reverted on its own. Disable with `-PnoAutoCommit`.
 
@@ -101,8 +102,8 @@ gradlew migration:migrateOne -Ptask=project  -Ptarget=<project>/<cartridge> -Pst
 gradlew migration:migrateOne -Ptask=projects -Ptarget=<project>             -Psteps=<step>
 ```
 
-Run the steps **one at a time** on a first migration, reviewing the report and `git show --stat` after
-each. Step sets live in `migration/src/main/resources/migration/`.
+Step sets live in `migration/src/main/resources/migration/`. `-Psteps` takes either a folder or a single
+step file, which is how a step is run on its own.
 
 ### Reading the result
 
