@@ -12,17 +12,24 @@ The reusable how-to is the **`icm-migration` skill**, which ships with
 [icm-migration-support](https://github.com/intershop/icm-migration-support) and is project-agnostic.
 Findings that any 7.10 project would hit belong there or in the tool, not here.
 
-Install it rather than copying it, so that improvements found on other projects reach this one:
+Read it rather than copying it, so improvements found on other projects reach this one. How to reach it
+depends on the agent:
 
-```sh
-claude plugin marketplace add intershop/icm-migration-support \
-    --sparse .claude-plugin skills templates
-claude plugin install icm-migration
-```
+- **Claude Code** installs it as a plugin:
 
-The marketplace is read from that repository's **default branch**. If the playbook has not merged there
-yet, name the branch that carries it, `intershop/icm-migration-support@<branch>`, otherwise the add
-fails with `Marketplace file not found`.
+  ```sh
+  claude plugin marketplace add intershop/icm-migration-support \
+      --sparse .claude-plugin skills templates
+  claude plugin install icm-migration
+  ```
+
+  The marketplace is read from that repository's **default branch**. If the playbook has not merged
+  there yet, name the branch that carries it, `intershop/icm-migration-support@<branch>`, otherwise the
+  add fails with `Marketplace file not found`.
+
+- **Any other agent**, including GitHub Copilot, reads it from the mounted tool clone:
+  **`/icm-migration-support/skills/icm-migration/SKILL.md`**. Start there; it links the rest.
+  Outside a container, clone the repository somewhere and read it from there.
 
 `scripts/smoke.py` finds the plugin's `icm_client.py` automatically; set `ICM_CLIENT_DIR` if it cannot.
 

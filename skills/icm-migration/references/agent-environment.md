@@ -175,7 +175,8 @@ or the agent works from the compiler alone for exactly the deltas where that is 
 
 ## Ready-made files
 
-`templates/Dockerfile` and `templates/docker-compose.yml` in this repository implement all of the above.
+`templates/container/` in this repository implements all of the above: a `Dockerfile`, a
+`docker-compose.yml` with one service per agent, and an `.env.local.example`.
 Copy both into the project, replace every `<path-to>`, and put `REPO_USER` and `REPO_TOKEN` in a
 gitignored `.env.local`.
 
@@ -184,8 +185,16 @@ and ripgrep, and ends with a check that fails the build rather than failing half
 The Kotlin download is verified against the checksum JetBrains publishes beside it, which catches a
 truncated or corrupted download; it is not a defence against a compromised release.
 
-The agent CLI is the last layer and the only agent-specific part, so driving the migration with
-something other than Claude Code means changing one line.
+The agent CLI is the last layer and the only agent-specific part, selected by an `AGENT` build argument
+rather than by a second Dockerfile, because two copies of the same forty lines drift apart. Claude Code
+and the GitHub Copilot CLI both publish musl builds, so the same Alpine base serves either:
+
+```sh
+docker compose run --rm claude      # or: copilot
+```
+
+An agent without a plugin mechanism reads the playbook straight off the mounted tool clone, at
+`/icm-migration-support/skills/icm-migration/SKILL.md`, which is a further reason to mount it.
 
 ## The compose file in outline
 

@@ -39,14 +39,36 @@ RUN set -eux; \
 ENV PATH="/opt/kotlinc/bin:${PATH}"
 
 # ---------------------------------------------------------------------------
-# The agent itself. Everything above is agent-agnostic; this is the only part
-# to change if you drive the migration with something other than Claude Code.
+# The agent. Everything above is agent-agnostic, so this is the only part that
+# differs between them. One image with a switch rather than two Dockerfiles,
+# because two copies of the same forty lines drift apart.
+#
+#   --build-arg AGENT=claude    Claude Code          (default)
+#   --build-arg AGENT=copilot   GitHub Copilot CLI
+#   --build-arg AGENT=none      tools only, bring your own
+#
+# Both CLIs ship musl builds, so the Alpine base works for either.
 # ---------------------------------------------------------------------------
-RUN npm install -g @anthropic-ai/claude-code
+ARG AGENT=claude
+RUN set -eux; \
+    case "${AGENT}" in \
+      claude)  npm install -g @anthropic-ai/claude-code ;; \
+      copilot) npm install -g @github/copilot ;; \
+      none)    echo "no agent CLI installed" ;; \
+      *)       echo "unknown AGENT '${AGENT}', expected claude, copilot or none" >&2; exit 1 ;; \
+    esac
 
 WORKDIR /workspace
 
-# Fail early and loudly rather than halfway through a migration.
-RUN java -version && kotlin -version && python3 -c "import yaml" && git --version
+# Fail early and loudly rather than halfway through a migration. The agent CLI is checked too,
+# because "the image built" and "the agent starts" are different claims.
+ARG AGENT
+RUN set -eux; \
+    java -version; kotlin -version; python3 -c "import yaml"; git --version; \
+    case "${AGENT}" in \
+      claude)  command -v claude ;; \
+      copilot) command -v copilot ;; \
+    esac
 
-CMD ["claude"]
+# Overridden per service in docker-compose.yml.
+CMD ["sh", "-lc", "command -v claude >/dev/null && exec claude || exec copilot"]

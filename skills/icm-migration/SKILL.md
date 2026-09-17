@@ -8,9 +8,9 @@ description: Migrate an Intershop ICM customization project from 7.10 to ICM 11/
 Reusable playbook. Everything here is project-agnostic; per-project decisions belong in that
 project's `docs/adr/` and `docs/migration/PROGRESS.md`.
 
-**Start by copying the starting kit**, `templates/` in this plugin's repository: the `CLAUDE.md`
-working agreements, the `PROGRESS.md` skeleton with its command queue and tool backlog, the ADR with
-the five questions a migration cannot answer for itself, a `smoke.py` skeleton and the compose mounts.
+**Start by copying the starting kit**, `templates/` in this plugin's repository, organised by kind:
+`container/` for the environment, `agent/` for the working agreements, `docs/` for the progress log and
+the ADR, `scripts/` for the smoke check.
 It is one copy and it saves every project reinventing the same bookkeeping badly.
 
 **This skill ships with the tool it describes**, `intershop/icm-migration-support`, and that is
