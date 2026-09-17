@@ -73,6 +73,14 @@ claude plugin install icm-migration
 
 `--sparse` limits the checkout, so a project picking up the playbook does not clone the Java tool.
 
+The marketplace is read from the repository's **default branch**. While this work is still on a feature
+branch, name the branch explicitly:
+
+```
+claude plugin marketplace add intershop/icm-migration-support@<branch> \
+    --sparse .claude-plugin skills templates
+```
+
 * [the playbook itself](skills/icm-migration/SKILL.md)
 * [starting kit: what to copy into a project on day one](templates/README.md)
 * [The machine-readable interface: exit codes and the operation log](docs/agent-interface.md)
