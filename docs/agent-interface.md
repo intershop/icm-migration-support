@@ -74,8 +74,37 @@ grep '"status":"UNKNOWN"' $REPORT
 `UNKNOWN` and `WARNING` are the rows worth reading every time. They are where the tool is telling you
 it met something it does not handle, which is where a migration's risk lives.
 
-## What is not covered yet
+## Asking what the tool did NOT do
 
-The log records what the tool **did**. It does not yet record what it **did not touch**, which is the
-more valuable report: content no step claims is exactly what gets silently carried into a migrated
-project and discovered months later. That is the `inventory` command, planned next.
+The log records what the tool **did**. The more valuable report is the complement, and it is
+`tools/inventory.py`:
+
+```
+tools/inventory.py --project <project> --log build/migration-report/operations.jsonl --json out.json
+```
+
+It derives everything from the log rather than re-implementing each step's matching rules, so it cannot
+drift from what the tool actually does. It reports, in order of signal:
+
+- **still under `staticfiles/` after the run**, taken from the migrated tree rather than from arithmetic
+  on the log. `staticfiles` is a backward-compatibility path in ICM 11+, not a target location, so
+  everything here is content no step knew how to move. Read this first.
+- **deleted content worth a look**, because source and tests are routinely bundled into assembly
+  projects that step 005 removes wholesale. On the reference project this listed 184 files, an entire
+  Geb acceptance suite, which is exactly the content a migration wants rescued before the step set runs.
+- **seen but not handled**: a step met the path and reported UNKNOWN, WARNING or FAILED. On the
+  reference project one UNKNOWN directory covered roughly 900 files.
+- **unclaimed**: no step mentioned it at all.
+- **failed** and **unknown or warning** operations, grouped by step.
+
+Two things it gets right that are easy to get wrong, both found by checking the output against the
+filesystem rather than trusting it:
+
+- steps that move a whole folder record the **directory**, not each file, so a file counts as covered
+  when it or any ancestor appears in the log. Matching file paths alone reported 817 files still under
+  `staticfiles/` when the true number was 16;
+- a directory recorded as UNKNOWN has been *seen* but not *handled*, so its contents belong in the
+  review queue rather than in the handled count.
+
+The baseline is the commit before the first step commit, which the log records, so the run configures
+this itself. Pass `--ref` when auto-commit was disabled.
