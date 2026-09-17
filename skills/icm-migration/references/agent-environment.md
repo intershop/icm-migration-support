@@ -122,7 +122,7 @@ migration three wrong diagnoses.
 ### 7. The ICM 7.10 platform sources, read-only
 
 ```yaml
-- <path>/icm-as-7.10:/icm-as-7.10:ro
+- <path>/icm-7.10:/icm-7.10:ro     # the parent holding the component sets, see below
 ```
 
 Not obvious, and worth it. The target-release sources tell you what exists now. The 7.10 sources tell
@@ -139,6 +139,27 @@ are shipping decompiled platform code with a handful of lines altered. Without t
 out the intent means reading several hundred lines and inferring which part is the customization. With
 them it is `diff`, and the answer takes seconds instead of an afternoon. The reference migration
 analysed four such patches by hand.
+
+**Mind the shape: 7.10 is not one tree.** 7.10 shipped the platform as separate **component sets**,
+typically `p_platform`, `f_business` and `f_content`, each its own repository. ICM 11+ merged them into
+a single repository to stop version bubbling, and they survive there as top-level directories. So the
+target mount is one checkout and the 7.10 mount is several, which matters because **a search for a 7.10
+class has to cover every set**, and one that covers only `p_platform` will come back empty for anything
+in business or content. That is the failure mode the playbook warns about generally: an empty result
+that means "not searched" rather than "not present".
+
+Mount the parent directory holding the sets, or mount each set under a common root, so that one `find`
+reaches all of them.
+
+| 7.10 component set | where it is in the merged tree | cartridges at 14.4 |
+|---|---|---:|
+| `p_platform` | `/icm-as/platform` | 132 |
+| `f_business` | `/icm-as/business` | 12 |
+| `f_content` | `/icm-as/content` | 13 |
+| (b2b) | `/icm-as/b2b` | 59 |
+
+Counts measured on 14.4, and useful in their own right: a cartridge lives under exactly one of those
+four, and `platform/` holds most of them, so it is the first place to look.
 
 Second tier rather than first because most of a migration does not need it, and because the compiler
 plus the target sources cover the common cases.

@@ -24,6 +24,13 @@ Constraints that matter in practice:
 - **Never walk the whole tree.** `du -sh` and unbounded `grep -r` over the mount exceed a typical tool
   timeout. Scope to a cartridge directory (`/icm-as/platform/ac_oidc`) or use `find` with `-path
   '*/build/*' -prune`.
+- **Know the four groups, because scoping depends on them.** The merged tree is split into
+  `platform/`, `business/`, `content/` and `b2b/`, which are what ICM 7.10's component sets
+  (`p_platform`, `f_business`, `f_content`) became when 11+ merged them into one repository to stop
+  version bubbling. A cartridge lives under exactly one, and `platform/` holds most of them, so it is
+  the first place to look and `/icm-as/<group>/<cartridge>` is the right scope for almost any question.
+  If the **7.10** sources are also mounted, they are still separate checkouts, one per set, so a search
+  there must cover all of them or it silently answers for only part of the platform.
 - **Exclude `*/build/*` and `*/bin/*`**, which hold stale duplicates of `src/` and will happily answer
   a question with last release's code.
 - **The Gradle cache is the second authority.** Mount it too. It answers "what does this artifact

@@ -54,7 +54,19 @@ x-icm-agent: &icm-agent
 
     # ICM 7.10 sources, read-only. Optional, high value: the only thing that says what a removed
     # concept used to do, and it turns "what does this class patch change" into a diff.
-    - <path-to>/icm-as-7.10:/icm-as-7.10:ro
+    #
+    # NOT one tree. 7.10 shipped the platform as separate COMPONENT SETS, typically p_platform,
+    # f_business and f_content, each its own repository. ICM 11+ merged them into a single repo to
+    # stop version bubbling, where they survive as top-level directories: platform/, business/,
+    # content/, b2b/. So the 14.4 mount is one tree and the 7.10 mount is several.
+    #
+    # Simplest if the sets are checked out side by side: mount the parent.
+    - <path-to>/icm-7.10:/icm-7.10:ro
+    # If they live apart, mount each one under a common root instead, so a search can cover them
+    # all with a single find:
+    # - <path-to>/p_platform:/icm-7.10/p_platform:ro
+    # - <path-to>/f_business:/icm-7.10/f_business:ro
+    # - <path-to>/f_content:/icm-7.10/f_content:ro
 
     # The migration tool, read-write, so it gets fixed rather than worked around. It also carries
     # the playbook at skills/icm-migration/, which is how an agent without a plugin mechanism
