@@ -38,6 +38,16 @@ public class RemoveAssembly implements MigrationPreparer
         Pattern assemblyPattern = Pattern.compile("^assembly\\s*\\{");// it is a top level block and should appear at the beginning of the line
 
         Path buildGradle = projectDir.resolve("build.gradle");
+
+        if (!Files.exists(buildGradle))
+        {
+            // a project already on the Kotlin DSL cannot declare a 7.10 assembly block
+            LOGGER.debug("No 'build.gradle' in '{}', cannot be an assembly.", projectDir);
+            context.recordSkipped(getResourceName(projectDir), DELETE, buildGradle, null,
+                    "No 'build.gradle' present, project is already using the Kotlin DSL.");
+            return;
+        }
+
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);

@@ -3,6 +3,7 @@ package com.intershop.customization.migration.gradle;
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.ArrayList;
@@ -84,6 +85,16 @@ public class ConvertBuildGradle implements MigrationPreparer
         Path buildGradle = projectDir.resolve("build.gradle");
 
         LOGGER.info("Processing cartridge '{}'", cartridgeName);
+
+        if (!Files.exists(buildGradle))
+        {
+            // a project already on the Kotlin DSL has no Groovy build file; that is not an error
+            LOGGER.debug("No 'build.gradle' in '{}', nothing to convert.", projectDir);
+            context.recordSkipped(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "No 'build.gradle' present, project is already using the Kotlin DSL.");
+            return;
+        }
+
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);
@@ -284,7 +295,13 @@ public class ConvertBuildGradle implements MigrationPreparer
             String[] partsDep = converted.split("'");
             if (partsDep.length > 3)
             {
-                converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'";
+                // whatever followed the coordinates has to survive, for example the closing ')' of
+                // "compile (group: 'x', name: 'y')" when an exclusion block follows on the next line;
+                // dropping it produces a build file that is no longer valid Groovy either
+                String tail = partsDep.length > 4
+                                ? String.join("'", Arrays.copyOfRange(partsDep, 4, partsDep.length))
+                                : "";
+                converted = partsImpl[0] + "'" + partsDep[1] + ":" + partsDep[3] + "'" + tail;
             }
             else
             {

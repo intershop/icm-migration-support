@@ -3,6 +3,7 @@ package com.intershop.customization.migration.gradle;
 import static com.intershop.customization.migration.common.MigrationContext.OperationType.MODIFY;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +45,16 @@ public class RemovedDependency implements MigrationPreparer
     {
         Path buildGradle = projectDir.resolve("build.gradle");
         String cartridgeName = getResourceName(projectDir);
+
+        if (!Files.exists(buildGradle))
+        {
+            // a project already on the Kotlin DSL has no Groovy build file; that is not an error
+            LOGGER.debug("No 'build.gradle' in '{}', nothing to convert.", projectDir);
+            context.recordSkipped(cartridgeName, MODIFY, buildGradle, buildGradle,
+                    "No 'build.gradle' present, project is already using the Kotlin DSL.");
+            return;
+        }
+
         try
         {
             List<String> lines = FileUtils.readAllLines(buildGradle);

@@ -7,3 +7,12 @@ options:
     commons-collections:commons-collections: org.apache.commons:commons-collections4
     com.intershop.common:encryption: com.intershop:encryption
     javax.ws.rs:javax.ws.rs-api: jakarta.ws.rs:jakarta.ws.rs-api
+    javax.inject:javax.inject: jakarta.inject:jakarta.inject-api
+    io.swagger.core.v3:swagger-annotations: io.swagger.core.v3:swagger-annotations-jakarta
+    org.hamcrest:hamcrest-core: org.hamcrest:hamcrest
+    org.hamcrest:hamcrest-library: org.hamcrest:hamcrest
+    com.jayway.restassured:json-path: io.rest-assured:json-path
+    com.intershop.business:app_sf_rest_b2c: com.intershop.business:app_sf_rest_customer
+    com.intershop.business:app_sf_rest_b2c_test: com.intershop.business:app_sf_rest_customer_test
+    com.intershop.business:app_sf_rest_smb: com.intershop.business:app_sf_rest_customer
+    com.intershop.business:app_sf_rest_smb_test: com.intershop.business:app_sf_rest_customer_test
