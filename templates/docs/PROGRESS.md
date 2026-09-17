@@ -113,16 +113,27 @@ Age is not the criterion: a pre-existing defect that the migration surfaced stil
 | # | Item | Owner |
 |---|---|---|
 
-## 7. Changes to the migration tool
+## 7. What this migration taught, and where it went
 
-Everything here is **generic**, so it belongs upstream in
+Everything here is **generic**, so it belongs in
 [icm-migration-support](https://github.com/intershop/icm-migration-support) rather than in this
-repository. The test applied to each finding: *would any 7.10 project hit this?* If yes it goes in the
-tool, as code or as step data, or in the skill if it is know-how rather than code. If it is a
-project-specific judgement call it stays in section 6.
+repository. The test: *would any 7.10 project hit this?* If not, it belongs in section 6 instead.
 
-**Raise these as you find them.** Fixing one by hand here and meaning to contribute it later is how the
-same defect gets fixed twice.
+The playbook's "When the migration teaches you something" section has the full procedure. In short,
+**Where** is one of:
 
-| # | Change | Kind | Raised | Found by |
+- `step-data` a coordinate, package or name the tool does not know
+- `tool-code` the tool doing the wrong thing, or being silent about content it met
+- `playbook` a better way to achieve something. **Easiest to miss and often the most valuable**,
+  because nothing is broken, so nothing prompts you to write it down
+- `script` a check that would have caught it earlier
+- `project` a judgement only this customer can make, which means it moves to section 6
+
+**Raise these the day you find them, and record where.** A finding is closed when it has left this
+project: committed to a branch of the tool repository, or written in section 6 with a reason why it is
+project-specific. Fixing one by hand here and meaning to contribute it later is how the same defect gets
+fixed twice, which has happened.
+
+| # | Finding | Where | Status | Found by |
 |---|---|---|---|---|
+| | | | `open` / `branch <name>` / `merged` | entry 3.N |

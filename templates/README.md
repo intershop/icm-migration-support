@@ -57,7 +57,13 @@ lands in `docs/migration/`. Both look broken from inside `templates/` and are co
 
 ## The one rule that makes this worth keeping
 
-**A finding that any 7.10 project would hit goes upstream, not into this project's notes.** Section 7 of
-`PROGRESS.md` exists for exactly that, and the test is written at the top of it. Without that rule each
-project accumulates its own private knowledge and the tool never improves, which is how the same defect
-gets fixed twice.
+**A finding that any 7.10 project would hit leaves this project the day you find it.** Section 7 of
+`PROGRESS.md` is where it is tracked, and the playbook's "When the migration teaches you something"
+section says how to decide where it goes. The tool is mounted read-write for this reason: fixing it is
+in scope, not an imposition on someone else.
+
+The category most often lost is not a bug at all. A **better way of doing something** breaks nothing, so
+nothing prompts anyone to record it, and it stays with whoever worked it out. On the project this kit
+came from, learning that cartridge registration can go through a Guice module rather than a
+`*.component` file removed an entire planned cartridge split. That reaches the next project only if
+someone writes it in the playbook.

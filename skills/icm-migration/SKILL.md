@@ -200,6 +200,55 @@ Each of the following has bitten a real project. Check them before running any s
    in Java properties, so a `.properties` file whose keys contain colons is not the file it claims to
    be. Rename such reference data to `.txt`.
 
+## When the migration teaches you something
+
+A migration finds things. Some are defects in the tool, some are knowledge that changes the recommended
+approach, some belong to the project alone. **Deciding where each one goes, and doing it that day, is
+part of the work rather than tidying up afterwards.**
+
+This is stated as a procedure rather than a principle because the principle has already failed. On the
+project this playbook came from, seven tool fixes were made in a clone nobody else could see and were
+still unpushed weeks later, and in the meantime the same `split("=")` defect was found and fixed a
+second time by someone who had no way of knowing it was already solved.
+
+### Where a finding goes
+
+| the finding is | it goes in | example |
+|---|---|---|
+| a coordinate, package or name the tool does not know | **step data**, a YAML map | `javax.inject` missing from the 040 and 065 maps |
+| the tool doing the wrong thing, or lying about it | **tool code**, with a test | a failed conversion recorded as a success |
+| the tool being silent about content it met | **tool code**, as a report rather than a fix | unmapped directories under `staticfiles` |
+| a better way to achieve something | **this playbook** | registering cartridges through a Guice module instead of a `*.component` file |
+| a check that would have caught it earlier | **a script in the tool**, with a `--check` mode | duplicate keys in DBPrepare descriptors |
+| a judgement only this customer can make | **the project**, section 6 of its progress log | which of two behaviours they actually want |
+
+**The fourth row is the one that gets missed**, and it is often the most valuable. A better approach is
+not a bug, so nothing fails and nothing prompts you to write it down; it simply stays in the head of
+whoever worked it out. The Guice example is exactly that shape: nothing was broken, the component-file
+route worked, and knowing the alternative removed an entire planned cartridge split. Knowledge like that
+reaches the next project only if someone puts it in the playbook.
+
+### The tool is mounted read-write. Fixing it is in scope
+
+`templates/container/` mounts the tool at `/icm-migration-support` read-write deliberately. When you
+find a defect:
+
+1. reproduce it as a failing test first, so the fix is verifiable by someone who was not there;
+2. fix it, run the whole suite, and check the tests actually ran rather than trusting a green build;
+3. one commit, on a branch, with the symptom in the message, because the next person searches for
+   symptoms rather than causes;
+4. re-run the affected step against the real project and compare the operation log before and after.
+
+Working around a defect and meaning to contribute the fix later is the failure mode above. If there is
+genuinely no time, the minimum is an entry in section 7 precise enough to reimplement from.
+
+### A finding is closed when it has left this project
+
+Not when it is fixed locally. A finding is done when it is either committed to a branch of the tool
+repository, or recorded in the project's own open items with a stated reason why it is project-specific.
+Anything else is knowledge with a single point of failure, and this is the second time that has cost
+real work here.
+
 ## Sequence
 
 **Preparation.** Apply the ICM 11+ customization template over the 7.10 tree (root `build.gradle.kts`,
