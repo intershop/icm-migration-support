@@ -60,6 +60,7 @@ The migration steps are located in the _migration/src/main/resources/migration_ 
 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
 * [API cross-check, 7.10 to current](docs/api-crosscheck.md)
+* [The machine-readable interface: exit codes and the operation log](docs/agent-interface.md)
 
 ### Third Party Libraries
 This project reuses code from the project [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter), licensed under the Apache License 2.0. 

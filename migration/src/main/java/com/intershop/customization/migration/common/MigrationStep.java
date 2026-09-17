@@ -17,6 +17,7 @@ public class MigrationStep
     {
         MigrationStep result = new MigrationStep();
         result.importOptions(resourceURI);
+        result.name = nameOf(Paths.get(resourceURI));
         return result;
     }
 
@@ -24,7 +25,23 @@ public class MigrationStep
     {
         MigrationStep result = new MigrationStep();
         result.importOptions(optionsPath);
+        result.name = nameOf(optionsPath);
         return result;
+    }
+
+    /**
+     * Derives the step name from its descriptor file, for example {@code 020_MoveFolder.yml} becomes
+     * {@code 020_MoveFolder}. The name is what attributes an operation to a step in the migration log, so it has to be
+     * stable and human-recognisable, and the descriptor file name is both.
+     *
+     * @param path the step descriptor path
+     * @return the step name without its file extension
+     */
+    private static String nameOf(Path path)
+    {
+        String fileName = path.getFileName().toString();
+        int dot = fileName.lastIndexOf('.');
+        return dot > 0 ? fileName.substring(0, dot) : fileName;
     }
 
     private static final String MIGRATOR_KEY = "migrator";
@@ -32,6 +49,15 @@ public class MigrationStep
     private static final String MESSAGE_KEY = "message";
 
     private Map<String, Object> yamlConf = Collections.emptyMap();
+    private String name = "unknown";
+
+    /**
+     * @return the step name, derived from the descriptor file name
+     */
+    public String getName()
+    {
+        return name;
+    }
 
     public Map<String, Object> importOptions(String content)
     {
