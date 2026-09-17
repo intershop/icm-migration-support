@@ -103,16 +103,6 @@ not handle, and what no step mentioned at all.
 recipes into one queryable file, tagged with the release each came from. `--check` fails if it has
 fallen behind the step data.
 
-## Earlier Copilot instructions
-
-`docs/ai-instructions/` holds an earlier, GitHub Copilot oriented approach:
-[migrating cartridges](docs/ai-instructions/migrate-all-cartridges-instructions.md) and
-[checking dependency structure](docs/ai-instructions/dependencies-component-instances.md). A training
-for it is available in the academy.
-
-The `icm-migration` playbook above supersedes it for the migration itself. The dependency instructions
-remain useful on their own after a migration.
-
 ## Third party libraries
 
 This project reuses code from [GradleKotlinConverter](https://github.com/bernaferrari/GradleKotlinConverter),
