@@ -1,0 +1,14 @@
+type: specs.intershop.com/v1beta/migrate
+migrator: com.intershop.customization.migration.file.ClasspathResourceFileCopier
+message: "chore: copy OpenRewrite cross-check configuration to root project"
+options:
+  source-map:
+    # source file located in the resources directory
+    "rewrite-task" : "gradle/rewrite-7x10-to-current.gradle"
+    "rewrite-recipes" : "gradle/rewrite-7x10-to-current.yml"
+  target-map:
+    # target file in the root project
+    "rewrite-task" : "rewrite.gradle"
+    "rewrite-recipes" : "rewrite.yml"
+  log-map:
+    "rewrite-task" : "Created rewrite.gradle in root project. Run 'gradlew --init-script rewrite.gradle rewriteRun'. On the direct 7.10-to-current route this is a CROSS-CHECK, not a migration step: expect no change. Any change is a finding, so read the diff before committing it."
