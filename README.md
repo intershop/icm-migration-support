@@ -39,6 +39,7 @@ fails with `Marketplace file not found`.
 | [machine-readable interface](docs/agent-interface.md) | exit codes, the operation log, and `inventory` |
 | [7.10 to 11 steps](docs/migration-7.10-11.md) | what each automated step does, and its manual follow-up |
 | [API cross-check](docs/api-crosscheck.md) | the OpenRewrite recipe set, and why it is a check rather than a step |
+| [ADR 0001](docs/adr/0001-enhance-the-tool-rather-than-replace-it.md) | why there is still a step engine at all, now that an agent could write the transformations itself |
 
 ## The route
 
