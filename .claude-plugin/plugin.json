@@ -1,0 +1,8 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "icm-migration",
+  "version": "1.0.0",
+  "description": "Migrate an Intershop ICM customization project from 7.10 to the current release, using this tool for the deterministic steps and an agent for the judgement.",
+  "author": { "name": "Intershop Communications AG" },
+  "skills": ["./skills/icm-migration"]
+}

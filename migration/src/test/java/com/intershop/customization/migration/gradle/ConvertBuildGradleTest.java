@@ -27,6 +27,42 @@ class ConvertBuildGradleTest
         assertEquals(expected, result);
     }
 
+    /**
+     * Converting an already-converted script must be a no-op.
+     * <p>
+     * It was not: each section appended a line separator even when the section produced nothing, so every run added
+     * two blank lines at the top and one before {@code dependencies}, without limit. Measured at 32 build scripts
+     * growing three lines on every repeat of the step set, which is what made the step set unsafe to re-run.
+     */
+    @Test
+    void convertingAnAlreadyConvertedScriptChangesNothing() throws IOException, URISyntaxException
+    {
+        List<String> source = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertBuildGradleTest.source").toURI()));
+
+        String once = underTest.migrate(source);
+        String twice = underTest.migrate(Arrays.asList(once.split("\\R")));
+
+        assertEquals(once, twice, "second conversion must leave the script unchanged");
+    }
+
+    /**
+     * And a third pass, because a defect that adds a constant amount per run still passes a single repeat if the
+     * first and second happen to differ by the same amount.
+     */
+    @Test
+    void repeatedConversionsConverge() throws IOException, URISyntaxException
+    {
+        List<String> source = FileUtils.readAllLines(Paths.get(getResourceURI("ConvertBuildGradleTest.source").toURI()));
+
+        String result = underTest.migrate(source);
+        for (int run = 0; run < 3; run++)
+        {
+            String next = underTest.migrate(Arrays.asList(result.split("\\R")));
+            assertEquals(result, next, "conversion must be stable at repeat " + (run + 1));
+            result = next;
+        }
+    }
+
     @Test
     void testMapPlugins()
     {

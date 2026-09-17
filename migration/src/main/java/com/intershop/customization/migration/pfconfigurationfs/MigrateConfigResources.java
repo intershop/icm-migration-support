@@ -112,8 +112,12 @@ public class MigrateConfigResources implements MigrationPreparer
                          }
                          catch(Exception e)
                          {
-                             context.recordFailure(migrationSubject, MODIFY, path, p, e.getMessage());
-                             throw new RuntimeException(e);
+                             // Fail the file and carry on. Rethrowing here used to abort the whole migration for a
+                             // single unparseable input, so steps after this one never ran at all. Every other step
+                             // fails the file and continues, the failure is recorded here, and the process exit code
+                             // reports it, so nothing is hidden by continuing.
+                             LOGGER.error("Failed to migrate configuration resource {}.", p, e);
+                             context.recordFailure(migrationSubject, MODIFY, path, p, e.toString());
                          }
                      });
             }

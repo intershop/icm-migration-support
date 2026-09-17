@@ -36,6 +36,7 @@ tasks.register<JavaExec>("migrateAll") {
         project.findProperty("target")?.let { add(it.toString()) }
         project.findProperty("steps")?.let { add(it.toString()) }
         if (noAutoCommit) add("--noAutoCommit")
+        project.findProperty("report")?.let { add("--report=$it") }
     }
 }
 
@@ -50,5 +51,6 @@ tasks.register<JavaExec>("migrateOne") {
         project.findProperty("target")?.let { add(it.toString()) }
         project.findProperty("steps")?.let { add(it.toString()) }
         if (noAutoCommit) add("--noAutoCommit")
+        project.findProperty("report")?.let { add("--report=$it") }
     }
 }

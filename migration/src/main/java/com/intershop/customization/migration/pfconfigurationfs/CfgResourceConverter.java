@@ -332,7 +332,7 @@ public class CfgResourceConverter
             }
             else
             {
-                String[] entry = line.split("=");
+                String[] entry = line.split("=", 2);
 
                 // scam inputz lin
                 String cfgKey = "";
@@ -409,7 +409,7 @@ public class CfgResourceConverter
             }
             else
             {
-                String[] entry = line.split("=");
+                String[] entry = line.split("=", 2);
 
                 // scan input line
                 String cfgJobName = "";
@@ -548,18 +548,19 @@ public class CfgResourceConverter
                 // gather the source data
                 if (targetEntry.size() < 4)
                 {
-                    // scan the source line; the value may itself contain '=' (for example the
-                    // base64 padding of an encrypted credential), so only split on the first one
+                    // scan the source line
                     String[] entry = line.split("=", 2);
-                    if (entry.length == 2)
+                    if (entry.length != 2)
                     {
-                        cfgKey = entry[0].trim();
-                        cfgValue = entry[1].trim();
-                        if (0 >= cfgKey.indexOf("."))
-                        {
-                            cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
-                            cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
-                        }
+                        LOGGER.error("Ignoring line without a key/value separator in file {}: {}", source, line);
+                        continue;
+                    }
+                    cfgKey = entry[0].trim();
+                    cfgValue = entry[1].trim();
+                    if (groupOf(cfgKey).isEmpty())
+                    {
+                        LOGGER.error("Ignoring line whose key has no '<group>.' prefix in file {}: {}", source, line);
+                        continue;
                     }
                     if (cfgKey.isEmpty())
                     {
@@ -574,18 +575,14 @@ public class CfgResourceConverter
                 // reset the source data
                 if (targetEntry.size() == 4)
                 {
-                    if (0 >= cfgKey.indexOf("."))
+                    cfgGroup = groupOf(cfgKey);
+                    if (cfgGroup.isEmpty())
                     {
-                        cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
-                    }
-                    int cfgGroupEnd = cfgKey.indexOf(".");
-                    if (0 > cfgGroupEnd)
-                    {
-                        LOGGER.error("Cannot determine the configuration group from key '{}', skipping entry.", cfgKey);
+                        LOGGER.error("Cannot determine the configuration group from key '{}' in file {},"
+                                        + " skipping entry.", cfgKey, source);
                         targetEntry.clear();
                         continue;
                     }
-                    cfgGroup = cfgKey.substring(0, cfgGroupEnd);
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)
@@ -608,6 +605,22 @@ public class CfgResourceConverter
         }
 
         return targetLines;
+    }
+
+    /**
+     * Returns the group prefix of a configuration key, the part before the first dot.
+     * <p>
+     * Keys in these files look like {@code ConfigItem1.ServiceDefinitionID}, and the group is what ties the four
+     * lines of one entry together. Returns an empty string when the key has no usable prefix, which the callers treat
+     * as a malformed line rather than crashing on a negative substring index.
+     *
+     * @param cfgKey the configuration key
+     * @return the group prefix, or an empty string if there is none
+     */
+    private static String groupOf(String cfgKey)
+    {
+        int dot = cfgKey.indexOf('.');
+        return dot > 0 ? cfgKey.substring(0, dot) : "";
     }
 
     /**
@@ -650,18 +663,19 @@ public class CfgResourceConverter
                 // gather the source data
                 if (targetEntry.size() < 4)
                 {
-                    // scan the source line; the value may itself contain '=' (for example the
-                    // base64 padding of an encrypted credential), so only split on the first one
+                    // scan the source line
                     String[] entry = line.split("=", 2);
-                    if (entry.length == 2)
+                    if (entry.length != 2)
                     {
-                        cfgKey = entry[0].trim();
-                        cfgValue = entry[1].trim();
-                        if (0 >= cfgKey.indexOf("."))
-                        {
-                            cfgGroup = cfgKey.substring(0, cfgKey.indexOf(".") - 1);
-                            cfgKey = cfgKey.substring(cfgKey.indexOf("."), cfgKey.length()).trim();
-                        }
+                        LOGGER.error("Ignoring line without a key/value separator in file {}: {}", source, line);
+                        continue;
+                    }
+                    cfgKey = entry[0].trim();
+                    cfgValue = entry[1].trim();
+                    if (groupOf(cfgKey).isEmpty())
+                    {
+                        LOGGER.error("Ignoring line whose key has no '<group>.' prefix in file {}: {}", source, line);
+                        continue;
                     }
                     if (cfgKey.isEmpty())
                     {
@@ -676,18 +690,14 @@ public class CfgResourceConverter
                 // reset the source data
                 if (targetEntry.size() == 4)
                 {
-                    if (0 >= cfgKey.indexOf("."))
+                    cfgGroup = groupOf(cfgKey);
+                    if (cfgGroup.isEmpty())
                     {
-                        cfgKey = cfgKey.substring(cfgKey.indexOf(".") + 1, cfgKey.length());
-                    }
-                    int cfgGroupEnd = cfgKey.indexOf(".");
-                    if (0 > cfgGroupEnd)
-                    {
-                        LOGGER.error("Cannot determine the configuration group from key '{}', skipping entry.", cfgKey);
+                        LOGGER.error("Cannot determine the configuration group from key '{}' in file {},"
+                                        + " skipping entry.", cfgKey, source);
                         targetEntry.clear();
                         continue;
                     }
-                    cfgGroup = cfgKey.substring(0, cfgGroupEnd);
                     StringBuffer bTargetLine
                     = new StringBuffer().append(this.resourceType.getPrefix())
                       .append(PROPERTY_KEY_SEPARATOR)

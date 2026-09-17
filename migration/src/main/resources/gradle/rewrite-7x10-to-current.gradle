@@ -17,8 +17,9 @@ rootProject {
         activeRecipe("org.openrewrite.java.migrate.UpgradeToJava21")
         // https://docs.openrewrite.org/recipes/gradle/migratetogradle8
         activeRecipe("org.openrewrite.gradle.MigrateToGradle8")
-        // custom recipes located in rewrite.yml (rewrite-11to12.yml)
-        activeRecipe("com.intershop.migration.MigrationToICM12")
+        // custom recipes located in rewrite.yml (rewrite-7x10-to-current.yml),
+        // the flattened union of the former ICM 12 and ICM 13 sets
+        activeRecipe("com.intershop.migration.MigrationFrom7x10")
 
         // add any additional recipes here you want to run
         setExportDatatables(true)

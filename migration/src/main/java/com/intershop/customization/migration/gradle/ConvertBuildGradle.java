@@ -147,16 +147,36 @@ public class ConvertBuildGradle implements MigrationPreparer
         // build result
         StringBuilder result = new StringBuilder();
         // add plugins
-        result.append(joinPlugins(newPlugins)).append(LINE_SEP);
+        appendSection(result, joinPlugins(newPlugins));
         // add intershop block (descriptions)
-        result.append(intershopBlock(intershopLines)).append(LINE_SEP);
+        appendSection(result, intershopBlock(intershopLines));
         // add all own known lines
-        result.append(String.join(LINE_SEP, unknownLines)).append(LINE_SEP);
+        appendSection(result, String.join(LINE_SEP, unknownLines));
         // collect tasks for plugins
-        result.append(joinTasksForNewPlugins(newPlugins)).append(LINE_SEP);
+        appendSection(result, joinTasksForNewPlugins(newPlugins));
         // put dependencies to the end
         result.append(migrateDependencies(dependencyLines));
         return result.toString();
+    }
+
+    /**
+     * Appends a section and its trailing separator, but only when the section produced something.
+     * <p>
+     * Appending the separator unconditionally made the conversion non-idempotent: a section that produces nothing
+     * still contributed a blank line, so converting an already-converted script grew it by three lines every time.
+     * Skipping the separator for an empty section makes repeated conversions converge, and changes nothing for a
+     * section that has content.
+     *
+     * @param result the file being assembled
+     * @param section the section content, possibly empty
+     */
+    private void appendSection(StringBuilder result, String section)
+    {
+        if (section.isEmpty())
+        {
+            return;
+        }
+        result.append(section).append(LINE_SEP);
     }
 
     /**
