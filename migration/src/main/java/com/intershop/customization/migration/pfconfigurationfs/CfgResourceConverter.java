@@ -562,6 +562,13 @@ public class CfgResourceConverter
                         LOGGER.error("Ignoring line whose key has no '<group>.' prefix in file {}: {}", source, line);
                         continue;
                     }
+                    if (cfgKey.isEmpty())
+                    {
+                        // an unparseable line must not be stored: it would count towards the four
+                        // entries a configuration needs and corrupt the entry being collected
+                        LOGGER.warn("Ignoring unparseable configuration line: {}", line);
+                        continue;
+                    }
                     targetEntry.put(cfgKey, cfgValue);
                 }
                 // all values found - build and add the target line and
@@ -668,6 +675,13 @@ public class CfgResourceConverter
                     if (groupOf(cfgKey).isEmpty())
                     {
                         LOGGER.error("Ignoring line whose key has no '<group>.' prefix in file {}: {}", source, line);
+                        continue;
+                    }
+                    if (cfgKey.isEmpty())
+                    {
+                        // an unparseable line must not be stored: it would count towards the four
+                        // entries a configuration needs and corrupt the entry being collected
+                        LOGGER.warn("Ignoring unparseable configuration line: {}", line);
                         continue;
                     }
                     targetEntry.put(cfgKey, cfgValue);
