@@ -1,0 +1,22 @@
+# Mounts that matter for an agent working on an ICM migration.
+# Put these in a GITIGNORED compose file: the paths are per-developer, and one of them is read-write.
+services:
+  agent:
+    volumes:
+      # ICM platform sources, READ-ONLY. The authority on every API question. Intershop always has
+      # these and partners usually do; they are handed over as a plain file tree, so this is an ask
+      # rather than a build. Match the source version to the target release.
+      - <path-to>/icm-as:/icm-as:ro
+
+      # The Gradle cache, READ-ONLY. The second authority: it answers "what does this artifact
+      # actually contain" by listing a jar, which sources cannot.
+      - <path-to>/gradle:/gradle-home:ro
+
+      # The migration tool, read-write, only if you intend to fix it as you go. You should.
+      #
+      # MOUNT IT OUTSIDE THE PROJECT DIRECTORY, never under the project. The ICM 11+
+      # settings.gradle.kts makes a Gradle project of every top-level directory without checking for
+      # a build script, so a clone inside the project becomes a phantom cartridge that fails the
+      # product build with a missing cartridge descriptor. That cost one migration three wrong
+      # diagnoses.
+      - <path-to>/icm-migration-support:/icm-migration-support:rw

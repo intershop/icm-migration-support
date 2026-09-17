@@ -1,0 +1,11 @@
+{
+  "name": "intershop-icm",
+  "owner": { "name": "Intershop Communications AG" },
+  "plugins": [
+    {
+      "name": "icm-migration",
+      "source": "./",
+      "description": "The ICM 7.10 to current migration playbook, shipped alongside the tool it describes."
+    }
+  ]
+}

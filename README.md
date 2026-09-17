@@ -60,6 +60,21 @@ The migration steps are located in the _migration/src/main/resources/migration_ 
 
 * [Migration 7.10 to 11](docs/migration-7.10-11.md)
 * [API cross-check, 7.10 to current](docs/api-crosscheck.md)
+
+## For agents: the migration skill
+
+The judgement half of a migration, the part no step set covers, ships here as a Claude Code plugin so
+that it versions with the tool it describes:
+
+```
+claude plugin marketplace add intershop/icm-migration-support --sparse .claude-plugin skills templates
+claude plugin install icm-migration
+```
+
+`--sparse` limits the checkout, so a project picking up the playbook does not clone the Java tool.
+
+* [the playbook itself](skills/icm-migration/SKILL.md)
+* [starting kit: what to copy into a project on day one](templates/README.md)
 * [The machine-readable interface: exit codes and the operation log](docs/agent-interface.md)
 
 ### Third Party Libraries
