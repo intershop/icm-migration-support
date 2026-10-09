@@ -239,6 +239,7 @@ com.intershop.beehive.{segment}.* → cartridge("com.intershop.platform:{segment
 
 | `com.google.inject.*` | `implementation("com.google.inject:guice")` |
 | `jakarta.inject.*` | `implementation("jakarta.inject:jakarta.inject-api")` |
+| `jakarta.annotation.*` | `implementation("jakarta.annotation:jakarta.annotation-api")` |
 | `jakarta.ws.rs.*` | `implementation("jakarta.ws.rs:jakarta.ws.rs-api")` |
 | `jakarta.xml.bind.*` | `implementation("jakarta.xml.bind:jakarta.xml.bind-api")` |
 | `org.slf4j.*` | `implementation("org.slf4j:slf4j-api")` |

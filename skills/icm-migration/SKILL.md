@@ -433,6 +433,31 @@ Then climb the Gradle ladder in order, never skipping a rung: `projects`, `tasks
 `:ft_production:dependencies --configuration cartridgeRuntime`, `test`, `build`, DBPrepare and server
 start.
 
+**Check the Kotlin conversion before the first rung, not with it.** The converter of step 070 reports
+success on scripts that do not compile, and it is silent about what it has no rule for: `task x { }`,
+`new`, `clean.doFirst`, top-level task blocks such as `test { }`, and paren-less calls such as
+`into "dir"` or `rename "a", "b"`. Earlier steps can already have damaged a script (a dropped closing
+quote after `version: '1.3.5`, a second `plugins { }` block). Grep every `.kts` for those shapes and for
+lines with an odd number of quotes, with a positive control, and treat a hit as a defect to fix and
+report upstream.
+
+**Rung 1 shows one broken script per run.** Kotlin build scripts compile per project during
+configuration, so `gradlew projects` stops at the first failing one. When it fails, classify the error,
+sweep the whole repository for that shape, fix every hit, and only then rerun; on a slow mount one run
+costs minutes. Pass `--no-scan` wherever build-scan publishing is unwanted or blocked.
+
+**`--continue` does not compile everything.** A project whose dependency failed is skipped, not
+reported. Count the `compileJava` tasks that actually ran against the number of projects; on one 7.10
+project only 23 of 67 ran on the first pass. Fix dependency gaps for all projects from their imports in
+one sweep (see `references/fix-catalogue.md`) rather than one rung run at a time.
+
+**Expect the injection libraries to be missing.** 7.10 put Guice, `javax.inject` and the annotation API
+on the compile classpath transitively; ICM 14 platform cartridges declare `com.google.inject:guice`,
+`jakarta.inject:jakarta.inject-api` and `jakarta.annotation:jakarta.annotation-api` themselves, without
+versions. Do the same per importing project. `cannot access X` with `class file for X not found` is the
+same family: an API you call exposes `X` from a cartridge you do not depend on (for example
+`RestException` and the `orm` cartridge's `OCAException`), so add that cartridge.
+
 **Do not use `--configuration cartridge` for that rung.** It is not resolvable standalone: project
 dependencies resolve, external coordinates get no version, and a perfectly healthy cartridge reports
 **72 `FAILED` lines** under a `BUILD SUCCESSFUL`. Read without a baseline it looks exactly like a broken
