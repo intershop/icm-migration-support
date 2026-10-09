@@ -2,7 +2,7 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "icm-migration",
   "version": "1.0.0",
-  "description": "Migrate an Intershop ICM customization project from 7.10 to the current release, using this tool for the deterministic steps and an agent for the judgement.",
+  "description": "Two migration playbooks for Intershop ICM customization projects: 7.10 to the current release, using this tool for the deterministic steps and an agent for the judgement, and Gradle 8 to Gradle 9 for the build itself.",
   "author": { "name": "Intershop Communications AG" },
-  "skills": ["./skills/icm-migration"]
+  "skills": ["./skills/icm-migration", "./skills/icm-gradle9-migration"]
 }
