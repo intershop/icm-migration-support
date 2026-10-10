@@ -13,6 +13,13 @@ options:
     javax.servlet: jakarta.servlet
     javax.annotation: jakarta.annotation
     javax.inject: jakarta.inject
+    # cXML punchout API moved to bc_punchout_cxml in 14.x; only packages that are gone entirely
+    # (v2.internal.cxml.mapper kept its session subpackage, so it is mapped by hand)
+    com.intershop.sellside.rest.b2b.punchout.v2.capi.cxml.handler: com.intershop.component.punchout.cxml.v2.capi.handler
+    com.intershop.sellside.rest.b2b.punchout.v2.capi.cxml.mapper: com.intershop.component.punchout.cxml.v2.capi.mapper
+    com.intershop.sellside.rest.b2b.punchout.capi.cxml.handler: com.intershop.component.punchout.cxml.capi.handler
+    com.intershop.sellside.cxml.punchout.capi.handlerchain: com.intershop.component.punchout.cxml.capi.handlerchain
+    com.intershop.sellside.cxml.punchout.v2.internal.handlerchain: com.intershop.component.punchout.cxml.v2.internal.handlerchain
   file-extension:
     - java
     - isml
