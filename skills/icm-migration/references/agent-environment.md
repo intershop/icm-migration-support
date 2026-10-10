@@ -75,6 +75,13 @@ The highest-leverage practice in the whole playbook, for the reasons in
 it occasionally misdiagnoses outright. Intershop always has these and partners usually do, handed over
 as a plain file tree, so this is an ask rather than a build. Match the version to the target release.
 
+**Put the tree on a Linux file system.** Mounted from a Windows drive (9p), one recursive grep took
+over 2 minutes and the agent learned to avoid the searches it most needed. Either mount it from the
+WSL file system, or copy it once into container-local storage, without `build/`, `bin/` and
+`node_modules/`: 1 GB and 32,000 `.java` files, after which the same grep takes 5 s. The same holds for
+the project itself, with one difference: the project must not be copied, because it is edited and
+built. Move it into the WSL file system and mount it from there; Gradle then runs in the container.
+
 ### 3. The Gradle cache, read-WRITE, in its own directory
 
 ```yaml

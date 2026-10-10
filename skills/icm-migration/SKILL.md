@@ -458,6 +458,26 @@ versions. Do the same per importing project. `cannot access X` with `class file 
 same family: an API you call exposes `X` from a cartridge you do not depend on (for example
 `RestException` and the `orm` cartridge's `OCAException`), so add that cartridge.
 
+**Look every compile error up in `references/icm-14-api-deltas.md` before researching it.** On the
+project behind the table's latest rows, two errors that were already documented there were researched
+again from the platform sources, because nobody looked at the table first. Grep it for the package or
+class name from the error; a hit saves the platform search.
+
+**Sweep by error class, not by failing project.** One run shows only the projects whose dependencies
+compiled. When a class of error appears (a missing library, a moved package), grep the whole
+repository for the shape that causes it and fix every hit before the next run. On one project
+`org.slf4j.Marker` failed in 5 projects and 29 needed `slf4j-api`. Fixing only the 5 would have cost
+four more runs.
+
+**Split the work by speed.** If the repository sits on a Windows drive mounted into the container
+(9p, as under Docker Desktop with WSL 2), measure before choosing: there, `gradlew projects` took 2 to
+4.5 min in the container against seconds on the host, a `git status` about 2 min, and copying 1 GB of
+platform sources 1 h 46 min. What worked: the developer runs `gradlew.bat ... --continue --no-scan >
+compile-all-<N>.log 2>&1` on the host, the agent reads the log, sweeps, commits, and names the next log
+file. Copy the platform sources once into container-local storage (`/tmp` on the overlay) and search
+the copy: the same `grep -r` dropped from over 2 min to 5 s. The copy is read-only reference, so it
+cannot drift. Never keep a second copy of the project itself, which is edited and built in two places.
+
 **Do not use `--configuration cartridge` for that rung.** It is not resolvable standalone: project
 dependencies resolve, external coordinates get no version, and a perfectly healthy cartridge reports
 **72 `FAILED` lines** under a `BUILD SUCCESSFUL`. Read without a baseline it looks exactly like a broken
