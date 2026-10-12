@@ -343,6 +343,37 @@ tiers in cost order, and the four questions to ask on day one. Its central assum
 7.10 system is still running and is therefore an oracle you can diff against, which beats any assertion
 anyone would write by hand.
 
+### Add cartridges to application cartridge lists with Guice, not with component fulfillments
+
+7.10 cartridges joined an application type with `<fulfill requirement="selectedCartridge"
+of="intershop.B2CResponsive.Cartridges" value="my_cartridge"/>`. In ICM 14 a component file can only
+reference instances declared in cartridges on its own dependency list, and the cartridge declaring a
+storefront list (`as_responsive`) usually cannot be a dependency without a cycle. startAS then fails
+with `Can't find declaration of instance 'intershop.B2CResponsive.Cartridges' for adding fulfillments
+in context '<cartridge>'`, and only the first offender is reported. Intershop's own `ac_gtm` has that
+fulfillment commented out.
+
+Convert **every** such fulfillment in one sweep, not only the reported one. One module per cartridge,
+the platform's own pattern (`CoreTestListModule`):
+
+```java
+public class My_cartridgeCartridgeListModule extends CartridgeListModule   // com.intershop.beehive.core.capi.app
+{
+    @Override
+    protected void configure()
+    {
+        addCartridge("intershop.B2CResponsive.Cartridges", "my_cartridge");
+    }
+}
+```
+
+Register it in `objectgraph/objectgraph.properties` under `global.modules` (add that key if the file
+only has `global.overrideModules`), and give the cartridge `core` and `guice` dependencies.
+`CartridgeListProviderImpl` merges the Guice set into the named list. Keep the `<instance>`
+declarations of the lists themselves. Then check every name in every list: outside test mode a
+cartridge that does not exist throws `IllegalArgumentException` at startup (7.10 leftovers such as
+`pmc_rest`, now `app_sf_rest_pmc`, `pf_axis2` and `ac_inventory_service`).
+
 ### Cartridge order is derived now, so "the init cartridge ran first" is false
 
 Expect a wave of DBPrepare failures that all say some domain, organization or channel does not
