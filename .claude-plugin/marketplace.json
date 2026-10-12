@@ -5,7 +5,7 @@
     {
       "name": "icm-migration",
       "source": "./",
-      "description": "The ICM 7.10 to current migration playbook, shipped alongside the tool it describes."
+      "description": "The ICM migration playbooks, shipped alongside the tool they describe: 7.10 to the current release, and Gradle 8 to Gradle 9."
     }
   ]
 }
