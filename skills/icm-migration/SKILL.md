@@ -374,6 +374,32 @@ declarations of the lists themselves. Then check every name in every list: outsi
 cartridge that does not exist throws `IllegalArgumentException` at startup (7.10 leftovers such as
 `pmc_rest`, now `app_sf_rest_pmc`, `pf_axis2` and `ac_inventory_service`).
 
+### Check every component reference against its declaring cartridge before a server start
+
+The same visibility rule applies to every `of=` and `with=` in a component file. A server start takes
+long and reports only the first `Can't find declaration of instance '<name>' ... in context
+'<cartridge>'`, so sweep statically first: collect the instance names declared in `/icm-as` (including
+`/icm-as/b2b`, read from `src`, not `bin` or `build`) and in the project, then list each reference whose
+declaring cartridge is not on the referencing cartridge's dependency list, or that is not declared at all.
+Fix by adding the declaring cartridge as a `cartridge(...)` dependency, as Intershop's `as_headless` does
+("access intershop.REST in component files"):
+
+| Instance | Declared in (ICM 14) |
+|---|---|
+| `intershop.REST` (headless REST app) | `app_sf_headless` |
+| `intershop.WebShop.RESTAPI` and its resources | `app_sf_rest` (B2B resources: `app_sf_rest_b2b*`) |
+| `intershop.B2CBackoffice.ApplicationTypes` | `sld_ch_consumer_plugin` |
+
+**The `intershop.B2BWebShop.RESTAPI.*` instances are gone.** 7.10's separate B2B REST API was merged
+into the WebShop one: `app_sf_rest_b2b` and the punchout cartridges register under
+`intershop.WebShop.RESTAPI.*` (`root`, `AuthorizationService`, `CustomerItemUserItemResource`,
+`PunchoutHandler`, `QuoteHandler`, `SMBCustomerHandler`, `CXMLPunchoutSetupRequestResource.v2`, ...).
+Rename `"intershop.B2BWebShop.RESTAPI` to `"intershop.WebShop.RESTAPI` in `of=`, `with=` and in
+redeclared names (anchored on the quote, so project names like `CC_intershop.B2BWebShop...` stay), and
+check that each renamed name is declared in ICM 14. A project redeclaring one of these names
+(`<instance name="intershop.WebShop.RESTAPI.QuoteHandler" with="CC_QuoteHandler"/>`) replaces Intershop's
+instance only if it depends on the declaring cartridge, so that it loads later.
+
 ### Cartridge order is derived now, so "the init cartridge ran first" is false
 
 Expect a wave of DBPrepare failures that all say some domain, organization or channel does not
