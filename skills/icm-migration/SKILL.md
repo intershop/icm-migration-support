@@ -400,6 +400,12 @@ check that each renamed name is declared in ICM 14. A project redeclaring one of
 (`<instance name="intershop.WebShop.RESTAPI.QuoteHandler" with="CC_QuoteHandler"/>`) replaces Intershop's
 instance only if it depends on the declaring cartridge, so that it loads later.
 
+Check `with=` too: the validator fails with `Can't find instance '<name>' to fulfill requirement ...`
+for names that are declared nowhere (collect `instance`, `implementation` and `contract` names). 7.10
+leftovers seen: `intershop.DemoCartridges` (`subProvider` of the storefront cartridge lists, drop it),
+`intershop.B2CWebShop.RESTAPI` (now `intershop.WebShop.RESTAPI`), and `CXMLSetupRequestHandlerImpl.v2`
+(a Guice binding in ICM 14, `BcPunchoutCXMLModule`: drop the `<requires>` and `<fulfill>` and inject it).
+
 ### Cartridge order is derived now, so "the init cartridge ran first" is false
 
 Expect a wave of DBPrepare failures that all say some domain, organization or channel does not
