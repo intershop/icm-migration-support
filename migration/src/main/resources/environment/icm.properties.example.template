@@ -81,10 +81,10 @@ webserver.container.https.port = 443
 # This is a host port (Docker container external port), default: 7747, change it in case of port collisions
 #intershop.as.jmx.connector.port = 7747
 
-# Use icm-as-test instead of icm-as (default: true), can be checked on INT/UAT/PRD and local DEV systems at /intershop/cartridges: *_test* cartridges vs. no *_test* cartridges
-# In the INT/UAT/PRD Helm charts this configuration is done in another way, see under YAML path icm-as.image.repository
+# Use icm-as-test instead of icm-as (default: true / icm-as-test), can be checked in icm-as container or pod at /intershop/cartridges: *_test* cartridges vs. no *_test* cartridges
+# In the INT/UAT/PRD Helm charts this configuration is done in another way, see under YAML path icm-as.image.repository (default: icm-as)
 # Please keep in mind: This has nothing to do with the cartridge list!
-#intershop.as.use.testimage = false
+intershop.as.use.testimage = false
 
 # local host configuration (the hostname or the IP of the local machine)
 # this is not always 'localhost'.
@@ -222,5 +222,5 @@ intershop.monitoring.maxSensors=100000
 # developer's helpers
 ##intershop.template.PrintTemplateName=true (does not exist anymore in ICM 11+!)
 intershop.template.PrintTemplateMarker=true
-intershop.session.TimeOut=300
+#intershop.session.TimeOut=15
 ##intershop.CSRFGuard.allowRecovery=true (does not exist anymore in ICM 11+!)
