@@ -201,6 +201,16 @@ or the agent works from the compiler alone for exactly the deltas where that is 
 - **Sources for the intermediate releases.** On the direct route, 7.10 and the target are the only two
   versions that matter.
 
+## A trap of the agent's own tooling: `.claude/.cc-writes` in the sources
+
+Claude Code's file edit tool can leave empty, root-owned `.claude/.cc-writes` folders (mode `drwx------`)
+next to the files it edited. A container that mounts the cartridge sources cannot read them, and ICM's
+resource traversal aborts: `SiteContentPreparer` fails with `Unable to compute site content for resource
+path <cartridge>`, a user import with `Unable to compute configuration from cartridge <cartridge>`, both
+caused by `AccessDeniedException ... /.claude/.cc-writes`. Before every DBPrepare or server start run
+`find <cartridges>/src -type d -name .claude -prune` and `rmdir` the empty ones; edits through `sed` or a
+script do not create them.
+
 ## Ready-made files
 
 `templates/container/` in this repository implements all of the above: a `Dockerfile`, a

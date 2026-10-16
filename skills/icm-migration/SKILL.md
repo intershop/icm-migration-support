@@ -438,6 +438,72 @@ grep -n ':post\.' start.log | head -1        # must be greater than:
 grep -n 'Success: \[init\]init_<project>:Class' start.log | tail -1
 ```
 
+### Rerun single DBPrepare steps instead of the whole run
+
+A fresh DBPrepare of a large project takes hours. To retry only the steps you fixed, on the database
+you have:
+
+```powershell
+./gradlew.bat dbPrepare --mode=init --clean=no "--additional-parameter=--force-exec-id=my_init:post.Class93,my_init:post.Class264"
+```
+
+- `--mode=init` is mandatory. In `auto` or `migrate` mode on an existing database the init steps are
+  filtered out, and the run does nothing useful without saying so.
+- `--force-exec-id` takes `cartridge:key` (`cartridge:version:key` for migration steps), sets the
+  cartridge list itself and also runs steps already recorded as done, so include the successful
+  predecessors a fixed step depends on. `--exec-id` is the same without forcing. Matching is
+  case-insensitive (`DBPrepareOptions.containsExecByID`). The Gradle task's own `--property-keys` takes
+  keys without the cartridge.
+- Quote the whole argument in PowerShell: unquoted commas become an array.
+- An import whose mode is `INITIAL` does not change objects that already exist, so an ordering fix for
+  such an import only shows on a fresh database.
+
+**Insert a step without renumbering.** DBPrepare sorts the number in `ClassN` as a double
+(`PreparationPhase.parsePropertyKey`, up to the first `_`), so `post.Class246.01` to `.14` run between
+`post.Class246` and `post.Class247`. Moving a block of steps then needs no renumbering of the thousand
+after it.
+
+**Check whether the descriptors are generated.** A 7.10 project with thousands of numbered dbinit keys
+probably generates them from templates with a counter. Find the generator and change its templates
+too, or the next regeneration undoes every fix.
+
+### Registration in `Cartridge.onReadyHook()` comes too late for DBPrepare
+
+7.10 projects registered search index services in a cartridge class (`intershop.cartridges.<name>.classname`
+in `cartridges/<name>.properties`) with `SearchIndexServiceMgr.registerService(...)` in `onReadyHook()`.
+DBPrepare, and the embedded DBPrepare inside `startAS`, never reaches the ready hook, so the managed
+service definition does not exist yet: `ServiceConfigurationPreparer` warns `Could not find service
+definition by serviceID '<id>' and cartridgeID '<cartridge>'` and the `ServiceDomainAssignmentPreparer`
+after it fails with `Service '<id>' not found`.
+
+`bc_service`'s `ServiceMgrImpl` injects a `Set<ServiceInformation>` (`BcServiceNamingModule` declares the
+multibinder), so register the service in a module under `global.modules` instead:
+
+```java
+Provider<ServiceInformation> service = MySearchService::new;   // com.google.inject.Provider, plain new as before
+Multibinder.newSetBinder(binder(), ServiceInformation.class).addBinding().toProvider(service);
+```
+
+The registry keeps the last registration per service ID. A project service that **overrides** a platform
+one under the same ID (`SFProductSearch.solr`) relied on registering after the adapter; leave that one in
+the ready hook unless you know when the adapter registers its own.
+
+### Steps behind `PropertyCheckWrapper` skip silently
+
+`PropertyCheckWrapper <property> <value> <preparer> ...` runs the preparer only if the server
+configuration property equals the value, and logs nothing at all otherwise. 7.10 projects used it for
+per-environment data (`environment development`). If the value does not match what the ICM 11+ setup
+provides (`environment=dev` from `icm.properties`), the data is never created, and the failures show up
+much later as `Domain '<org>-<repo>-<app>' does not exist` in unrelated imports. The configuration reads
+Java system properties, so `ADDITIONAL_JVM_ARGUMENTS=-Denvironment=development` is a local workaround.
+Grep the descriptors for `PropertyCheckWrapper` before the first run and check each property.
+
+### Check for gaps before blaming a slow step
+
+The duration DBPrepare logs per step is wall-clock time. A developer laptop that slept during the run
+puts hours on whichever step was running. Before analysing a slow step, list the gaps between
+consecutive log timestamps; on the reference project four "slow" steps were 12.7 hours of sleep.
+
 ### Prefer migration-only descriptors
 
 Shipping both `dbinit.properties` and `migration-to-*.properties` means maintaining two paths, and
