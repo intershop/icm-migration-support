@@ -420,23 +420,30 @@ against the old assumption now runs before the data it needs exists. In one proj
 
 It is quiet: DBPrepare logs each failure, keeps going, and finishes with a summary. Nothing aborts.
 
-**Fix with the phase, never by reordering.** DBPrepare runs every `pre.` step across all cartridges,
-then every main step, then every `post.` step, so a `post.` step sees everything any main step
-created regardless of cartridge order:
+**Fix with cartridge dependencies, not with the phase.** DBPrepare sorts by phase (`pre.`, main,
+`post.`), then `@Priority`, then cartridge order, then the key number (`PreparerConfigComparators`).
+The phases have a meaning (`post.` is for clean-up), and moving a project's whole dbinit into `post.`
+diverges from its templates and from every other project. Instead, make the init cartridge depend on
+exactly the cartridges whose data its main-phase steps need, for example:
 
-```properties
-post.Class10 = com.intershop.component.service.dbinit.preparer.ServicePermissionPreparer \
-    com.acme.component.foo.prepare.FooServicePermission
+```kotlin
+cartridge("com.intershop.business:sld_enterprise_app")   // application type 20
+cartridge("com.intershop.business:init_operations")      // SLDSystem site
 ```
 
-Anything depending on domains, organizations, channels or sites belongs in `post.`. A
-`SiteContentPreparer` belongs in `pre.`. Confirm the phase boundary in the log before trusting it:
-the first `:post.` line must come after the last main-phase line of the init cartridge.
+Add only what is needed. On the reference project, adding `init_smc`, `init_contactcenter` and
+`init_b2b` as well pulled `init_b2b` before `init_operations` and broke its job configurations
+("Unknown domain: SLDSystem"). Check the result **before** a multi-hour run with a dry run, which
+lists every step in execution order without executing anything:
 
-```sh
-grep -n ':post\.' start.log | head -1        # must be greater than:
-grep -n 'Success: \[init\]init_<project>:Class' start.log | tail -1
+```powershell
+./gradlew.bat dbPrepare --clean=yes "--additional-parameter=--dry-run" > dbprepare_dry.log 2>&1
 ```
+
+The lines read `Dry-Run: [init]<cartridge>:<key> ...`; `RESOLVED CARTRIDGES` gives the cartridge
+order. The tool's options are in `pf_prepare/src/main/resources/com/intershop/tool/dbprepare/
+dbprepare.help.txt`; the Gradle task passes `--additional-parameter` through, and of two values for
+the same option the last one wins. A `SiteContentPreparer` belongs in `pre.`.
 
 ### Rerun single DBPrepare steps instead of the whole run
 
