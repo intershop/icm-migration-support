@@ -431,9 +431,15 @@ cartridge("com.intershop.business:sld_enterprise_app")   // application type 20
 cartridge("com.intershop.business:init_operations")      // SLDSystem site
 ```
 
-Add only what is needed. On the reference project, adding `init_smc`, `init_contactcenter` and
-`init_b2b` as well pulled `init_b2b` before `init_operations` and broke its job configurations
-("Unknown domain: SLDSystem"). Check the result **before** a multi-hour run with a dry run, which
+"Exactly" is found by evidence, not by guessing: after a run, list every non-project cartridge whose
+main-phase steps still run *after* the init cartridge, and read what they create. On the reference
+project the first two dependencies were not enough: `sld_ch_consumer_plugin` registers channel type 52
+(`ChannelTypePreparer`), ran after `ChannelPreparer`, and "Channel typecode='52' does not exist"
+skipped every channel, so every site-bound step after it failed. It took `sld_ch_base`,
+`sld_ch_consumer_plugin`, `sld_ch_partner_plugin`, `init_b2b`, `bc_costcenter_orm` and `bc_budget_orm`
+as well. An earlier attempt with `init_smc`, `init_contactcenter` and `init_b2b` pulled `init_b2b`
+before `init_operations` and broke its job configurations ("Unknown domain: SLDSystem"); the dry run
+shows whether the order holds. Check the result **before** a multi-hour run with a dry run, which
 lists every step in execution order without executing anything:
 
 ```powershell
@@ -444,6 +450,44 @@ The lines read `Dry-Run: [init]<cartridge>:<key> ...`; `RESOLVED CARTRIDGES` giv
 order. The tool's options are in `pf_prepare/src/main/resources/com/intershop/tool/dbprepare/
 dbprepare.help.txt`; the Gradle task passes `--additional-parameter` through, and of two values for
 the same option the last one wins. A `SiteContentPreparer` belongs in `pre.`.
+
+### An ordering dependency is also an application dependency
+
+A `cartridge(...)` dependency does more than order DBPrepare. **An application's cartridge list
+contains every dependency of every cartridge registered for it**: `CartridgeListProviderImpl`
+(`core/internal/app`) passes the registered names through
+`CartridgeMgr.getReversedDependentCartridgeNames(...)`. Pipelines, templates, ACLs and components of
+those dependencies are then part of that application, and the cartridge listed first wins per key.
+
+So the init cartridge's ordering dependencies are harmless only as long as **no cartridge registered
+in an application list depends on the init cartridge**. On the reference project one did:
+`my_ms_graph_service` (registered in `intershop.SLDSystem.Cartridges`) depended on the init cartridge
+to order four `Service*Preparer` steps. That pulled `sld_enterprise_app` into the system backoffice,
+its `ViewApplication=Enterprise:NONE` shadowed `sld_system_app`'s `Organization:NONE`, and the
+Operations admin got "The user does not have the permission to perform this operation" on
+`ViewApplication-DisplayWelcomePage`, right after a successful login. SMC kept working, which points
+away from the user and towards the application.
+
+Rules:
+
+- Never make a cartridge that is registered in an application list depend on the init cartridge (or on
+  anything that depends on a back-office application cartridge only for ordering).
+- After adding any dependency, compute the closure of each application list's registered cartridges
+  over the `build.gradle.kts` files and look for back-office application cartridges (`sld_*_app`,
+  `app_bo_*`, `as_backoffice*`, `init_*`) that the platform does not list there itself.
+- A step that needs data from the init cartridge belongs in the init cartridge. Move it: give the other
+  cartridge a `dbinit.properties` without steps and add the steps to the init cartridge's dbinit; the
+  init cartridge may depend on the other one, because it is in no application list. Keep the other
+  cartridge's `migration-to-*.properties` unchanged for existing databases.
+
+Two DBPrepare facts that make the move safe (`pf_prepare`): with a `dbinit.properties` present, a
+fresh database initializes the cartridge from it and not from `migration-to-*.properties`
+(`PreparerConfigComputerImpl`: only a cartridge with nothing but migration files runs them, in
+`init_migrate_only` mode); and `CartridgeInitializationMarker.markMigrationStepsDone()` stores the
+cartridge's migration steps as "done by first initialization", so a later migrate run skips them. On
+an existing database each step is tracked individually in `PREPARATIONSTEP`
+(`AlreadyExecutedPrepareConfigurationPredicate`): a new step runs once whatever its file version, and
+renaming a key makes it a new step.
 
 ### Rerun single DBPrepare steps instead of the whole run
 
