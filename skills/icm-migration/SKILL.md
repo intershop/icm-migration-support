@@ -1,6 +1,6 @@
 ---
 name: icm-migration
-description: Migrate an Intershop ICM customization project from 7.10 to ICM 11/12/13/14. Use when working on an ICM cartridge migration - converting build.gradle to build.gradle.kts, moving staticfiles into the ICM 11+ resource layout, reconstructing cartridge dependencies, splitting app-extension components into as_ cartridges, or running the icm-migration-support tool. Portable across projects.
+description: Migrate an Intershop ICM customization project from 7.10 to ICM 11/12/13/14. Use when working on an ICM cartridge migration - converting build.gradle to build.gradle.kts, moving staticfiles into the ICM 11+ resource layout, reconstructing cartridge dependencies, splitting app-extension components into as_ cartridges, or running the icm-migration-support tool. Portable across projects. This skill is about the project layout, the cartridge content and the ICM API; for the build toolchain itself - the Gradle version, the wrapper, Intershop plugin versions or Gradle deprecation warnings - use the icm-gradle9-migration skill instead.
 ---
 
 # ICM 7.10 to 14.x migration
@@ -342,6 +342,14 @@ silence, not a stack trace.** `references/verifying-the-migration.md` is the pla
 tiers in cost order, and the four questions to ask on day one. Its central assumption is that the old
 7.10 system is still running and is therefore an oracle you can diff against, which beats any assertion
 anyone would write by hand.
+
+**After the server runs, the build itself is the next migration.** ICM 12+ and the whole Intershop
+plugin chain moved to Gradle 9; a customization that still builds on Gradle 8 keeps working for now and
+breaks on Gradle 10. That is maintenance by the scope rule above, so it does not belong in Phases 1 to
+6 — but it is the first maintenance item worth picking up, because it is small (2 to 4 changed files on
+a standard customization) and the traps are where it looks migrated and is not. The playbook is the
+sibling skill `icm-gradle9-migration`, in this repository at
+`skills/icm-gradle9-migration/SKILL.md`.
 
 ### Add cartridges to application cartridge lists with Guice, not with component fulfillments
 
@@ -713,6 +721,7 @@ predicted gets reverted, not patched.
 | `references/cartridge-content-delivery.md` | **ours.** How configuration, sites content, preparers and class patches actually reach a running ICM 11+ server. Phase 2 and Phase 6 work |
 | `references/verifying-the-migration.md` | **ours.** What a green build does not prove, and the verification tiers that close the gap. Read before Phase 6, not after |
 | `references/agent-environment.md` | **ours.** What an agent needs mounted, installed and credentialed, graded by what its absence costs. Read before the first command |
+| `../icm-gradle9-migration/SKILL.md` | **ours.** Sibling playbook: Gradle 8 to Gradle 9 for the build itself. Not part of Phases 1 to 6 — the first maintenance item after the server runs |
 
 The first five of the vendor files are from `intershop/icm-migration-support` (Apache License 2.0);
 `fix-catalogue.md`, `cartridge-packages.txt` and `import-to-cartridge.md` from

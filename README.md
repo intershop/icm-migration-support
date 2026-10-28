@@ -13,6 +13,12 @@ A migration has two halves, and keeping them apart is the point of this reposito
   No step set covers these. That is the **`icm-migration` playbook**, which ships here so that it
   versions with the code it describes. It is markdown, not a product feature, so any agent can use it.
 
+A migrated project still has a Gradle 8 build, and ICM 12+ has moved to Gradle 9. That is the
+**`icm-gradle9-migration` playbook**, the second one shipped here: aligning Intershop plugin versions,
+bumping the wrapper, and removing the deprecated Gradle API usage so the build survives
+`--warning-mode fail` and is fit for Gradle 10. It is maintenance rather than migration, so it starts
+where the other one ends.
+
 The tool is built to be driven by an agent and checked by a person. Its output is JSON first and prose
 second, its exit codes distinguish every outcome, and it reports what it did **not** handle as well as
 what it did, because unrecognised content is where a migration's risk lives.
@@ -31,9 +37,9 @@ its absence actually costs. Read it before the first command: one item on it, th
 credential, decides whether the agent can build at all, and it is the difference between a migration
 measured in weeks and one measured in months.
 
-**2. Get the playbook.** How depends on the agent, because the content is the same either way.
+**2. Get the playbooks.** How depends on the agent, because the content is the same either way.
 
-- **Claude Code** installs it as a plugin, which keeps it updated:
+- **Claude Code** installs them as a plugin, which keeps them updated:
 
   ```sh
   claude plugin marketplace add intershop/icm-migration-support \
@@ -41,13 +47,15 @@ measured in weeks and one measured in months.
   claude plugin install icm-migration
   ```
 
-  The marketplace is read from this repository's **default branch**. If the playbook has not merged
-  there yet, name the branch that carries it, `intershop/icm-migration-support@<branch>`, otherwise the
-  add fails with `Marketplace file not found`.
+  One plugin, both skills. The marketplace is read from this repository's **default branch**. If the
+  playbook has not merged there yet, name the branch that carries it,
+  `intershop/icm-migration-support@<branch>`, otherwise the add fails with
+  `Marketplace file not found`.
 
-- **GitHub Copilot**, and any other agent, reads it as files. In the container this repository is
-  mounted, so start at **`/icm-migration-support/skills/icm-migration/SKILL.md`**, which links the rest.
-  Outside a container, clone this repository and read it from there.
+- **GitHub Copilot**, and any other agent, reads them as files. In the container this repository is
+  mounted, so start at **`/icm-migration-support/skills/icm-migration/SKILL.md`**, which links the
+  rest, or at **`/icm-migration-support/skills/icm-gradle9-migration/SKILL.md`** for the Gradle 9
+  work. Outside a container, clone this repository and read it from there.
 
 **3. Copy the starting kit** from `templates/` into the project being migrated, then follow the
 playbook. The kit includes an entry point for each agent: `AGENTS.md` holds the working agreements, and
@@ -57,6 +65,7 @@ depending on who is working.
 | | |
 |---|---|
 | [the playbook](skills/icm-migration/SKILL.md) | the whole sequence, the preflight, and twelve references |
+| [the Gradle 9 playbook](skills/icm-gradle9-migration/SKILL.md) | Gradle 8 to 9 for the build itself: plugin versions, the wrapper, the deprecation catalog |
 | [starting kit](templates/README.md) | what to copy into a project on day one |
 | [machine-readable interface](docs/agent-interface.md) | exit codes, the operation log, and `inventory` |
 | [7.10 to 11 steps](docs/migration-7.10-11.md) | what each automated step does, and its manual follow-up |
