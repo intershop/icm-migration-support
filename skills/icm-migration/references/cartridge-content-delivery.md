@@ -33,7 +33,20 @@ allow-list of "content that may stay under staticfiles" as unfinished business, 
 ## Configuration: `config/cluster` and `config/domains` need `configuration.xml`
 
 Properties under `config/` are inert until a `<set>` in that cartridge's `config/configuration.xml`
-names them. The two shapes, both taken from the platform's own files:
+names them, with one exception that cuts both ways: core's `configuration.xml` ends with a generic
+`<set finder="cartridge" scope="server,domain">` that walks `resources/<cartridge>/config/**`
+recursively for every cartridge in the **application's** cartridge list (which includes transitive
+dependencies), for files named `<name>.properties` or `${environment}_<name>.properties`. So a file
+can be live without a `<set>`, and a domain file under `config/domains/<Domain>/` is *also* loaded at
+server scope in such an application, where one domain's value (alphabetically first, as observed)
+answers for all. On one project this put one site's `SalesOrg` and every site's `intershop.WebServerURL`
+candidates into `intershop.System`. Keep domain files outside `config/` (for example
+`resources/<cartridge>/domainconfig/<Domain>/`); `resource` and `domain-resource` sets resolve any
+path under `resources/<cartridge>/`. Verify on the running server with the SMC REST resource
+`/INTERSHOP/rest/WFS/SMC/-/system/configurations/{scope}/details?key=` (lists every source per key)
+and `/system/applicationtypes` (cartridge list per application type).
+
+The two shapes, both taken from the platform's own files:
 
 ```xml
 <!-- cluster-scope, cf. platform/cache -->

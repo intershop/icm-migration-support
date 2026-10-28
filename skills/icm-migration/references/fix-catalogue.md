@@ -237,11 +237,12 @@ Read `[CARTRIDGE_PATH]/build.gradle.kts` and build a **dependency map**:
 |---------------------------------|------------|
 | `com.google.inject.*` | `implementation("com.google.inject:guice")` | 
 | `jakarta.inject.*` | `implementation("jakarta.inject:jakarta.inject-api")` |
+| `jakarta.annotation.*` / `@Generated`, `@PostConstruct` | `implementation("jakarta.annotation:jakarta.annotation-api")` |
 | `org.slf4j.*` / `Logger`, `LoggerFactory` | `implementation("org.slf4j:slf4j-api")` |
 | `org.apache.commons.lang3.*` / `StringUtils` | `implementation("org.apache.commons:commons-lang3")` |
 | `org.apache.commons.text.*` | `implementation("org.apache.commons:commons-text")` |
 | `com.google.guava.*` / `com.google.common.*` | `implementation("com.google.guava:guava")` |
-| `com.google.code.findbugs.*` / `@Nullable` | `implementation("com.google.code.findbugs:jsr305")` |
+| `javax.annotation.Nonnull`, `Nullable`, `CheckForNull` (JSR 305) | `implementation("com.google.code.findbugs:jsr305:<version>")`: the ICM 14.0.2 BOM gives it no version (`Could not find com.google.code.findbugs:jsr305:.`). Prefer `jakarta.annotation.Nullable`; drop the line if nothing imports it |
 | `org.junit.*` / `@Test` | `testImplementation("junit:junit")` |
 | `org.junit.jupiter.api.*` | `testImplementation("org.junit.jupiter:junit-jupiter-api")` |
 | `org.mockito.*` / `@Mock`, `Mockito.*` | `testImplementation("org.mockito:mockito-core")` |
