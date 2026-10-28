@@ -15,12 +15,14 @@ FROM eclipse-temurin:21-jdk-alpine
 # unzip     Kotlin, and inspecting jars in the Gradle cache
 # jq        reading the migration tool's operations.jsonl
 # ripgrep   fast search over a large read-only sources mount
+# bubblewrap the OS-level sandbox Claude Code runs Bash commands in on Linux
+# socat     the sandbox's bridge from the isolated network namespace to its filtering proxy
 # python3   the migration tooling: inventory, the rename corpus, the duplicate-key scanner,
 #           the ICM HTTP client. All but one use only the standard library.
 # py3-yaml  the single third-party Python dependency, from the distro rather than pip so that
 #           PEP 668 does not force --break-system-packages
 RUN apk add --no-cache \
-        bash git openssh-client curl unzip jq ripgrep \
+        bash git openssh-client curl unzip jq ripgrep bubblewrap socat \
         nodejs npm \
         python3 py3-pip py3-yaml
 
