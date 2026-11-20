@@ -75,6 +75,13 @@ The highest-leverage practice in the whole playbook, for the reasons in
 it occasionally misdiagnoses outright. Intershop always has these and partners usually do, handed over
 as a plain file tree, so this is an ask rather than a build. Match the version to the target release.
 
+**Put the tree on a Linux file system.** Mounted from a Windows drive (9p), one recursive grep took
+over 2 minutes and the agent learned to avoid the searches it most needed. Either mount it from the
+WSL file system, or copy it once into container-local storage, without `build/`, `bin/` and
+`node_modules/`: 1 GB and 32,000 `.java` files, after which the same grep takes 5 s. The same holds for
+the project itself, with one difference: the project must not be copied, because it is edited and
+built. Move it into the WSL file system and mount it from there; Gradle then runs in the container.
+
 ### 3. The Gradle cache, read-WRITE, in its own directory
 
 ```yaml
@@ -193,6 +200,16 @@ or the agent works from the compiler alone for exactly the deltas where that is 
 - **An IDE, a desktop, or anything graphical.** All of it is files, a compiler and HTTP.
 - **Sources for the intermediate releases.** On the direct route, 7.10 and the target are the only two
   versions that matter.
+
+## A trap of the agent's own tooling: `.claude/.cc-writes` in the sources
+
+Claude Code's file edit tool can leave empty, root-owned `.claude/.cc-writes` folders (mode `drwx------`)
+next to the files it edited. A container that mounts the cartridge sources cannot read them, and ICM's
+resource traversal aborts: `SiteContentPreparer` fails with `Unable to compute site content for resource
+path <cartridge>`, a user import with `Unable to compute configuration from cartridge <cartridge>`, both
+caused by `AccessDeniedException ... /.claude/.cc-writes`. Before every DBPrepare or server start run
+`find <cartridges>/src -type d -name .claude -prune` and `rmdir` the empty ones; edits through `sed` or a
+script do not create them.
 
 ## Ready-made files
 

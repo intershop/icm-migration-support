@@ -32,8 +32,14 @@ allow-list of "content that may stay under staticfiles" as unfinished business, 
 
 ## Configuration: `config/cluster` and `config/domains` need `configuration.xml`
 
-Properties under `config/` are inert until a `<set>` in that cartridge's `config/configuration.xml`
-names them. The two shapes, both taken from the platform's own files:
+Properties under `config/cluster/`, `config/domains/` and other directories in `config/` are ignored until a `<set>` in that cartridge's `config/configuration.xml`
+names them. Exception: All properties files located directly in directory `config` are available in all **applications** where the cartridge is in the cartridge list (directly or indirectly), to be used as application-specific properties. So a file
+can be live without a `<set>`; `resource` and `domain-resource` sets resolve any
+path under `resources/<cartridge>/`. Verify on the running server with the SMC REST resource
+`/INTERSHOP/rest/WFS/SMC/-/system/configurations/{scope}/details?key=` (lists every source per key)
+and `/system/applicationtypes` (cartridge list per application type).
+
+The two shapes, both taken from the platform's own files:
 
 ```xml
 <!-- cluster-scope, cf. platform/cache -->

@@ -16,3 +16,5 @@ options:
     com.intershop.business:app_sf_rest_b2c_test: com.intershop.business:app_sf_rest_customer_test
     com.intershop.business:app_sf_rest_smb: com.intershop.business:app_sf_rest_customer
     com.intershop.business:app_sf_rest_smb_test: com.intershop.business:app_sf_rest_customer_test
+    com.intershop.platform:dev_query: com.intershop.platform:pf_query_testextension
+    com.intershop.content:pmc_rest: com.intershop.content:app_sf_rest_pmc

@@ -351,6 +351,69 @@ a standard customization) and the traps are where it looks migrated and is not. 
 sibling skill `icm-gradle9-migration`, in this repository at
 `skills/icm-gradle9-migration/SKILL.md`.
 
+### Add cartridges to application cartridge lists with Guice, not with component fulfillments
+
+7.10 cartridges joined an application type with `<fulfill requirement="selectedCartridge"
+of="intershop.B2CResponsive.Cartridges" value="my_cartridge"/>`. In ICM 14 a component file can only
+reference instances declared in cartridges on its own dependency list, and the cartridge declaring a
+storefront list (`as_responsive`) usually cannot be a dependency without a cycle. startAS then fails
+with `Can't find declaration of instance 'intershop.B2CResponsive.Cartridges' for adding fulfillments
+in context '<cartridge>'`, and only the first offender is reported. Intershop's own `ac_gtm` has that
+fulfillment commented out.
+
+Convert **every** such fulfillment in one sweep, not only the reported one. One module per cartridge,
+the platform's own pattern (`CoreTestListModule`):
+
+```java
+public class My_cartridgeCartridgeListModule extends CartridgeListModule   // com.intershop.beehive.core.capi.app
+{
+    @Override
+    protected void configure()
+    {
+        addCartridge("intershop.B2CResponsive.Cartridges", "my_cartridge");
+    }
+}
+```
+
+Register it in `objectgraph/objectgraph.properties` under `global.modules` (add that key if the file
+only has `global.overrideModules`), and give the cartridge `core` and `guice` dependencies.
+`CartridgeListProviderImpl` merges the Guice set into the named list. Keep the `<instance>`
+declarations of the lists themselves. Then check every name in every list: outside test mode a
+cartridge that does not exist throws `IllegalArgumentException` at startup (7.10 leftovers such as
+`pmc_rest`, now `app_sf_rest_pmc`, `pf_axis2` and `ac_inventory_service`).
+
+### Check every component reference against its declaring cartridge before a server start
+
+The same visibility rule applies to every `of=` and `with=` in a component file. A server start takes
+long and reports only the first `Can't find declaration of instance '<name>' ... in context
+'<cartridge>'`, so sweep statically first: collect the instance names declared in `/icm-as` (including
+`/icm-as/b2b`, read from `src`, not `bin` or `build`) and in the project, then list each reference whose
+declaring cartridge is not on the referencing cartridge's dependency list, or that is not declared at all.
+Fix by adding the declaring cartridge as a `cartridge(...)` dependency, as Intershop's `as_headless` does
+("access intershop.REST in component files"):
+
+| Instance | Declared in (ICM 14) |
+|---|---|
+| `intershop.REST` (headless REST app) | `app_sf_headless` |
+| `intershop.WebShop.RESTAPI` and its resources | `app_sf_rest` (B2B resources: `app_sf_rest_b2b*`) |
+| `intershop.B2CBackoffice.ApplicationTypes` | `sld_ch_consumer_plugin` |
+
+**The `intershop.B2BWebShop.RESTAPI.*` instances are gone.** 7.10's separate B2B REST API was merged
+into the WebShop one: `app_sf_rest_b2b` and the punchout cartridges register under
+`intershop.WebShop.RESTAPI.*` (`root`, `AuthorizationService`, `CustomerItemUserItemResource`,
+`PunchoutHandler`, `QuoteHandler`, `SMBCustomerHandler`, `CXMLPunchoutSetupRequestResource.v2`, ...).
+Rename `"intershop.B2BWebShop.RESTAPI` to `"intershop.WebShop.RESTAPI` in `of=`, `with=` and in
+redeclared names (anchored on the quote, so project names like `CC_intershop.B2BWebShop...` stay), and
+check that each renamed name is declared in ICM 14. A project redeclaring one of these names
+(`<instance name="intershop.WebShop.RESTAPI.QuoteHandler" with="CC_QuoteHandler"/>`) replaces Intershop's
+instance only if it depends on the declaring cartridge, so that it loads later.
+
+Check `with=` too: the validator fails with `Can't find instance '<name>' to fulfill requirement ...`
+for names that are declared nowhere (collect `instance`, `implementation` and `contract` names). 7.10
+leftovers seen: `intershop.DemoCartridges` (`subProvider` of the storefront cartridge lists, drop it),
+`intershop.B2CWebShop.RESTAPI` (now `intershop.WebShop.RESTAPI`), and `CXMLSetupRequestHandlerImpl.v2`
+(a Guice binding in ICM 14, `BcPunchoutCXMLModule`: drop the `<requires>` and `<fulfill>` and inject it).
+
 ### Cartridge order is derived now, so "the init cartridge ran first" is false
 
 Expect a wave of DBPrepare failures that all say some domain, organization or channel does not
@@ -365,23 +428,140 @@ against the old assumption now runs before the data it needs exists. In one proj
 
 It is quiet: DBPrepare logs each failure, keeps going, and finishes with a summary. Nothing aborts.
 
-**Fix with the phase, never by reordering.** DBPrepare runs every `pre.` step across all cartridges,
-then every main step, then every `post.` step, so a `post.` step sees everything any main step
-created regardless of cartridge order:
+**Fix with cartridge dependencies, not with the phase.** DBPrepare sorts by phase (`pre.`, main,
+`post.`), then `@Priority`, then cartridge order, then the key number (`PreparerConfigComparators`).
+The phases have a meaning (`post.` is for clean-up), and moving a project's whole dbinit into `post.`
+diverges from its templates and from every other project. Instead, make the init cartridge depend on
+exactly the cartridges whose data its main-phase steps need, for example:
 
-```properties
-post.Class10 = com.intershop.component.service.dbinit.preparer.ServicePermissionPreparer \
-    com.acme.component.foo.prepare.FooServicePermission
+```kotlin
+cartridge("com.intershop.business:sld_enterprise_app")   // application type 20
+cartridge("com.intershop.business:init_operations")      // SLDSystem site
 ```
 
-Anything depending on domains, organizations, channels or sites belongs in `post.`. A
-`SiteContentPreparer` belongs in `pre.`. Confirm the phase boundary in the log before trusting it:
-the first `:post.` line must come after the last main-phase line of the init cartridge.
+"Exactly" is found by evidence, not by guessing: after a run, list every non-project cartridge whose
+main-phase steps still run *after* the init cartridge, and read what they create. On the reference
+project the first two dependencies were not enough: `sld_ch_consumer_plugin` registers channel type 52
+(`ChannelTypePreparer`), ran after `ChannelPreparer`, and "Channel typecode='52' does not exist"
+skipped every channel, so every site-bound step after it failed. It took `sld_ch_base`,
+`sld_ch_consumer_plugin`, `sld_ch_partner_plugin`, `init_b2b`, `bc_costcenter_orm` and `bc_budget_orm`
+as well. An earlier attempt with `init_smc`, `init_contactcenter` and `init_b2b` pulled `init_b2b`
+before `init_operations` and broke its job configurations ("Unknown domain: SLDSystem"); the dry run
+shows whether the order holds. Check the result **before** a multi-hour run with a dry run, which
+lists every step in execution order without executing anything:
 
-```sh
-grep -n ':post\.' start.log | head -1        # must be greater than:
-grep -n 'Success: \[init\]init_<project>:Class' start.log | tail -1
+```powershell
+./gradlew.bat dbPrepare --clean=yes "--additional-parameter=--dry-run" > dbprepare_dry.log 2>&1
 ```
+
+The lines read `Dry-Run: [init]<cartridge>:<key> ...`; `RESOLVED CARTRIDGES` gives the cartridge
+order. The tool's options are in `pf_prepare/src/main/resources/com/intershop/tool/dbprepare/
+dbprepare.help.txt`; the Gradle task passes `--additional-parameter` through, and of two values for
+the same option the last one wins. A `SiteContentPreparer` belongs in `pre.`.
+
+### An ordering dependency is also an application dependency
+
+A `cartridge(...)` dependency does more than order DBPrepare. **An application's cartridge list
+contains every dependency of every cartridge registered for it**: `CartridgeListProviderImpl`
+(`core/internal/app`) passes the registered names through
+`CartridgeMgr.getReversedDependentCartridgeNames(...)`. Pipelines, templates, ACLs and components of
+those dependencies are then part of that application, and the cartridge listed first wins per key.
+
+So the init cartridge's ordering dependencies are harmless only as long as **no cartridge registered
+in an application list depends on the init cartridge**. On the reference project one did:
+`my_ms_graph_service` (registered in `intershop.SLDSystem.Cartridges`) depended on the init cartridge
+to order four `Service*Preparer` steps. That pulled `sld_enterprise_app` into the system backoffice,
+its `ViewApplication=Enterprise:NONE` shadowed `sld_system_app`'s `Organization:NONE`, and the
+Operations admin got "The user does not have the permission to perform this operation" on
+`ViewApplication-DisplayWelcomePage`, right after a successful login. SMC kept working, which points
+away from the user and towards the application.
+
+Rules:
+
+- Never make a cartridge that is registered in an application list depend on the init cartridge (or on
+  anything that depends on a back-office application cartridge only for ordering).
+- After adding any dependency, compute the closure of each application list's registered cartridges
+  over the `build.gradle.kts` files and look for back-office application cartridges (`sld_*_app`,
+  `app_bo_*`, `as_backoffice*`, `init_*`) that the platform does not list there itself.
+- A step that needs data from the init cartridge belongs in the init cartridge. Move it: give the other
+  cartridge a `dbinit.properties` without steps and add the steps to the init cartridge's dbinit; the
+  init cartridge may depend on the other one, because it is in no application list. Keep the other
+  cartridge's `migration-to-*.properties` unchanged for existing databases.
+
+Two DBPrepare facts that make the move safe (`pf_prepare`): with a `dbinit.properties` present, a
+fresh database initializes the cartridge from it and not from `migration-to-*.properties`
+(`PreparerConfigComputerImpl`: only a cartridge with nothing but migration files runs them, in
+`init_migrate_only` mode); and `CartridgeInitializationMarker.markMigrationStepsDone()` stores the
+cartridge's migration steps as "done by first initialization", so a later migrate run skips them. On
+an existing database each step is tracked individually in `PREPARATIONSTEP`
+(`AlreadyExecutedPrepareConfigurationPredicate`): a new step runs once whatever its file version, and
+renaming a key makes it a new step.
+
+### Rerun single DBPrepare steps instead of the whole run
+
+A fresh DBPrepare of a large project takes hours. To retry only the steps you fixed, on the database
+you have:
+
+```powershell
+./gradlew.bat dbPrepare --mode=init --clean=no "--additional-parameter=--force-exec-id=my_init:post.Class93,my_init:post.Class264"
+```
+
+- `--mode=init` is mandatory. In `auto` or `migrate` mode on an existing database the init steps are
+  filtered out, and the run does nothing useful without saying so.
+- `--force-exec-id` takes `cartridge:key` (`cartridge:version:key` for migration steps), sets the
+  cartridge list itself and also runs steps already recorded as done, so include the successful
+  predecessors a fixed step depends on. `--exec-id` is the same without forcing. Matching is
+  case-insensitive (`DBPrepareOptions.containsExecByID`). The Gradle task's own `--property-keys` takes
+  keys without the cartridge.
+- Quote the whole argument in PowerShell: unquoted commas become an array.
+- An import whose mode is `INITIAL` does not change objects that already exist, so an ordering fix for
+  such an import only shows on a fresh database.
+
+**Insert a step without renumbering.** DBPrepare sorts the number in `ClassN` as a double
+(`PreparationPhase.parsePropertyKey`, up to the first `_`), so `post.Class246.01` to `.14` run between
+`post.Class246` and `post.Class247`. Moving a block of steps then needs no renumbering of the thousand
+after it.
+
+**Check whether the descriptors are generated.** A 7.10 project with thousands of numbered dbinit keys
+probably generates them from templates with a counter. Find the generator and change its templates
+too, or the next regeneration undoes every fix.
+
+### Registration in `Cartridge.onReadyHook()` comes too late for DBPrepare
+
+7.10 projects registered search index services in a cartridge class (`intershop.cartridges.<name>.classname`
+in `cartridges/<name>.properties`) with `SearchIndexServiceMgr.registerService(...)` in `onReadyHook()`.
+DBPrepare, and the embedded DBPrepare inside `startAS`, never reaches the ready hook, so the managed
+service definition does not exist yet: `ServiceConfigurationPreparer` warns `Could not find service
+definition by serviceID '<id>' and cartridgeID '<cartridge>'` and the `ServiceDomainAssignmentPreparer`
+after it fails with `Service '<id>' not found`.
+
+`bc_service`'s `ServiceMgrImpl` injects a `Set<ServiceInformation>` (`BcServiceNamingModule` declares the
+multibinder), so register the service in a module under `global.modules` instead:
+
+```java
+Provider<ServiceInformation> service = MySearchService::new;   // com.google.inject.Provider, plain new as before
+Multibinder.newSetBinder(binder(), ServiceInformation.class).addBinding().toProvider(service);
+```
+
+The registry keeps the last registration per service ID. A project service that **overrides** a platform
+one under the same ID (`SFProductSearch.solr`) relied on registering after the adapter; leave that one in
+the ready hook unless you know when the adapter registers its own.
+
+### Steps behind `PropertyCheckWrapper` skip silently
+
+`PropertyCheckWrapper <property> <value> <preparer> ...` runs the preparer only if the server
+configuration property equals the value, and logs nothing at all otherwise. 7.10 projects used it for
+per-environment data (`environment development`). If the value does not match what the ICM 11+ setup
+provides (`environment=dev` from `icm.properties`), the data is never created, and the failures show up
+much later as `Domain '<org>-<repo>-<app>' does not exist` in unrelated imports. The configuration reads
+Java system properties, so `ADDITIONAL_JVM_ARGUMENTS=-Denvironment=development` is a local workaround.
+Grep the descriptors for `PropertyCheckWrapper` before the first run and check each property.
+
+### Check for gaps before blaming a slow step
+
+The duration DBPrepare logs per step is wall-clock time. A developer laptop that slept during the run
+puts hours on whichever step was running. Before analysing a slow step, list the gaps between
+consecutive log timestamps; on the reference project four "slow" steps were 12.7 hours of sleep.
 
 ### Prefer migration-only descriptors
 
@@ -440,6 +620,51 @@ Then climb the Gradle ladder in order, never skipping a rung: `projects`, `tasks
 `compileJava --continue`, `compileTestJava --continue`,
 `:ft_production:dependencies --configuration cartridgeRuntime`, `test`, `build`, DBPrepare and server
 start.
+
+**Check the Kotlin conversion before the first rung, not with it.** The converter of step 070 reports
+success on scripts that do not compile, and it is silent about what it has no rule for: `task x { }`,
+`new`, `clean.doFirst`, top-level task blocks such as `test { }`, and paren-less calls such as
+`into "dir"` or `rename "a", "b"`. Earlier steps can already have damaged a script (a dropped closing
+quote after `version: '1.3.5`, a second `plugins { }` block). Grep every `.kts` for those shapes and for
+lines with an odd number of quotes, with a positive control, and treat a hit as a defect to fix and
+report upstream.
+
+**Rung 1 shows one broken script per run.** Kotlin build scripts compile per project during
+configuration, so `gradlew projects` stops at the first failing one. When it fails, classify the error,
+sweep the whole repository for that shape, fix every hit, and only then rerun; on a slow mount one run
+costs minutes. Pass `--no-scan` wherever build-scan publishing is unwanted or blocked.
+
+**`--continue` does not compile everything.** A project whose dependency failed is skipped, not
+reported. Count the `compileJava` tasks that actually ran against the number of projects; on one 7.10
+project only 23 of 67 ran on the first pass. Fix dependency gaps for all projects from their imports in
+one sweep (see `references/fix-catalogue.md`) rather than one rung run at a time.
+
+**Expect the injection libraries to be missing.** 7.10 put Guice, `javax.inject` and the annotation API
+on the compile classpath transitively; ICM 14 platform cartridges declare `com.google.inject:guice`,
+`jakarta.inject:jakarta.inject-api` and `jakarta.annotation:jakarta.annotation-api` themselves, without
+versions. Do the same per importing project. `cannot access X` with `class file for X not found` is the
+same family: an API you call exposes `X` from a cartridge you do not depend on (for example
+`RestException` and the `orm` cartridge's `OCAException`), so add that cartridge.
+
+**Look every compile error up in `references/icm-14-api-deltas.md` before researching it.** On the
+project behind the table's latest rows, two errors that were already documented there were researched
+again from the platform sources, because nobody looked at the table first. Grep it for the package or
+class name from the error; a hit saves the platform search.
+
+**Sweep by error class, not by failing project.** One run shows only the projects whose dependencies
+compiled. When a class of error appears (a missing library, a moved package), grep the whole
+repository for the shape that causes it and fix every hit before the next run. On one project
+`org.slf4j.Marker` failed in 5 projects and 29 needed `slf4j-api`. Fixing only the 5 would have cost
+four more runs.
+
+**Split the work by speed.** If the repository sits on a Windows drive mounted into the container
+(9p, as under Docker Desktop with WSL 2), measure before choosing: there, `gradlew projects` took 2 to
+4.5 min in the container against seconds on the host, a `git status` about 2 min, and copying 1 GB of
+platform sources 1 h 46 min. What worked: the developer runs `gradlew.bat ... --continue --no-scan >
+compile-all-<N>.log 2>&1` on the host, the agent reads the log, sweeps, commits, and names the next log
+file. Copy the platform sources once into container-local storage (`/tmp` on the overlay) and search
+the copy: the same `grep -r` dropped from over 2 min to 5 s. The copy is read-only reference, so it
+cannot drift. Never keep a second copy of the project itself, which is edited and built in two places.
 
 **Do not use `--configuration cartridge` for that rung.** It is not resolvable standalone: project
 dependencies resolve, external coordinates get no version, and a perfectly healthy cartridge reports

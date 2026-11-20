@@ -4,3 +4,4 @@ message: "refactor: remove obsolete dependencies in build.gradle"
 options:
   dependencies:
   - com.intershop.business:ac_inventory_service
+  - com.google.inject.extensions:guice-multibindings
