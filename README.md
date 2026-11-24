@@ -19,6 +19,10 @@ bumping the wrapper, and removing the deprecated Gradle API usage so the build s
 `--warning-mode fail` and is fit for Gradle 10. It is maintenance rather than migration, so it starts
 where the other one ends.
 
+ICM 15 builds and runs on JDK 25. That is the **`icm-jdk25-migration` playbook**, the third one: the
+toolchain, pipelines and bytecode tools, the order in which dependent projects can switch, and the JDK
+behavior changes that compile fine and only fail at runtime. It builds on the Gradle 9 playbook.
+
 The tool is built to be driven by an agent and checked by a person. Its output is JSON first and prose
 second, its exit codes distinguish every outcome, and it reports what it did **not** handle as well as
 what it did, because unrecognised content is where a migration's risk lives.
@@ -55,7 +59,7 @@ measured in weeks and one measured in months.
 - **GitHub Copilot**, and any other agent, reads them as files. In the container this repository is
   mounted, so start at **`/icm-migration-support/skills/icm-migration/SKILL.md`**, which links the
   rest, or at **`/icm-migration-support/skills/icm-gradle9-migration/SKILL.md`** for the Gradle 9
-  work. Outside a container, clone this repository and read it from there.
+  work and **`/icm-migration-support/skills/icm-jdk25-migration/SKILL.md`** for JDK 25. Outside a container, clone this repository and read it from there.
 
 **3. Copy the starting kit** from `templates/` into the project being migrated, then follow the
 playbook. The kit includes an entry point for each agent: `AGENTS.md` holds the working agreements, and
@@ -66,6 +70,7 @@ depending on who is working.
 |---|---|
 | [the playbook](skills/icm-migration/SKILL.md) | the whole sequence, the preflight, and twelve references |
 | [the Gradle 9 playbook](skills/icm-gradle9-migration/SKILL.md) | Gradle 8 to 9 for the build itself: plugin versions, the wrapper, the deprecation catalog |
+| [the JDK 25 playbook](skills/icm-jdk25-migration/SKILL.md) | JDK 21 to 25: toolchain, pipelines, project order, runtime behavior changes |
 | [starting kit](templates/README.md) | what to copy into a project on day one |
 | [machine-readable interface](docs/agent-interface.md) | exit codes, the operation log, and `inventory` |
 | [7.10 to 11 steps](docs/migration-7.10-11.md) | what each automated step does, and its manual follow-up |
