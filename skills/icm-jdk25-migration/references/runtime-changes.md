@@ -15,6 +15,7 @@ Contents:
 - [R7 - Guice: `sun.misc.Unsafe` and AOP](#r7---guice-sunmiscunsafe-and-aop)
 - [R8 - runtime compilers: ECJ, Jasper, Drools](#r8---runtime-compilers-ecj-jasper-drools)
 - [R9 - Javadoc rejects unknown tags](#r9---javadoc-rejects-unknown-tags)
+- [R10 - XSLT extension functions are disabled](#r10---xslt-extension-functions-are-disabled)
 
 ## R1 - non-local `file:` URLs are rejected
 
@@ -143,3 +144,34 @@ or on a started server.
 generator tags, ...) even with `-Xdoclint:none`. With `-Werror` that fails the build. Register the tags
 - JDK convention tags with a heading (`opt.tags("apiNote:a:API Note:")`), generator tags hidden (`opt.tags("generated:X")`) - or drop `-Werror` for Javadoc. The standard customizations use
 `-Xdoclint:none` without `-Werror` and only get warnings.
+
+## R10 - XSLT extension functions are disabled
+
+**Observed (icm-solrcloud, icm-responsive build).** Since JDK 24
+([JDK-8343002](https://bugs.openjdk.org/browse/JDK-8343002)) `jdk.xml.enableExtensionFunctions` defaults to
+`false`. Stylesheets using extensions such as Xalan's `redirect` fail with `Use of the extension element
+'redirect' is not allowed when extension functions are disabled by the secure processing feature`.
+
+In ICM customizations this hits `ishUnitTestReport`: `icm-docker-plugin` (8.0.0 and 9.0.1) renders the HTML
+report with Ant's `junitreport` from `org.apache.ant:ant-junit:1.9.7`. The ISH unit tests themselves pass and their
+results are published - only the report task fails the build. Newer Ant (1.10.17, bundled with Gradle 9.7)
+works; use the version matching Gradle's Ant:
+
+```kotlin
+configurations.matching { it.name == "junitXmlToHtml" }.configureEach {
+    resolutionStrategy.force("org.apache.ant:ant-junit:${org.apache.tools.ant.Main.getShortAntVersion()}")
+}
+```
+
+Quick local check without a server: put any JUnit XML into `build/ishunitrunner/output/x/` and run
+`gradlew ishUnitTestReport -x startWaitingAs -x <cartridge>ISHUnitTest`.
+
+For your own XSLT code, enable extension functions only for trusted stylesheets, on that factory and not
+globally:
+`factory.setFeature("http://www.oracle.com/xml/jaxp/properties/enableExtensionFunctions", true)`. Do not switch off
+`FEATURE_SECURE_PROCESSING` for this - it also removes the XML processing limits.
+
+```shell
+git grep -n -E "xmlns:(redirect|xalan|exslt)|TransformerFactory|junitreport"
+```
+

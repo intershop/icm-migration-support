@@ -14,6 +14,7 @@ Match the message, then read the cause - several look alike but have opposite fi
 | `Liveness probe failed`, `curl: not found`, restart after ~30 s | Kubernetes | base image without `curl` | R5 |
 | `WARNING: sun.misc.Unsafe::staticFieldBase ... terminally deprecated` | startup log | Guice bytecode generation | R7 |
 | `[Guice/AopDisabled]` | injector creation | `bindInterceptor` with bytecode generation disabled | R7 |
+| `Use of the extension element 'redirect' is not allowed` | `ishUnitTestReport` | old `ant-junit` in icm-docker-plugin, XSLT extensions off since JDK 24 | R10 |
 | `Cannot find a Java installation ... languageVersion=25` | Gradle, CI | `installations.fromEnv` still lists `JAVA_HOME_21_X64` | SKILL step 3 |
 | assertion `java.version ... startsWith("25")` fails in `buildSrc` | Gradle, local | daemon runs on JDK 21 | see "Local environment" |
 
